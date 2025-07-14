@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, LogOut, BookOpen, Clock, Users } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // Tipos de datos
 interface MateriaPlanEstudio {
@@ -347,10 +348,13 @@ export default function PlanesEstudioPage() {
               </Link>
               <h1 className="text-2xl font-bold text-gray-900">Planes de Estudio</h1>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // Tipos de datos
 interface MateriaPlanEstudio {
@@ -312,10 +313,13 @@ export default function MisCarrerasPage() {
               </Link>
               <h1 className="text-2xl font-bold text-gray-900">Mis Carreras</h1>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -568,6 +572,13 @@ export default function MisCarrerasPage() {
                         )}
                       </div>
                     )}
+                    {/* Botón Ver Detalles */}
+                    <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+                      <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
+                        <BookOpen className="h-3 w-3 mr-1" />
+                        Ver Detalles
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               )

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, LogOut, Clock, BookOpen, Trophy } from "lucide-react"
+import { Search, LogOut, Clock, BookOpen, Trophy, GraduationCap } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // Datos de ejemplo
 const materias = [
@@ -98,11 +99,20 @@ export default function MateriasPage() {
                   Mis Carreras
                 </Button>
               </Link>
+              <Link href="/materias-en-curso">
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Materias En Curso
+                </Button>
+              </Link>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
