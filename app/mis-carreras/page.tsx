@@ -232,18 +232,11 @@ export default function MisCarrerasPage() {
   }
 
   const getEstadoBadge = (estado: EstadoMateria) => {
-    const variants = {
-      Pendiente: "secondary",
-      Cursando: "default",
-      "En Final": "destructive",
-      Aprobada: "default",
-    } as const
-
     const colors = {
-      Pendiente: "bg-gray-100 text-gray-800",
-      Cursando: "bg-blue-100 text-blue-800",
-      "En Final": "bg-yellow-100 text-yellow-800",
-      Aprobada: "bg-green-100 text-green-800",
+      Pendiente: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+      Cursando: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      "En Final": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      Aprobada: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     }
 
     return (
@@ -300,9 +293,9 @@ export default function MisCarrerasPage() {
   const estadisticas = getEstadisticas()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
@@ -311,7 +304,7 @@ export default function MisCarrerasPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Mis Carreras</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mis Carreras</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -334,7 +327,10 @@ export default function MisCarrerasPage() {
           <CardContent>
             <div className="flex gap-4 items-end">
               <div className="flex-1 max-w-md">
-                <label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="plan-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Plan de Estudio
                 </label>
                 <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
@@ -370,26 +366,26 @@ export default function MisCarrerasPage() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center mb-4">
                 <div>
                   <div className="text-2xl font-bold text-green-600">{estadisticas.aprobadas}</div>
-                  <div className="text-sm text-gray-600">Aprobadas</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Aprobadas</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-blue-600">{estadisticas.cursando}</div>
-                  <div className="text-sm text-gray-600">Cursando</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Cursando</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-yellow-600">{estadisticas.enFinal}</div>
-                  <div className="text-sm text-gray-600">En Final</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">En Final</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-gray-600">{estadisticas.pendientes}</div>
-                  <div className="text-sm text-gray-600">Pendientes</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pendientes</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-600">{estadisticas.progreso}%</div>
-                  <div className="text-sm text-gray-600">Completado</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Completado</div>
                 </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-green-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${estadisticas.progreso}%` }}
@@ -500,7 +496,7 @@ export default function MisCarrerasPage() {
         )}
 
         {planConsultado && (
-          <div className="mb-4 text-sm text-gray-600">
+          <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Mostrando {materiasFiltradas.length} de {planConsultado.materias.length} materias
           </div>
         )}
@@ -547,7 +543,7 @@ export default function MisCarrerasPage() {
                   <CardContent className="pt-0">
                     {/* Información adicional del estado */}
                     {estadoMateria && (
-                      <div className="text-xs text-gray-600 space-y-1">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                         {estadoMateria.nota && (
                           <div>
                             Nota: {estadoMateria.nota} ({estadoMateria.tipoNota})
@@ -591,8 +587,8 @@ export default function MisCarrerasPage() {
           <Card>
             <CardContent className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona tu Plan de Estudio</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Selecciona tu Plan de Estudio</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Elige tu plan de estudio para comenzar a gestionar el progreso de tus materias.
               </p>
             </CardContent>

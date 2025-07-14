@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, AlertCircle, Plus, GraduationCap } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // Tipos de datos (reutilizando los mismos)
 interface MateriaPlanEstudio {
@@ -228,10 +229,10 @@ export default function MateriasEnCursoPage() {
 
   const getEstadoBadge = (estado: EstadoMateria) => {
     const colors = {
-      Pendiente: "bg-gray-100 text-gray-800",
-      Cursando: "bg-blue-100 text-blue-800",
-      "En Final": "bg-yellow-100 text-yellow-800",
-      Aprobada: "bg-green-100 text-green-800",
+      Pendiente: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+      Cursando: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      "En Final": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      Aprobada: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     }
 
     return (
@@ -274,10 +275,13 @@ export default function MateriasEnCursoPage() {
               </Link>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Materias En Curso</h1>
             </div>
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-              <LogOut className="h-4 w-4" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -391,6 +395,13 @@ export default function MateriasEnCursoPage() {
                                 </div>
                               )}
                             </div>
+                            {/* Botón Ver Detalles */}
+                            <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+                              <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
+                                <BookOpen className="h-3 w-3 mr-1" />
+                                Ver Detalles
+                              </Button>
+                            </Link>
                           </CardContent>
                         </Card>
                       ))}

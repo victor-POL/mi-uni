@@ -335,9 +335,9 @@ export default function PlanesEstudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
@@ -346,7 +346,7 @@ export default function PlanesEstudioPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Planes de Estudio</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Planes de Estudio</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -369,7 +369,10 @@ export default function PlanesEstudioPage() {
           <CardContent>
             <div className="flex gap-4 items-end">
               <div className="flex-1 max-w-md">
-                <label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="plan-select"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
                   Plan de Estudio
                 </label>
                 <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
@@ -414,7 +417,7 @@ export default function PlanesEstudioPage() {
                   {/* Título del Año */}
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                    <h2 className="text-2xl font-bold text-gray-900">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                       {anio === 1 ? "Primer" : anio === 2 ? "Segundo" : anio === 3 ? "Tercer" : `${anio}°`} Año
                     </h2>
                   </div>
@@ -439,7 +442,7 @@ export default function PlanesEstudioPage() {
                                 id={`materia-${materia.idMateria}`}
                                 className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
                                   materiaResaltada === materia.idMateria
-                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50"
+                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
                                     : ""
                                 }`}
                               >
@@ -463,7 +466,9 @@ export default function PlanesEstudioPage() {
                                   {/* Correlativas */}
                                   {materia.listaCorrelativas.length > 0 && (
                                     <div>
-                                      <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
+                                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Correlativas:
+                                      </h4>
                                       <div className="space-y-1">
                                         {materia.listaCorrelativas.map((correlativaId) => (
                                           <Button
@@ -471,7 +476,7 @@ export default function PlanesEstudioPage() {
                                             variant="outline"
                                             size="sm"
                                             onClick={() => navegarACorrelativa(correlativaId)}
-                                            className="text-xs bg-gray-100 hover:bg-blue-100 px-2 py-1 h-auto"
+                                            className="text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
                                           >
                                             {getNombreMateriaById(correlativaId)}
                                           </Button>
@@ -480,7 +485,9 @@ export default function PlanesEstudioPage() {
                                     </div>
                                   )}
                                   {materia.listaCorrelativas.length === 0 && (
-                                    <div className="text-xs text-gray-500 italic">Sin correlativas</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                      Sin correlativas
+                                    </div>
                                   )}
 
                                   {/* Botón Ver Detalles */}
@@ -512,25 +519,25 @@ export default function PlanesEstudioPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-blue-600">{planConsultado.materias.length}</div>
-                    <div className="text-sm text-gray-600">Total Materias</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Materias</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-green-600">
                       {planConsultado.materias.reduce((sum, m) => sum + (m.horasSemanales || 0), 0)}
                     </div>
-                    <div className="text-sm text-gray-600">Horas Totales</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Horas Totales</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-purple-600">
                       {Math.max(...planConsultado.materias.map((m) => m.anioCursada))}
                     </div>
-                    <div className="text-sm text-gray-600">Años de Duración</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Años de Duración</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-orange-600">
                       {planConsultado.materias.filter((m) => m.listaCorrelativas.length === 0).length}
                     </div>
-                    <div className="text-sm text-gray-600">Sin Correlativas</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Sin Correlativas</div>
                   </div>
                 </div>
               </CardContent>
@@ -543,8 +550,8 @@ export default function PlanesEstudioPage() {
           <Card>
             <CardContent className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona un Plan de Estudio</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Selecciona un Plan de Estudio</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Elige un plan de estudio del selector de arriba y haz clic en "Consultar" para ver su estructura
                 completa.
               </p>
