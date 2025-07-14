@@ -285,6 +285,7 @@ const planesDeEstudio: PlanDeEstudio[] = [
 export default function PlanesEstudioPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>("")
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
+  const [materiaResaltada, setMateriaResaltada] = useState<number | null>(null)
 
   const handleConsultar = () => {
     if (selectedPlanId) {
@@ -322,6 +323,15 @@ export default function PlanesEstudioPage() {
   }
 
   const materiasAgrupadas = planConsultado ? agruparMaterias(planConsultado.materias) : {}
+
+  const navegarACorrelativa = (idMateria: number) => {
+    setMateriaResaltada(idMateria)
+    const element = document.getElementById(`materia-${idMateria}`)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      setTimeout(() => setMateriaResaltada(null), 3000)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -420,7 +430,15 @@ export default function PlanesEstudioPage() {
                         <CardContent>
                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
-                              <Card key={materia.idMateria} className="border-l-4 border-l-blue-200">
+                              <Card
+                                key={materia.idMateria}
+                                id={`materia-${materia.idMateria}`}
+                                className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
+                                  materiaResaltada === materia.idMateria
+                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50"
+                                    : ""
+                                }`}
+                              >
                                 <CardHeader className="pb-3">
                                   <div className="flex justify-between items-start">
                                     <div>
@@ -444,12 +462,15 @@ export default function PlanesEstudioPage() {
                                       <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
                                       <div className="space-y-1">
                                         {materia.listaCorrelativas.map((correlativaId) => (
-                                          <div
+                                          <Button
                                             key={correlativaId}
-                                            className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navegarACorrelativa(correlativaId)}
+                                            className="text-xs bg-gray-100 hover:bg-blue-100 px-2 py-1 h-auto"
                                           >
                                             {getNombreMateriaById(correlativaId)}
-                                          </div>
+                                          </Button>
                                         ))}
                                       </div>
                                     </div>

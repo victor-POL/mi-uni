@@ -155,6 +155,10 @@ export default function MisCarrerasPage() {
   const [materiaEditando, setMateriaEditando] = useState<number | null>(null)
   const [formData, setFormData] = useState<Partial<EstadoMateriaUsuario>>({})
 
+  const [filtroEstado, setFiltroEstado] = useState<string>("todos")
+  const [filtroAnio, setFiltroAnio] = useState<string>("todos")
+  const [filtroCuatrimestre, setFiltroCuatrimestre] = useState<string>("todos")
+
   const handleConsultar = () => {
     if (selectedPlanId) {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
@@ -265,6 +269,33 @@ export default function MisCarrerasPage() {
     return { total, aprobadas, cursando, enFinal, pendientes, progreso }
   }
 
+  const getFiltrosMaterias = () => {
+    if (!planConsultado) return []
+
+    return planConsultado.materias.filter((materia) => {
+      const estadoMateria = estadosMaterias[materia.idMateria]
+
+      // Filtro por estado
+      if (filtroEstado !== "todos" && estadoMateria?.estado !== filtroEstado) {
+        return false
+      }
+
+      // Filtro por año de cursada del plan
+      if (filtroAnio !== "todos" && materia.anioCursada.toString() !== filtroAnio) {
+        return false
+      }
+
+      // Filtro por cuatrimestre del plan
+      if (filtroCuatrimestre !== "todos" && materia.cuatrimestreCursada.toString() !== filtroCuatrimestre) {
+        return false
+      }
+
+      return true
+    })
+  }
+
+  const materiasFiltradas = getFiltrosMaterias()
+
   const estadisticas = getEstadisticas()
 
   return (
@@ -364,6 +395,78 @@ export default function MisCarrerasPage() {
           </Card>
         )}
 
+        {/* Filtros */}
+        {planConsultado && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Filtros</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <Label>Estado</Label>
+                  <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los estados</SelectItem>
+                      <SelectItem value="Pendiente">Pendiente</SelectItem>
+                      <SelectItem value="Cursando">Cursando</SelectItem>
+                      <SelectItem value="En Final">En Final</SelectItem>
+                      <SelectItem value="Aprobada">Aprobada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Año del Plan</Label>
+                  <Select value={filtroAnio} onValueChange={setFiltroAnio}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los años</SelectItem>
+                      {Array.from(new Set(planConsultado.materias.map((m) => m.anioCursada)))
+                        .sort()
+                        .map((anio) => (
+                          <SelectItem key={anio} value={anio.toString()}>
+                            {anio === 1 ? "1er" : anio === 2 ? "2do" : anio === 3 ? "3er" : `${anio}°`} Año
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cuatrimestre del Plan</Label>
+                  <Select value={filtroCuatrimestre} onValueChange={setFiltroCuatrimestre}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos los cuatrimestres</SelectItem>
+                      <SelectItem value="1">1° Cuatrimestre</SelectItem>
+                      <SelectItem value="2">2° Cuatrimestre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFiltroEstado("todos")
+                      setFiltroAnio("todos")
+                      setFiltroCuatrimestre("todos")
+                    }}
+                    className="w-full"
+                  >
+                    Limpiar Filtros
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Acciones Masivas */}
         {materiasSeleccionadas.length > 0 && (
           <Card className="mb-6">
@@ -392,10 +495,16 @@ export default function MisCarrerasPage() {
           </Card>
         )}
 
+        {planConsultado && (
+          <div className="mb-4 text-sm text-gray-600">
+            Mostrando {materiasFiltradas.length} de {planConsultado.materias.length} materias
+          </div>
+        )}
+
         {/* Lista de Materias */}
         {planConsultado && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {planConsultado.materias.map((materia) => {
+            {materiasFiltradas.map((materia) => {
               const estadoMateria = estadosMaterias[materia.idMateria]
               return (
                 <Card key={materia.idMateria} className="relative">
