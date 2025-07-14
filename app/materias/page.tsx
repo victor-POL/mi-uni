@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, LogOut, Clock, BookOpen } from "lucide-react"
+import { Search, LogOut, Clock, BookOpen, Trophy } from "lucide-react"
 
 // Datos de ejemplo
 const materias = [
@@ -90,6 +90,12 @@ export default function MateriasPage() {
                 <Button variant="ghost" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
                   Planes de Estudio
+                </Button>
+              </Link>
+              <Link href="/mis-carreras">
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Mis Carreras
                 </Button>
               </Link>
             </div>
