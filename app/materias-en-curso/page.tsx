@@ -157,8 +157,6 @@ export default function MateriasEnCursoPage() {
             anioCursando: 2024,
             cuatrimestreCursando: 2,
             estado: "En Final",
-            anioCursando: 2023,
-            cuatrimestreCursando: 2,
           },
         ]
         setMateriasEnCurso(materiasEjemplo)
