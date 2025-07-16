@@ -188,9 +188,9 @@ export default function OfertaMateriasPage() {
         {planConsultado && (
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
             {materiasFiltradas.map((materia) => {
-              const estadoMateria = estadosMateriasUsuario[materia.idMateria] || "Pendiente"
+              const estadoMateria = "Pendiente"
               return (
-                <Card key={materia.idMateria} className="relative">
+                <Card key={materia.codigoMateria} className="relative">
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
