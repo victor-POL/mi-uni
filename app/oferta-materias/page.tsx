@@ -6,220 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, LogOut, BookOpen, Clock, Calendar, MapPin } from "lucide-react"
+import { ArrowLeft, LogOut, BookOpen, Clock, Calendar } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-
-// Tipos de datos
-interface Comision {
-  codigo: string
-  dias: string[]
-  horarioInicio: string
-  horarioFin: string
-}
-
-interface MateriaOferta {
-  idMateria: number
-  codigoMateria: string
-  nombreMateria: string
-  codigoOferta: string
-  horasSemanales?: number
-  comisiones: Comision[]
-}
-
-interface PlanDeEstudio {
-  idPlan: number
-  nombreCarrera: string
-  anio: number
-  materias: MateriaOferta[]
-}
-
-type EstadoMateria = "Pendiente" | "Cursando" | "En Final" | "Aprobada"
-
-// Datos de ejemplo con oferta de materias
-const planesOferta: PlanDeEstudio[] = [
-  {
-    idPlan: 1,
-    nombreCarrera: "Ingeniería en Sistemas",
-    anio: 2023,
-    materias: [
-      {
-        idMateria: 1,
-        codigoMateria: "MAT101",
-        nombreMateria: "Matemática I",
-        codigoOferta: "3321",
-        horasSemanales: 6,
-        comisiones: [
-          {
-            codigo: "01-1900",
-            dias: ["Lunes"],
-            horarioInicio: "19:00",
-            horarioFin: "23:00",
-          },
-          {
-            codigo: "02-1400",
-            dias: ["Martes", "Jueves"],
-            horarioInicio: "14:00",
-            horarioFin: "18:00",
-          },
-          {
-            codigo: "03-0800",
-            dias: ["Miércoles", "Viernes"],
-            horarioInicio: "08:00",
-            horarioFin: "12:00",
-          },
-        ],
-      },
-      {
-        idMateria: 2,
-        codigoMateria: "PRG101",
-        nombreMateria: "Programación I",
-        codigoOferta: "3365",
-        horasSemanales: 4,
-        comisiones: [
-          {
-            codigo: "02-2900",
-            dias: ["Lunes", "Martes"],
-            horarioInicio: "19:00",
-            horarioFin: "23:00",
-          },
-          {
-            codigo: "01-4300",
-            dias: ["Miércoles", "Jueves"],
-            horarioInicio: "19:00",
-            horarioFin: "23:00",
-          },
-        ],
-      },
-      {
-        idMateria: 3,
-        codigoMateria: "ING101",
-        nombreMateria: "Introducción a la Ingeniería",
-        codigoOferta: "3401",
-        horasSemanales: 3,
-        comisiones: [
-          {
-            codigo: "01-1000",
-            dias: ["Viernes"],
-            horarioInicio: "10:00",
-            horarioFin: "13:00",
-          },
-          {
-            codigo: "02-1600",
-            dias: ["Sábado"],
-            horarioInicio: "16:00",
-            horarioFin: "19:00",
-          },
-        ],
-      },
-      {
-        idMateria: 4,
-        codigoMateria: "MAT102",
-        nombreMateria: "Matemática II",
-        codigoOferta: "3322",
-        horasSemanales: 6,
-        comisiones: [
-          {
-            codigo: "01-0800",
-            dias: ["Lunes", "Miércoles"],
-            horarioInicio: "08:00",
-            horarioFin: "12:00",
-          },
-          {
-            codigo: "02-1900",
-            dias: ["Martes", "Jueves"],
-            horarioInicio: "19:00",
-            horarioFin: "23:00",
-          },
-        ],
-      },
-      {
-        idMateria: 5,
-        codigoMateria: "PRG102",
-        nombreMateria: "Programación II",
-        codigoOferta: "3366",
-        horasSemanales: 6,
-        comisiones: [
-          {
-            codigo: "01-1400",
-            dias: ["Lunes", "Miércoles", "Viernes"],
-            horarioInicio: "14:00",
-            horarioFin: "16:00",
-          },
-          {
-            codigo: "02-1900",
-            dias: ["Martes", "Jueves"],
-            horarioInicio: "19:00",
-            horarioFin: "22:00",
-          },
-        ],
-      },
-      {
-        idMateria: 6,
-        codigoMateria: "FIS101",
-        nombreMateria: "Física I",
-        codigoOferta: "3501",
-        horasSemanales: 8,
-        comisiones: [
-          {
-            codigo: "01-0800",
-            dias: ["Lunes", "Martes", "Miércoles", "Jueves"],
-            horarioInicio: "08:00",
-            horarioFin: "10:00",
-          },
-          {
-            codigo: "02-1900",
-            dias: ["Lunes", "Miércoles"],
-            horarioInicio: "19:00",
-            horarioFin: "23:00",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    idPlan: 2,
-    nombreCarrera: "Licenciatura en Informática",
-    anio: 2022,
-    materias: [
-      {
-        idMateria: 101,
-        codigoMateria: "MAT101",
-        nombreMateria: "Matemática Discreta",
-        codigoOferta: "4101",
-        horasSemanales: 4,
-        comisiones: [
-          {
-            codigo: "01-1000",
-            dias: ["Martes", "Jueves"],
-            horarioInicio: "10:00",
-            horarioFin: "12:00",
-          },
-          {
-            codigo: "02-1800",
-            dias: ["Lunes", "Miércoles"],
-            horarioInicio: "18:00",
-            horarioFin: "20:00",
-          },
-        ],
-      },
-      {
-        idMateria: 102,
-        codigoMateria: "PRG101",
-        nombreMateria: "Fundamentos de Programación",
-        codigoOferta: "4201",
-        horasSemanales: 6,
-        comisiones: [
-          {
-            codigo: "01-1400",
-            dias: ["Lunes", "Miércoles", "Viernes"],
-            horarioInicio: "14:00",
-            horarioFin: "16:00",
-          },
-        ],
-      },
-    ],
-  },
-]
+import { EstadoMateria, PlanDeEstudio, planesOferta } from "@/app/oferta-materias/data"
 
 // Simulamos estados de materias del usuario
 const estadosMateriasUsuario: { [key: number]: EstadoMateria } = {
@@ -249,11 +38,6 @@ export default function OfertaMateriasPage() {
     window.location.href = "/"
   }
 
-  const formatearHorario = (comision: Comision) => {
-    const diasTexto = comision.dias.join(", ")
-    return `${diasTexto} de ${comision.horarioInicio} a ${comision.horarioFin}`
-  }
-
   const getEstadoBadge = (estado: EstadoMateria) => {
     const colors = {
       Pendiente: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
@@ -269,7 +53,7 @@ export default function OfertaMateriasPage() {
     if (!planConsultado) return []
 
     return planConsultado.materias.filter((materia) => {
-      const estadoMateria = estadosMateriasUsuario[materia.idMateria] || "Pendiente"
+      const estadoMateria = "Pendiente"
 
       // Filtro por estado
       if (filtroEstado !== "todos" && estadoMateria !== filtroEstado) {
@@ -414,16 +198,10 @@ export default function OfertaMateriasPage() {
                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-mono">{materia.codigoMateria}</span>
                           <span>•</span>
-                          <span className="font-mono">Código: {materia.codigoOferta}</span>
+                          <span className="font-mono">Código: {materia.codigoMateria}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {materia.horasSemanales && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {materia.horasSemanales}h
-                          </Badge>
-                        )}
                         {getEstadoBadge(estadoMateria)}
                       </div>
                     </div>
@@ -446,29 +224,33 @@ export default function OfertaMateriasPage() {
 
                       {materia.comisiones.map((comision) => (
                         <Card
-                          key={comision.codigo}
+                          key={comision.comisionNombre}
                           className="bg-gray-50 dark:bg-gray-800 border-l-4 border-l-blue-500"
                         >
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-2">
                               <div className="font-mono text-sm font-semibold text-blue-600 dark:text-blue-400">
-                                Comisión {comision.codigo}
+                                Comisión {comision.comisionNombre}
                               </div>
                               <Badge variant="outline" className="text-xs">
-                                {comision.dias.length} día{comision.dias.length > 1 ? "s" : ""}
+                                {comision.diasYHorarios.length} día{comision.diasYHorarios.length > 1 ? "s" : ""}
                               </Badge>
                             </div>
 
                             <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                              <MapPin className="h-3 w-3" />
-                              <span>{formatearHorario(comision)}</span>
+                              {comision.diasYHorarios.map((dia) => (
+                                <span key={dia.dia} className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  {`${dia.dia} ${dia.horario}`}
+                                </span>
+                              ))}
                             </div>
 
                             {/* Días individuales */}
                             <div className="flex flex-wrap gap-1 mt-2">
-                              {comision.dias.map((dia) => (
-                                <Badge key={dia} variant="secondary" className="text-xs">
-                                  {dia}
+                              {comision.diasYHorarios.map((dia) => (
+                                <Badge key={dia.dia} variant="secondary" className="text-xs">
+                                  {dia.dia}
                                 </Badge>
                               ))}
                             </div>
