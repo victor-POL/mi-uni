@@ -1,19 +1,22 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, LogOut, BookOpen, Clock, Users } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { MateriaPlanEstudio, PlanDeEstudio, planesDeEstudio } from "@/app/planes-estudio/data"
+import { useState } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, LogOut, BookOpen, Clock, Users } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { planesDeEstudio } from '@/data/planes-estudio.data'
+import { getNombreCuatrimestre } from '@/utils/utils'
+import type { MateriaPlanEstudio } from '@/models/materias.model'
+import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("")
-  const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
-  const [materiaResaltada, setMateriaResaltada] = useState<number | null>(null)
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
+  const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
+  const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
   const handleConsultar = () => {
     if (selectedPlanId) {
@@ -23,14 +26,14 @@ export default function PlanesEstudioPage() {
   }
 
   const handleLogout = () => {
-    window.location.href = "/"
+    window.location.href = '/'
   }
 
   // Función para obtener el nombre de la materia por ID
-  const getNombreMateriaById = (id: number): string => {
-    if (!planConsultado) return ""
-    const materia = planConsultado.materias.find((m) => m.idMateria === id)
-    return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `ID: ${id}`
+  const getNombreMateriaById = (codigoMateria: string): string => {
+    if (!planConsultado) return ''
+    const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
+    return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `ID: ${codigoMateria}`
   }
 
   // Función para agrupar materias por año y cuatrimestre
@@ -52,11 +55,11 @@ export default function PlanesEstudioPage() {
 
   const materiasAgrupadas = planConsultado ? agruparMaterias(planConsultado.materias) : {}
 
-  const navegarACorrelativa = (idMateria: number) => {
-    setMateriaResaltada(idMateria)
-    const element = document.getElementById(`materia-${idMateria}`)
+  const navegarACorrelativa = (codigoMateria: string) => {
+    setMateriaResaltada(codigoMateria)
+    const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
   }
@@ -129,9 +132,7 @@ export default function PlanesEstudioPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">{planConsultado.nombreCarrera}</CardTitle>
-                <CardDescription className="text-lg">
-                  Plan de Estudio {planConsultado.anio} - ID: {planConsultado.idPlan}
-                </CardDescription>
+                <CardDescription className="text-lg">Año {planConsultado.anio}</CardDescription>
               </CardHeader>
             </Card>
 
@@ -144,9 +145,7 @@ export default function PlanesEstudioPage() {
                   {/* Título del Año */}
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {anio === 1 ? "Primer" : anio === 2 ? "Segundo" : anio === 3 ? "Tercer" : `${anio}°`} Año
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{`${anio}°`} Año</h2>
                   </div>
 
                   {/* Cuatrimestres del Año */}
@@ -158,19 +157,19 @@ export default function PlanesEstudioPage() {
                         <CardHeader>
                           <CardTitle className="text-lg flex items-center gap-2">
                             <div className="h-6 w-1 bg-green-500 rounded"></div>
-                            {cuatrimestre === 1 ? "Primer" : "Segundo"} Cuatrimestre
+                            {getNombreCuatrimestre(cuatrimestre)}
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
                               <Card
-                                key={materia.idMateria}
-                                id={`materia-${materia.idMateria}`}
+                                key={materia.codigoMateria}
+                                id={`materia-${materia.codigoMateria}`}
                                 className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
-                                  materiaResaltada === materia.idMateria
-                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
-                                    : ""
+                                  materiaResaltada === materia.codigoMateria
+                                    ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20'
+                                    : ''
                                 }`}
                               >
                                 <CardHeader className="pb-3">
@@ -181,12 +180,10 @@ export default function PlanesEstudioPage() {
                                         {materia.codigoMateria}
                                       </CardDescription>
                                     </div>
-                                    {materia.horasSemanales && (
-                                      <Badge variant="secondary" className="flex items-center gap-1">
-                                        <Clock className="h-3 w-3" />
-                                        {materia.horasSemanales}h
-                                      </Badge>
-                                    )}
+                                    <Badge variant="secondary" className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {materia.horasSemanales}h
+                                    </Badge>
                                   </div>
                                 </CardHeader>
                                 <CardContent className="pt-0">
@@ -197,15 +194,15 @@ export default function PlanesEstudioPage() {
                                         Correlativas:
                                       </h4>
                                       <div className="space-y-1">
-                                        {materia.listaCorrelativas.map((correlativaId) => (
+                                        {materia.listaCorrelativas.map((codigoCorrelativa) => (
                                           <Button
-                                            key={correlativaId}
+                                            key={codigoCorrelativa}
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => navegarACorrelativa(correlativaId)}
-                                            className="text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
+                                            onClick={() => navegarACorrelativa(codigoCorrelativa)}
+                                            className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
                                           >
-                                            {getNombreMateriaById(correlativaId)}
+                                            {getNombreMateriaById(codigoCorrelativa)}
                                           </Button>
                                         ))}
                                       </div>
