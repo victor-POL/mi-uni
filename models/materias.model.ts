@@ -1,36 +1,47 @@
-export type EstadoMateriaPlanEstudio = "Pendiente" | "En Curso" | "En Final" | "Aprobada" | "Regularizada"
-
-export interface MateriaPlanEstudio {
-  idMateria: number
+export interface Materia {
   codigoMateria: string
   nombreMateria: string
+}
+
+export type EstadoMateriaPlanEstudio = "Aprobada" | "Regularizada" | "Pendiente" | "En Curso" | "En Final"
+
+export interface MateriaPlanEstudio extends Materia {
+  tipo: "cursable" | "electiva"
   anioCursada: number
   cuatrimestreCursada: number
-  listaCorrelativas: string[] // Ahora usa codigoMateria
   horasSemanales: number
-  estado: EstadoMateriaPlanEstudio // Nuevo campo para el estado de la materia
+  listaCorrelativas: string[]
+  opcionesElectivas?: string[]
+  estado: EstadoMateriaPlanEstudio
 }
 
-export interface DetalleMateria {
-  codigoMateria: string
-  nombreMateria: string
+export interface MateriaDetalle extends Materia {
+  horasSemanales: number
+  correlativas: string[]
   descripcion: string
   objetivos: string[]
-  contenido: string[]
+  linksUtiles: {
+    titulo: string
+    url: string
+  }[]
   bibliografia: string[]
-  horasSemanales: number
-  creditos: number
-  departamento: string
-  carrera: string
+  profesores: string[]
+  horarios: string
 }
 
-export interface MateriaEnCurso {
-  codigoMateria: string
-  nombreMateria: string
-  comision: string
-  diasHorarios: string[]
-  profesor: string
-  aula: string
-  fechaInicio: string
-  fechaFin: string
+export type CondicionCursadaMateriaEnCurso = "Para promocion/regularizar" | "Para regularizar"
+export type ResultadoCursadaMateriaEnCurso = "Promocionada" | "Regularizada" | "Desaprobada" | "Ausente"
+
+export interface MateriaCursable extends Materia {
+  horasSemanales: number
+  condicionCursada: CondicionCursadaMateriaEnCurso
 }
+
+export interface MateriaEnCurso extends Materia {
+  anioCursando: number
+  cuatrimestreCursando: number
+  condicionCursada: CondicionCursadaMateriaEnCurso
+  horasSemanales: number
+}
+
+export type TipoNota = "Por Promocion" | "Por Final"
