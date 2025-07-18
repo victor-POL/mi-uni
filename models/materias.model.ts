@@ -10,14 +10,14 @@ export interface MateriaPlanEstudio extends Materia {
   anioCursada: number
   cuatrimestreCursada: number
   horasSemanales: number
-  listaCorrelativas: MateriaPlanEstudio["codigoMateria"][]
-  opcionesElectivas?: MateriaPlanEstudio["codigoMateria"][]
+  listaCorrelativas: string[]
+  opcionesElectivas?: string[]
   estado: EstadoMateriaPlanEstudio
 }
 
 export interface MateriaDetalle extends Materia {
-  horasSemanales: MateriaPlanEstudio["horasSemanales"]
-  correlativas: MateriaPlanEstudio["listaCorrelativas"]
+  horasSemanales: number
+  correlativas: string[]
   descripcion: string
   objetivos: string[]
   linksUtiles: {

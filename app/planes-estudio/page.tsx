@@ -15,16 +15,16 @@ import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/mate
 import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("0") // Updated default value
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("0")
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
   // Filter states
-  const [filterYear, setFilterYear] = useState<string>("0") // Updated default value
-  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0") // Updated default value
+  const [filterYear, setFilterYear] = useState<string>("0")
+  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0")
   const [searchTerm, setSearchTerm] = useState<string>("")
-  const [filterStatus, setFilterStatus] = useState<string>("") // Updated default value
-  const [filterHours, setFilterHours] = useState<string>("") // Updated default value
+  const [filterStatus, setFilterStatus] = useState<string>("0")
+  const [filterHours, setFilterHours] = useState<string>("")
   const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>("")
   const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
     null,
@@ -35,10 +35,10 @@ export default function PlanesEstudioPage() {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
       // Reset filters when a new plan is selected
-      setFilterYear("")
-      setFilterCuatrimestre("")
+      setFilterYear("0")
+      setFilterCuatrimestre("0")
       setSearchTerm("")
-      setFilterStatus("")
+      setFilterStatus("0")
       setFilterHours("")
       setCorrelativeSearchInput("")
       setCorrelativeMateriasHabilitadas(null)
@@ -111,27 +111,32 @@ export default function PlanesEstudioPage() {
   const filteredMaterias = useMemo(() => {
     if (!planConsultado) return []
 
-    let filtered = planConsultado.materias
+    let currentMaterias = planConsultado.materias
 
-    // Apply correlative search first if active
+    // If correlative search is active and has results, use those.
+    // If it's active but has no results (empty array), then show empty.
+    // If it's not active (null), then proceed with general filters.
     if (correlativeMateriasHabilitadas !== null) {
-      return correlativeMateriasHabilitadas // If correlative search is active, only show its results
+      return correlativeMateriasHabilitadas
     }
 
+    // Apply general filters only if correlative search is not active
     // Filter by year
-    if (filterYear) {
-      filtered = filtered.filter((materia) => materia.anioCursada.toString() === filterYear)
+    if (filterYear !== "0") {
+      currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
     }
 
     // Filter by cuatrimestre
-    if (filterCuatrimestre) {
-      filtered = filtered.filter((materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre)
+    if (filterCuatrimestre !== "0") {
+      currentMaterias = currentMaterias.filter(
+        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre,
+      )
     }
 
     // Filter by search term (name or code)
     if (searchTerm) {
       const lowerCaseSearchTerm = searchTerm.toLowerCase()
-      filtered = filtered.filter(
+      currentMaterias = currentMaterias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
           materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm),
@@ -139,19 +144,19 @@ export default function PlanesEstudioPage() {
     }
 
     // Filter by status
-    if (filterStatus) {
-      filtered = filtered.filter((materia) => materia.estado === filterStatus)
+    if (filterStatus !== "0") {
+      currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
     }
 
     // Filter by hours
     if (filterHours) {
       const hours = Number.parseInt(filterHours)
       if (!isNaN(hours)) {
-        filtered = filtered.filter((materia) => materia.horasSemanales === hours)
+        currentMaterias = currentMaterias.filter((materia) => materia.horasSemanales === hours)
       }
     }
 
-    return filtered
+    return currentMaterias
   }, [
     planConsultado,
     filterYear,
@@ -227,7 +232,7 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleConsultar} disabled={!selectedPlanId} className="px-8">
+              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === "0"} className="px-8">
                 Consultar
               </Button>
             </div>
@@ -259,7 +264,7 @@ export default function PlanesEstudioPage() {
                       <SelectValue placeholder="Todos los años" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Todos los años</SelectItem> {/* Updated value */}
+                      <SelectItem value="0">Todos los años</SelectItem>
                       {allYears.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
                           {year}° Año
@@ -282,7 +287,7 @@ export default function PlanesEstudioPage() {
                       <SelectValue placeholder="Todos los cuatrimestres" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Todos los cuatrimestres</SelectItem> {/* Updated value */}
+                      <SelectItem value="0">Todos los cuatrimestres</SelectItem>
                       <SelectItem value="1">Primer Cuatrimestre</SelectItem>
                       <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
                     </SelectContent>
@@ -332,7 +337,7 @@ export default function PlanesEstudioPage() {
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Todos los estados</SelectItem> {/* Updated value */}
+                      <SelectItem value="0">Todos los estados</SelectItem>
                       {allStatuses.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
