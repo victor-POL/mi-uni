@@ -14,6 +14,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -23,6 +24,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['00901'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -32,6 +34,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['00902'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -41,6 +44,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['00903'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -50,6 +54,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -59,6 +64,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['00911'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -68,6 +74,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -77,6 +84,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -86,6 +94,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -95,6 +104,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -104,6 +114,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -113,6 +124,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -122,6 +134,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -131,6 +144,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03622'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -140,6 +154,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03623'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -149,6 +164,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03624'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -158,6 +174,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03625'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -167,6 +184,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: [],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -176,6 +194,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03622'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -185,6 +204,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03628'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -194,6 +214,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03621', '03629'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -203,6 +224,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03621', '03629'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -212,6 +234,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03630'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -221,6 +244,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03631'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -230,6 +254,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03633'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -239,6 +264,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03635'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -248,6 +274,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03636'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -257,6 +284,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03626', '03637'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -266,6 +294,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03634', '03638'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -275,6 +304,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03632'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -284,6 +314,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03627'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -293,6 +324,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03633', '03640'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -302,6 +334,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03642'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -311,6 +344,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03636', '03642'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -320,6 +354,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03638'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -329,6 +364,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03635', '03638', '03643'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -338,6 +374,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03621', '03639', '03645'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -347,6 +384,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03646', '03641'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -356,6 +394,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03648'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -365,6 +404,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03640', '03645', '03649'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -374,6 +414,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03650'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -383,6 +424,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03641', '03651'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -392,6 +434,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03646'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -401,6 +444,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03646', '03654'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -410,6 +454,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03644', '03647', '03653'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -419,6 +464,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03654'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -428,6 +474,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03644', '03650', '03651'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -437,6 +484,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03651'],
         horasSemanales: 6,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -446,6 +494,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03657'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -455,6 +504,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03646', '03651'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -464,6 +514,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03652', '03659'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -473,6 +524,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03649', '03652', '03655'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -482,6 +534,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 2,
         listaCorrelativas: ['03647'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -491,6 +544,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03656', '03664'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -500,6 +554,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03661'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -509,6 +564,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03656', '03664'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -518,6 +574,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03656', '03659', '03660', '03661', '03667'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -527,6 +584,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03642'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'cursable',
@@ -536,6 +594,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         cuatrimestreCursada: 1,
         listaCorrelativas: ['03626'],
         horasSemanales: 4,
+        estado: 'Pendiente',
       },
       {
         tipo: 'electiva',
@@ -546,6 +605,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         listaCorrelativas: [],
         horasSemanales: 0,
         opcionesElectivas: ['5005'],
+        estado: 'Pendiente',
       },
       {
         tipo: 'electiva',
@@ -556,6 +616,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         listaCorrelativas: [],
         horasSemanales: 0,
         opcionesElectivas: ['5006', '5862'],
+        estado: 'Pendiente',
       },
       {
         tipo: 'electiva',
@@ -566,6 +627,7 @@ export const planesDeEstudio: PlanDeEstudioDetalle[] = [
         listaCorrelativas: [],
         horasSemanales: 0,
         opcionesElectivas: ['5007'],
+        estado: 'Pendiente',
       },
     ],
   },

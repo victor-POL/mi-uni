@@ -3,6 +3,8 @@ export interface Materia {
   nombreMateria: string
 }
 
+export type EstadoMateriaPlanEstudio = 'Aprobada' | 'Regularizada'  | 'Pendiente'
+
 export interface MateriaPlanEstudio extends Materia {
   tipo: 'cursable' | 'electiva'
   anioCursada: number
@@ -10,6 +12,7 @@ export interface MateriaPlanEstudio extends Materia {
   horasSemanales: number
   listaCorrelativas: MateriaPlanEstudio['codigoMateria'][]
   opcionesElectivas?: MateriaPlanEstudio['codigoMateria'][]
+  estado: EstadoMateriaPlanEstudio
 }
 
 export interface MateriaDetalle extends Materia {
