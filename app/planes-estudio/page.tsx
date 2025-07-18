@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/materias.model"
 import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
+import { Separator } from "@/components/ui/separator"
 
 export default function PlanesEstudioPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>("0")
@@ -503,114 +504,117 @@ export default function PlanesEstudioPage() {
                 .map(Number)
                 .sort((a, b) => a - b)
                 .map((anio) => (
-                  <AccordionItem key={anio} value={`anio-${anio}`} className="border-none">
-                    <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white hover:no-underline">
-                      <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                      {`${anio}°`} Año
-                      {/* Removed redundant ChevronDown */}
-                    </AccordionTrigger>
-                    <AccordionContent className="pl-4 space-y-4">
-                      <Accordion type="multiple" className="w-full" defaultValue={defaultOpenCuatrimestres}>
-                        {Object.keys(materiasAgrupadas[anio])
-                          .map(Number)
-                          .sort((a, b) => a - b)
-                          .map((cuatrimestre) => (
-                            <AccordionItem
-                              key={`${anio}-${cuatrimestre}`}
-                              value={`cuatrimestre-${anio}-${cuatrimestre}`}
-                              className="border-none"
-                            >
-                              <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200 hover:no-underline">
-                                <div className="h-6 w-1 bg-green-500 rounded"></div>
-                                {getNombreCuatrimestre(cuatrimestre)}
-                                {/* Removed redundant ChevronDown */}
-                              </AccordionTrigger>
-                              <AccordionContent className="pl-4">
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                  {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
-                                    <Card
-                                      key={materia.codigoMateria}
-                                      id={`materia-${materia.codigoMateria}`}
-                                      className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
-                                        materiaResaltada === materia.codigoMateria
-                                          ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
-                                          : ""
-                                      }`}
-                                    >
-                                      <CardHeader className="pb-3">
-                                        <div className="flex justify-between items-start">
-                                          <div>
-                                            <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
-                                            <CardDescription className="font-mono text-sm">
-                                              {materia.codigoMateria}
-                                            </CardDescription>
-                                          </div>
-                                          <div className="flex flex-col items-end gap-1">
-                                            <Badge variant="secondary" className="flex items-center gap-1">
-                                              <Clock className="h-3 w-3" />
-                                              {materia.horasSemanales}h
-                                            </Badge>
-                                            {showMateriaStatus && (
-                                              <Badge
-                                                variant={getStatusBadgeVariant(materia.estado)}
-                                                className="text-xs"
-                                              >
-                                                {materia.estado}
+                  <div key={anio}>
+                    <AccordionItem  value={`anio-${anio}`} className="border-none">
+                      <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white hover:no-underline">
+                        <div className="h-8 w-1 bg-blue-600 rounded"></div>
+                        {`${anio}°`} Año
+                        {/* Removed redundant ChevronDown */}
+                      </AccordionTrigger>
+                      <AccordionContent className="pl-4 space-y-4">
+                        <Accordion type="multiple" className="w-full" defaultValue={defaultOpenCuatrimestres}>
+                          {Object.keys(materiasAgrupadas[anio])
+                            .map(Number)
+                            .sort((a, b) => a - b)
+                            .map((cuatrimestre) => (
+                              <AccordionItem
+                                key={`${anio}-${cuatrimestre}`}
+                                value={`cuatrimestre-${anio}-${cuatrimestre}`}
+                                className="border-none"
+                              >
+                                <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200 hover:no-underline">
+                                  <div className="h-6 w-1 bg-green-500 rounded"></div>
+                                  {getNombreCuatrimestre(cuatrimestre)}
+                                  {/* Removed redundant ChevronDown */}
+                                </AccordionTrigger>
+                                <AccordionContent className="pl-4">
+                                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
+                                      <Card
+                                        key={materia.codigoMateria}
+                                        id={`materia-${materia.codigoMateria}`}
+                                        className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
+                                          materiaResaltada === materia.codigoMateria
+                                            ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
+                                            : ""
+                                        }`}
+                                      >
+                                        <CardHeader className="pb-3">
+                                          <div className="flex justify-between items-start">
+                                            <div>
+                                              <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
+                                              <CardDescription className="font-mono text-sm">
+                                                {materia.codigoMateria}
+                                              </CardDescription>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1">
+                                              <Badge variant="secondary" className="flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                {materia.horasSemanales}h
                                               </Badge>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </CardHeader>
-                                      <CardContent className="pt-0">
-                                        {/* Correlativas */}
-                                        {showCorrelatives && materia.listaCorrelativas.length > 0 && (
-                                          <div>
-                                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                              Correlativas:
-                                            </h4>
-                                            <div className="space-y-1">
-                                              {materia.listaCorrelativas.map((codigoCorrelativa) => (
-                                                <Button
-                                                  key={codigoCorrelativa}
-                                                  variant="outline"
-                                                  size="sm"
-                                                  onClick={() => navegarACorrelativa(codigoCorrelativa)}
-                                                  className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
+                                              {showMateriaStatus && (
+                                                <Badge
+                                                  variant={getStatusBadgeVariant(materia.estado)}
+                                                  className="text-xs"
                                                 >
-                                                  {getNombreMateriaById(codigoCorrelativa)}
-                                                </Button>
-                                              ))}
+                                                  {materia.estado}
+                                                </Badge>
+                                              )}
                                             </div>
                                           </div>
-                                        )}
-                                        {showCorrelatives && materia.listaCorrelativas.length === 0 && (
-                                          <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                            Sin correlativas
-                                          </div>
-                                        )}
-                                        {!showCorrelatives && (
-                                          <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                            Correlativas ocultas
-                                          </div>
-                                        )}
-
-                                        {/* Botón Ver Detalles */}
-                                        <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                          <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
-                                            <BookOpen className="h-3 w-3 mr-1" />
-                                            Ver Detalles
-                                          </Button>
-                                        </Link>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          ))}
-                      </Accordion>
-                    </AccordionContent>
-                  </AccordionItem>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
+                                          {/* Correlativas */}
+                                          {showCorrelatives && materia.listaCorrelativas.length > 0 && (
+                                            <div>
+                                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Correlativas:
+                                              </h4>
+                                              <div className="space-y-1">
+                                                {materia.listaCorrelativas.map((codigoCorrelativa) => (
+                                                  <Button
+                                                    key={codigoCorrelativa}
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => navegarACorrelativa(codigoCorrelativa)}
+                                                    className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
+                                                  >
+                                                    {getNombreMateriaById(codigoCorrelativa)}
+                                                  </Button>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {showCorrelatives && materia.listaCorrelativas.length === 0 && (
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                              Sin correlativas
+                                            </div>
+                                          )}
+                                          {!showCorrelatives && (
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                              Correlativas ocultas
+                                            </div>
+                                          )}
+  
+                                          {/* Botón Ver Detalles */}
+                                          <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+                                            <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
+                                              <BookOpen className="h-3 w-3 mr-1" />
+                                              Ver Detalles
+                                            </Button>
+                                          </Link>
+                                        </CardContent>
+                                      </Card>
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            ))}
+                        </Accordion>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <Separator />
+                  </div>
                 ))}
             </Accordion>
           </div>
