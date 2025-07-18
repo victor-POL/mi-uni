@@ -1,6 +1,4 @@
 "use client"
-
-import { use } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,16 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Clock, ExternalLink, BookOpen, Users, Calendar } from "lucide-react"
 import { materiasDetalle } from "@/data/detalles-materias.data"
 
-
-
 interface PageProps {
-  params: Promise<{ codigo: string }>
+  params: { codigo: string }
 }
 
 export default function MateriaDetallePage({ params }: PageProps) {
-  const { codigo } = use(params)
-  const materia = materiasDetalle.find(m => m.codigo === codigo)
-  
+  const { codigo } = params
+  const materia = materiasDetalle.find((m) => m.codigo === codigo)
+
   // validar que el codigo sera del formato 00000 a 99999
   if (!/^\d{5}$/.test(codigo)) {
     return (

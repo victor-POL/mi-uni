@@ -14,4 +14,3 @@ export interface PlanDeEstudioMateriasEnCurso extends PlanEstudio {
   materiasDisponibles: MateriaCursable[]
   materiasEnCurso: MateriaEnCurso[]
 }
-
