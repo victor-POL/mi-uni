@@ -1,39 +1,59 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, LogOut, BookOpen, Clock, Users } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { planesDeEstudio } from '@/data/planes-estudio.data'
-import { getNombreCuatrimestre } from '@/utils/utils'
-import type { MateriaPlanEstudio } from '@/models/materias.model'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import { useState, useMemo } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, LogOut, BookOpen, Clock, Users, Filter, Search, X } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { planesDeEstudio } from "@/data/planes-estudio.data"
+import { getNombreCuatrimestre } from "@/utils/utils"
+import { Input } from "@/components/ui/input"
+import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/materias.model"
+import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("0") // Updated default value
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
+
+  // Filter states
+  const [filterYear, setFilterYear] = useState<string>("0") // Updated default value
+  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0") // Updated default value
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [filterStatus, setFilterStatus] = useState<string>("") // Updated default value
+  const [filterHours, setFilterHours] = useState<string>("") // Updated default value
+  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>("")
+  const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
+    null,
+  )
 
   const handleConsultar = () => {
     if (selectedPlanId) {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
+      // Reset filters when a new plan is selected
+      setFilterYear("")
+      setFilterCuatrimestre("")
+      setSearchTerm("")
+      setFilterStatus("")
+      setFilterHours("")
+      setCorrelativeSearchInput("")
+      setCorrelativeMateriasHabilitadas(null)
     }
   }
 
   const handleLogout = () => {
-    window.location.href = '/'
+    window.location.href = "/"
   }
 
   // Función para obtener el nombre de la materia por ID
   const getNombreMateriaById = (codigoMateria: string): string => {
-    if (!planConsultado) return ''
+    if (!planConsultado) return ""
     const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
-    return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `ID: ${codigoMateria}`
+    return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
   }
 
   // Función para agrupar materias por año y cuatrimestre
@@ -53,13 +73,102 @@ export default function PlanesEstudioPage() {
     return agrupadas
   }
 
-  const materiasAgrupadas = planConsultado ? agruparMaterias(planConsultado.materias) : {}
+  const handleCorrelativeSearch = () => {
+    if (!planConsultado || !correlativeSearchInput) {
+      setCorrelativeMateriasHabilitadas(null)
+      return
+    }
+
+    const lowerCaseCorrelativeSearch = correlativeSearchInput.toLowerCase()
+    const foundCorrelativeMateria = planConsultado.materias.find(
+      (materia) =>
+        materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
+        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch),
+    )
+
+    if (foundCorrelativeMateria) {
+      const habilitadas = planConsultado.materias.filter((materia) =>
+        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria),
+      )
+      setCorrelativeMateriasHabilitadas(habilitadas)
+    } else {
+      setCorrelativeMateriasHabilitadas([]) // No correlative found, show empty
+    }
+  }
+
+  const handleClearCorrelativeSearch = () => {
+    setCorrelativeSearchInput("")
+    setCorrelativeMateriasHabilitadas(null)
+  }
+
+  const allYears = useMemo(() => {
+    if (!planConsultado) return []
+    return [...new Set(planConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
+  }, [planConsultado])
+
+  const allStatuses: EstadoMateriaPlanEstudio[] = ["Pendiente", "En Curso", "En Final", "Aprobada", "Regularizada"]
+
+  const filteredMaterias = useMemo(() => {
+    if (!planConsultado) return []
+
+    let filtered = planConsultado.materias
+
+    // Apply correlative search first if active
+    if (correlativeMateriasHabilitadas !== null) {
+      return correlativeMateriasHabilitadas // If correlative search is active, only show its results
+    }
+
+    // Filter by year
+    if (filterYear) {
+      filtered = filtered.filter((materia) => materia.anioCursada.toString() === filterYear)
+    }
+
+    // Filter by cuatrimestre
+    if (filterCuatrimestre) {
+      filtered = filtered.filter((materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre)
+    }
+
+    // Filter by search term (name or code)
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (materia) =>
+          materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
+          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm),
+      )
+    }
+
+    // Filter by status
+    if (filterStatus) {
+      filtered = filtered.filter((materia) => materia.estado === filterStatus)
+    }
+
+    // Filter by hours
+    if (filterHours) {
+      const hours = Number.parseInt(filterHours)
+      if (!isNaN(hours)) {
+        filtered = filtered.filter((materia) => materia.horasSemanales === hours)
+      }
+    }
+
+    return filtered
+  }, [
+    planConsultado,
+    filterYear,
+    filterCuatrimestre,
+    searchTerm,
+    filterStatus,
+    filterHours,
+    correlativeMateriasHabilitadas,
+  ])
+
+  const materiasAgrupadas = useMemo(() => agruparMaterias(filteredMaterias), [filteredMaterias])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
     const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      element.scrollIntoView({ behavior: "smooth", block: "center" })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
   }
@@ -125,6 +234,173 @@ export default function PlanesEstudioPage() {
           </CardContent>
         </Card>
 
+        {/* Filtros */}
+        {planConsultado && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtros de Materias
+              </CardTitle>
+              <CardDescription>Filtra las materias por año, cuatrimestre, nombre, estado u horas.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {/* Filter by Year */}
+                <div>
+                  <label
+                    htmlFor="filter-year"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Año
+                  </label>
+                  <Select value={filterYear} onValueChange={setFilterYear}>
+                    <SelectTrigger id="filter-year">
+                      <SelectValue placeholder="Todos los años" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Todos los años</SelectItem> {/* Updated value */}
+                      {allYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}° Año
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Cuatrimestre */}
+                <div>
+                  <label
+                    htmlFor="filter-cuatrimestre"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Cuatrimestre
+                  </label>
+                  <Select value={filterCuatrimestre} onValueChange={setFilterCuatrimestre}>
+                    <SelectTrigger id="filter-cuatrimestre">
+                      <SelectValue placeholder="Todos los cuatrimestres" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Todos los cuatrimestres</SelectItem> {/* Updated value */}
+                      <SelectItem value="1">Primer Cuatrimestre</SelectItem>
+                      <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Search by Name/Code */}
+                <div>
+                  <label
+                    htmlFor="search-term"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Buscar Materia
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="search-term"
+                      placeholder="Nombre o código"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                    {searchTerm && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                        onClick={() => setSearchTerm("")}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filter by Status */}
+                <div>
+                  <label
+                    htmlFor="filter-status"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Estado
+                  </label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger id="filter-status">
+                      <SelectValue placeholder="Todos los estados" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Todos los estados</SelectItem> {/* Updated value */}
+                      {allStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Hours */}
+                <div>
+                  <label
+                    htmlFor="filter-hours"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    Horas Semanales
+                  </label>
+                  <Input
+                    id="filter-hours"
+                    type="number"
+                    placeholder="Ej: 4"
+                    value={filterHours}
+                    onChange={(e) => setFilterHours(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Correlative Search */}
+              <div className="mt-6 pt-4 border-t dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  Buscar Materias Habilitadas por Correlativa
+                </h3>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label
+                      htmlFor="correlative-search"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                      Materia Correlativa
+                    </label>
+                    <Input
+                      id="correlative-search"
+                      placeholder="Nombre o código de la correlativa"
+                      value={correlativeSearchInput}
+                      onChange={(e) => setCorrelativeSearchInput(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleCorrelativeSearch} disabled={!correlativeSearchInput}>
+                    <Search className="h-4 w-4 mr-2" />
+                    Buscar Habilitadas
+                  </Button>
+                  {correlativeMateriasHabilitadas !== null && (
+                    <Button variant="outline" onClick={handleClearCorrelativeSearch}>
+                      <X className="h-4 w-4 mr-2" />
+                      Limpiar
+                    </Button>
+                  )}
+                </div>
+                {correlativeMateriasHabilitadas && correlativeMateriasHabilitadas.length === 0 && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    No se encontraron materias habilitadas por la correlativa ingresada o la correlativa no existe.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Resultado del Plan */}
         {planConsultado && (
           <div className="space-y-6">
@@ -168,8 +444,8 @@ export default function PlanesEstudioPage() {
                                 id={`materia-${materia.codigoMateria}`}
                                 className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
                                   materiaResaltada === materia.codigoMateria
-                                    ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20'
-                                    : ''
+                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
+                                    : ""
                                 }`}
                               >
                                 <CardHeader className="pb-3">

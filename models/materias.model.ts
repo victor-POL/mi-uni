@@ -3,21 +3,21 @@ export interface Materia {
   nombreMateria: string
 }
 
-export type EstadoMateriaPlanEstudio = 'Aprobada' | 'Regularizada'  | 'Pendiente'
+export type EstadoMateriaPlanEstudio = "Aprobada" | "Regularizada" | "Pendiente" | "En Curso" | "En Final"
 
 export interface MateriaPlanEstudio extends Materia {
-  tipo: 'cursable' | 'electiva'
+  tipo: "cursable" | "electiva"
   anioCursada: number
   cuatrimestreCursada: number
   horasSemanales: number
-  listaCorrelativas: MateriaPlanEstudio['codigoMateria'][]
-  opcionesElectivas?: MateriaPlanEstudio['codigoMateria'][]
+  listaCorrelativas: MateriaPlanEstudio["codigoMateria"][]
+  opcionesElectivas?: MateriaPlanEstudio["codigoMateria"][]
   estado: EstadoMateriaPlanEstudio
 }
 
 export interface MateriaDetalle extends Materia {
-  horasSemanales: MateriaPlanEstudio['horasSemanales']
-  correlativas: MateriaPlanEstudio['listaCorrelativas']
+  horasSemanales: MateriaPlanEstudio["horasSemanales"]
+  correlativas: MateriaPlanEstudio["listaCorrelativas"]
   descripcion: string
   objetivos: string[]
   linksUtiles: {
@@ -29,8 +29,8 @@ export interface MateriaDetalle extends Materia {
   horarios: string
 }
 
-export type CondicionCursadaMateriaEnCurso = 'Para promocion/regularizar' | 'Para regularizar'
-export type ResultadoCursadaMateriaEnCurso = 'Promocionada' | 'Regularizada' | 'Desaprobada' | 'Ausente'
+export type CondicionCursadaMateriaEnCurso = "Para promocion/regularizar" | "Para regularizar"
+export type ResultadoCursadaMateriaEnCurso = "Promocionada" | "Regularizada" | "Desaprobada" | "Ausente"
 
 export interface MateriaCursable extends Materia {
   horasSemanales: number
@@ -44,19 +44,4 @@ export interface MateriaEnCurso extends Materia {
   horasSemanales: number
 }
 
-export type TipoNota = 'Por Promocion' | 'Por Final'
-
-// export interface MateriaEnCurso2 {
-//   idMateria: number
-//   codigoMateria: string
-//   nombreMateria: string
-//   horasSemanales?: number
-//   anioCursando: number
-//   cuatrimestreCursando: number
-//   estado: EstadoMateria
-//   nota?: number
-//   tipoNota?: TipoNota
-//   anioAprobacion?: number
-//   cuatrimestreAprobacion?: number
-//   turnoExamen?: string
-// }
+export type TipoNota = "Por Promocion" | "Por Final"
