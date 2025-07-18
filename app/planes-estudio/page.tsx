@@ -1,57 +1,64 @@
-'use client'
+"use client"
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, LogOut, BookOpen, Clock, Users, Filter, Search, X } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { planesDeEstudio } from '@/data/planes-estudio.data'
-import { getNombreCuatrimestre } from '@/utils/utils'
-import { Input } from '@/components/ui/input'
-import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import { useState, useMemo } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, LogOut, BookOpen, Clock, Filter, Search, X, ChevronDown } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { planesDeEstudio } from "@/data/planes-estudio.data"
+import { getNombreCuatrimestre } from "@/utils/utils"
+import { Input } from "@/components/ui/input"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/materias.model"
+import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("0")
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
   // Filter states
-  const [filterYear, setFilterYear] = useState<string>('0')
-  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>('0')
-  const [searchTerm, setSearchTerm] = useState<string>('')
-  const [filterStatus, setFilterStatus] = useState<string>('0')
-  const [filterHours, setFilterHours] = useState<string>('')
-  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>('')
+  const [filterYear, setFilterYear] = useState<string>("0")
+  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [filterStatus, setFilterStatus] = useState<string>("0")
+  const [filterHours, setFilterHours] = useState<string>("")
+  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>("")
   const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
-    null
+    null,
   )
+
+  // Display toggles
+  const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
+  const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
 
   const handleConsultar = () => {
     if (selectedPlanId) {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
       // Reset filters when a new plan is selected
-      setFilterYear('0')
-      setFilterCuatrimestre('0')
-      setSearchTerm('')
-      setFilterStatus('0')
-      setFilterHours('')
-      setCorrelativeSearchInput('')
+      setFilterYear("0")
+      setFilterCuatrimestre("0")
+      setSearchTerm("")
+      setFilterStatus("0")
+      setFilterHours("")
+      setCorrelativeSearchInput("")
       setCorrelativeMateriasHabilitadas(null)
     }
   }
 
   const handleLogout = () => {
-    window.location.href = '/'
+    window.location.href = "/"
   }
 
   // Función para obtener el nombre de la materia por ID
   const getNombreMateriaById = (codigoMateria: string): string => {
-    if (!planConsultado) return ''
+    if (!planConsultado) return ""
     const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
     return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
   }
@@ -83,12 +90,12 @@ export default function PlanesEstudioPage() {
     const foundCorrelativeMateria = planConsultado.materias.find(
       (materia) =>
         materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
-        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
+        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch),
     )
 
     if (foundCorrelativeMateria) {
       const habilitadas = planConsultado.materias.filter((materia) =>
-        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
+        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria),
       )
       setCorrelativeMateriasHabilitadas(habilitadas)
     } else {
@@ -97,7 +104,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleClearCorrelativeSearch = () => {
-    setCorrelativeSearchInput('')
+    setCorrelativeSearchInput("")
     setCorrelativeMateriasHabilitadas(null)
   }
 
@@ -106,7 +113,7 @@ export default function PlanesEstudioPage() {
     return [...new Set(planConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
   }, [planConsultado])
 
-  const allStatuses: EstadoMateriaPlanEstudio[] = ['Pendiente', 'En Curso', 'En Final', 'Aprobada', 'Regularizada']
+  const allStatuses: EstadoMateriaPlanEstudio[] = ["Pendiente", "En Curso", "En Final", "Aprobada", "Regularizada"]
 
   const filteredMaterias = useMemo(() => {
     if (!planConsultado) return []
@@ -122,14 +129,14 @@ export default function PlanesEstudioPage() {
 
     // Apply general filters only if correlative search is not active
     // Filter by year
-    if (filterYear !== '0') {
+    if (filterYear !== "0") {
       currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
     }
 
     // Filter by cuatrimestre
-    if (filterCuatrimestre !== '0') {
+    if (filterCuatrimestre !== "0") {
       currentMaterias = currentMaterias.filter(
-        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
+        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre,
       )
     }
 
@@ -139,12 +146,12 @@ export default function PlanesEstudioPage() {
       currentMaterias = currentMaterias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
-          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm)
+          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm),
       )
     }
 
     // Filter by status
-    if (filterStatus !== '0') {
+    if (filterStatus !== "0") {
       currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
     }
 
@@ -173,8 +180,24 @@ export default function PlanesEstudioPage() {
     setMateriaResaltada(codigoMateria)
     const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      element.scrollIntoView({ behavior: "smooth", block: "center" })
       setTimeout(() => setMateriaResaltada(null), 3000)
+    }
+  }
+
+  const getStatusBadgeVariant = (status: EstadoMateriaPlanEstudio) => {
+    switch (status) {
+      case "Aprobada":
+        return "default" // Green-ish by default
+      case "Regularizada":
+        return "secondary" // Gray-ish
+      case "En Curso":
+        return "outline" // Bordered
+      case "En Final":
+        return "destructive" // Red-ish
+      case "Pendiente":
+      default:
+        return "default" // Default for pending, can be changed
     }
   }
 
@@ -213,12 +236,12 @@ export default function PlanesEstudioPage() {
           <CardContent>
             <div className="flex gap-4 items-end">
               <div className="flex-1 max-w-md">
-                <label
+                <Label
                   htmlFor="plan-select"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 >
                   Plan de Estudio
-                </label>
+                </Label>
                 <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un plan de estudio" />
@@ -232,33 +255,36 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === '0'} className="px-8">
+              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === "0"} className="px-8">
                 Consultar
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Filtros */}
+        {/* Filtros y Opciones de Visualización */}
         {planConsultado && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Filtros de Materias
+                Filtros y Opciones de Visualización
               </CardTitle>
-              <CardDescription>Filtra las materias por año, cuatrimestre, nombre, estado u horas.</CardDescription>
+              <CardDescription>
+                Filtra las materias por año, cuatrimestre, nombre, estado u horas. También puedes ajustar la
+                visualización.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {/* Filter by Year */}
                 <div>
-                  <label
+                  <Label
                     htmlFor="filter-year"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                   >
                     Año
-                  </label>
+                  </Label>
                   <Select value={filterYear} onValueChange={setFilterYear}>
                     <SelectTrigger id="filter-year">
                       <SelectValue placeholder="Todos los años" />
@@ -276,12 +302,12 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Cuatrimestre */}
                 <div>
-                  <label
+                  <Label
                     htmlFor="filter-cuatrimestre"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                   >
                     Cuatrimestre
-                  </label>
+                  </Label>
                   <Select value={filterCuatrimestre} onValueChange={setFilterCuatrimestre}>
                     <SelectTrigger id="filter-cuatrimestre">
                       <SelectValue placeholder="Todos los cuatrimestres" />
@@ -296,12 +322,12 @@ export default function PlanesEstudioPage() {
 
                 {/* Search by Name/Code */}
                 <div>
-                  <label
+                  <Label
                     htmlFor="search-term"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                   >
                     Buscar Materia
-                  </label>
+                  </Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -316,7 +342,7 @@ export default function PlanesEstudioPage() {
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                        onClick={() => setSearchTerm('')}
+                        onClick={() => setSearchTerm("")}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -326,12 +352,12 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Status */}
                 <div>
-                  <label
+                  <Label
                     htmlFor="filter-status"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                   >
                     Estado
-                  </label>
+                  </Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                     <SelectTrigger id="filter-status">
                       <SelectValue placeholder="Todos los estados" />
@@ -349,12 +375,12 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Hours */}
                 <div>
-                  <label
+                  <Label
                     htmlFor="filter-hours"
                     className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                   >
                     Horas Semanales
-                  </label>
+                  </Label>
                   <Input
                     id="filter-hours"
                     type="number"
@@ -362,6 +388,18 @@ export default function PlanesEstudioPage() {
                     value={filterHours}
                     onChange={(e) => setFilterHours(e.target.value)}
                   />
+                </div>
+
+                {/* Toggle Show Materia Status */}
+                <div className="flex items-center space-x-2 mt-2">
+                  <Switch id="show-status" checked={showMateriaStatus} onCheckedChange={setShowMateriaStatus} />
+                  <Label htmlFor="show-status">Mostrar Estado de Materia</Label>
+                </div>
+
+                {/* Toggle Show Correlatives */}
+                <div className="flex items-center space-x-2 mt-2">
+                  <Switch id="show-correlatives" checked={showCorrelatives} onCheckedChange={setShowCorrelatives} />
+                  <Label htmlFor="show-correlatives">Mostrar Correlativas</Label>
                 </div>
               </div>
 
@@ -372,12 +410,12 @@ export default function PlanesEstudioPage() {
                 </h3>
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
-                    <label
+                    <Label
                       htmlFor="correlative-search"
                       className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                       Materia Correlativa
-                    </label>
+                    </Label>
                     <Input
                       id="correlative-search"
                       placeholder="Nombre o código de la correlativa"
@@ -443,99 +481,116 @@ export default function PlanesEstudioPage() {
             </Card>
 
             {/* Materias por Año y Cuatrimestre */}
-            {Object.keys(materiasAgrupadas)
-              .map(Number)
-              .sort((a, b) => a - b)
-              .map((anio) => (
-                <div key={anio} className="space-y-4">
-                  {/* Título del Año */}
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{`${anio}°`} Año</h2>
-                  </div>
-
-                  {/* Cuatrimestres del Año */}
-                  {Object.keys(materiasAgrupadas[anio])
-                    .map(Number)
-                    .sort((a, b) => a - b)
-                    .map((cuatrimestre) => (
-                      <Card key={`${anio}-${cuatrimestre}`} className="ml-4">
-                        <CardHeader>
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <div className="h-6 w-1 bg-green-500 rounded"></div>
-                            {getNombreCuatrimestre(cuatrimestre)}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
-                              <Card
-                                key={materia.codigoMateria}
-                                id={`materia-${materia.codigoMateria}`}
-                                className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
-                                  materiaResaltada === materia.codigoMateria
-                                    ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20'
-                                    : ''
-                                }`}
-                              >
-                                <CardHeader className="pb-3">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
-                                      <CardDescription className="font-mono text-sm">
-                                        {materia.codigoMateria}
-                                      </CardDescription>
-                                    </div>
-                                    <Badge variant="secondary" className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {materia.horasSemanales}h
-                                    </Badge>
-                                  </div>
-                                </CardHeader>
-                                <CardContent className="pt-0">
-                                  {/* Correlativas */}
-                                  {materia.listaCorrelativas.length > 0 && (
-                                    <div>
-                                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Correlativas:
-                                      </h4>
-                                      <div className="space-y-1">
-                                        {materia.listaCorrelativas.map((codigoCorrelativa) => (
-                                          <Button
-                                            key={codigoCorrelativa}
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => navegarACorrelativa(codigoCorrelativa)}
-                                            className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
-                                          >
-                                            {getNombreMateriaById(codigoCorrelativa)}
-                                          </Button>
-                                        ))}
+            <Accordion type="multiple" className="w-full">
+              {Object.keys(materiasAgrupadas)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map((anio) => (
+                  <AccordionItem key={anio} value={`anio-${anio}`} className="border-none">
+                    <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white hover:no-underline">
+                      <div className="h-8 w-1 bg-blue-600 rounded"></div>
+                      {`${anio}°`} Año
+                      <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                    </AccordionTrigger>
+                    <AccordionContent className="pl-4 space-y-4">
+                      {Object.keys(materiasAgrupadas[anio])
+                        .map(Number)
+                        .sort((a, b) => a - b)
+                        .map((cuatrimestre) => (
+                          <AccordionItem
+                            key={`${anio}-${cuatrimestre}`}
+                            value={`cuatrimestre-${anio}-${cuatrimestre}`}
+                            className="border-none"
+                          >
+                            <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200 hover:no-underline">
+                              <div className="h-6 w-1 bg-green-500 rounded"></div>
+                              {getNombreCuatrimestre(cuatrimestre)}
+                              <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+                            </AccordionTrigger>
+                            <AccordionContent className="pl-4">
+                              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
+                                  <Card
+                                    key={materia.codigoMateria}
+                                    id={`materia-${materia.codigoMateria}`}
+                                    className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
+                                      materiaResaltada === materia.codigoMateria
+                                        ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
+                                        : ""
+                                    }`}
+                                  >
+                                    <CardHeader className="pb-3">
+                                      <div className="flex justify-between items-start">
+                                        <div>
+                                          <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
+                                          <CardDescription className="font-mono text-sm">
+                                            {materia.codigoMateria}
+                                          </CardDescription>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                          <Badge variant="secondary" className="flex items-center gap-1">
+                                            <Clock className="h-3 w-3" />
+                                            {materia.horasSemanales}h
+                                          </Badge>
+                                          {showMateriaStatus && (
+                                            <Badge variant={getStatusBadgeVariant(materia.estado)} className="text-xs">
+                                              {materia.estado}
+                                            </Badge>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
-                                  {materia.listaCorrelativas.length === 0 && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                      Sin correlativas
-                                    </div>
-                                  )}
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                      {/* Correlativas */}
+                                      {showCorrelatives && materia.listaCorrelativas.length > 0 && (
+                                        <div>
+                                          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Correlativas:
+                                          </h4>
+                                          <div className="space-y-1">
+                                            {materia.listaCorrelativas.map((codigoCorrelativa) => (
+                                              <Button
+                                                key={codigoCorrelativa}
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => navegarACorrelativa(codigoCorrelativa)}
+                                                className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
+                                              >
+                                                {getNombreMateriaById(codigoCorrelativa)}
+                                              </Button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {showCorrelatives && materia.listaCorrelativas.length === 0 && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                          Sin correlativas
+                                        </div>
+                                      )}
+                                      {!showCorrelatives && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                          Correlativas ocultas
+                                        </div>
+                                      )}
 
-                                  {/* Botón Ver Detalles */}
-                                  <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                    <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
-                                      <BookOpen className="h-3 w-3 mr-1" />
-                                      Ver Detalles
-                                    </Button>
-                                  </Link>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              ))}
+                                      {/* Botón Ver Detalles */}
+                                      <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+                                        <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
+                                          <BookOpen className="h-3 w-3 mr-1" />
+                                          Ver Detalles
+                                        </Button>
+                                      </Link>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+            </Accordion>
           </div>
         )}
 
