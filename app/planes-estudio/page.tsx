@@ -1,33 +1,33 @@
-"use client"
+'use client'
 
-import { useState, useMemo } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, LogOut, BookOpen, Clock, Users, Filter, Search, X } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { planesDeEstudio } from "@/data/planes-estudio.data"
-import { getNombreCuatrimestre } from "@/utils/utils"
-import { Input } from "@/components/ui/input"
-import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/materias.model"
-import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, LogOut, BookOpen, Clock, Users, Filter, Search, X } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { planesDeEstudio } from '@/data/planes-estudio.data'
+import { getNombreCuatrimestre } from '@/utils/utils'
+import { Input } from '@/components/ui/input'
+import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
+import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("0")
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
   // Filter states
-  const [filterYear, setFilterYear] = useState<string>("0")
-  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [filterStatus, setFilterStatus] = useState<string>("0")
-  const [filterHours, setFilterHours] = useState<string>("")
-  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>("")
+  const [filterYear, setFilterYear] = useState<string>('0')
+  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>('0')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [filterStatus, setFilterStatus] = useState<string>('0')
+  const [filterHours, setFilterHours] = useState<string>('')
+  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>('')
   const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
-    null,
+    null
   )
 
   const handleConsultar = () => {
@@ -35,23 +35,23 @@ export default function PlanesEstudioPage() {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
       // Reset filters when a new plan is selected
-      setFilterYear("0")
-      setFilterCuatrimestre("0")
-      setSearchTerm("")
-      setFilterStatus("0")
-      setFilterHours("")
-      setCorrelativeSearchInput("")
+      setFilterYear('0')
+      setFilterCuatrimestre('0')
+      setSearchTerm('')
+      setFilterStatus('0')
+      setFilterHours('')
+      setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
     }
   }
 
   const handleLogout = () => {
-    window.location.href = "/"
+    window.location.href = '/'
   }
 
   // Función para obtener el nombre de la materia por ID
   const getNombreMateriaById = (codigoMateria: string): string => {
-    if (!planConsultado) return ""
+    if (!planConsultado) return ''
     const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
     return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
   }
@@ -83,12 +83,12 @@ export default function PlanesEstudioPage() {
     const foundCorrelativeMateria = planConsultado.materias.find(
       (materia) =>
         materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
-        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch),
+        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
     )
 
     if (foundCorrelativeMateria) {
       const habilitadas = planConsultado.materias.filter((materia) =>
-        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria),
+        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
       )
       setCorrelativeMateriasHabilitadas(habilitadas)
     } else {
@@ -97,7 +97,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleClearCorrelativeSearch = () => {
-    setCorrelativeSearchInput("")
+    setCorrelativeSearchInput('')
     setCorrelativeMateriasHabilitadas(null)
   }
 
@@ -106,7 +106,7 @@ export default function PlanesEstudioPage() {
     return [...new Set(planConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
   }, [planConsultado])
 
-  const allStatuses: EstadoMateriaPlanEstudio[] = ["Pendiente", "En Curso", "En Final", "Aprobada", "Regularizada"]
+  const allStatuses: EstadoMateriaPlanEstudio[] = ['Pendiente', 'En Curso', 'En Final', 'Aprobada', 'Regularizada']
 
   const filteredMaterias = useMemo(() => {
     if (!planConsultado) return []
@@ -122,14 +122,14 @@ export default function PlanesEstudioPage() {
 
     // Apply general filters only if correlative search is not active
     // Filter by year
-    if (filterYear !== "0") {
+    if (filterYear !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
     }
 
     // Filter by cuatrimestre
-    if (filterCuatrimestre !== "0") {
+    if (filterCuatrimestre !== '0') {
       currentMaterias = currentMaterias.filter(
-        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre,
+        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
       )
     }
 
@@ -139,12 +139,12 @@ export default function PlanesEstudioPage() {
       currentMaterias = currentMaterias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
-          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm),
+          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm)
       )
     }
 
     // Filter by status
-    if (filterStatus !== "0") {
+    if (filterStatus !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
     }
 
@@ -173,7 +173,7 @@ export default function PlanesEstudioPage() {
     setMateriaResaltada(codigoMateria)
     const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
   }
@@ -232,7 +232,7 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === "0"} className="px-8">
+              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === '0'} className="px-8">
                 Consultar
               </Button>
             </div>
@@ -316,7 +316,7 @@ export default function PlanesEstudioPage() {
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                        onClick={() => setSearchTerm("")}
+                        onClick={() => setSearchTerm('')}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -409,12 +409,37 @@ export default function PlanesEstudioPage() {
         {/* Resultado del Plan */}
         {planConsultado && (
           <div className="space-y-6">
-            {/* Información del Plan */}
+            {/* Estadísticas del Plan */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">{planConsultado.nombreCarrera}</CardTitle>
-                <CardDescription className="text-lg">Año {planConsultado.anio}</CardDescription>
+                <CardTitle className="text-2xl">{`${planConsultado.nombreCarrera} - Año ${planConsultado.anio}`}</CardTitle>
               </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">{planConsultado.materias.length}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Materias</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {planConsultado.materias.reduce((sum, m) => sum + (m.horasSemanales || 0), 0)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Horas Totales</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {Math.max(...planConsultado.materias.map((m) => m.anioCursada))}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Años de Duración</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {planConsultado.materias.filter((m) => m.listaCorrelativas.length === 0).length}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Sin Correlativas</div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
             {/* Materias por Año y Cuatrimestre */}
@@ -449,8 +474,8 @@ export default function PlanesEstudioPage() {
                                 id={`materia-${materia.codigoMateria}`}
                                 className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
                                   materiaResaltada === materia.codigoMateria
-                                    ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
-                                    : ""
+                                    ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20'
+                                    : ''
                                 }`}
                               >
                                 <CardHeader className="pb-3">
@@ -511,42 +536,6 @@ export default function PlanesEstudioPage() {
                     ))}
                 </div>
               ))}
-
-            {/* Estadísticas del Plan */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Estadísticas del Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{planConsultado.materias.length}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Materias</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {planConsultado.materias.reduce((sum, m) => sum + (m.horasSemanales || 0), 0)}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Horas Totales</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {Math.max(...planConsultado.materias.map((m) => m.anioCursada))}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Años de Duración</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {planConsultado.materias.filter((m) => m.listaCorrelativas.length === 0).length}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Sin Correlativas</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
 
