@@ -1,22 +1,22 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { AppLayout } from "@/components/AppLayout"
-import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { GraduationCap, BookOpen, Trophy, Clock, Plus } from "lucide-react"
+import { useState } from 'react'
+import { AppLayout } from '@/components/AppLayout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { GraduationCap, BookOpen, Trophy, Clock, Plus } from 'lucide-react'
 
 // Mock data - En una aplicación real, esto vendría de una API
 const misCarreras = [
   {
     id: 1,
-    nombre: "Ingeniería en Sistemas",
-    codigo: "IS-2020",
-    estado: "En Curso",
+    nombre: 'Ingeniería en Sistemas',
+    codigo: 'IS-2020',
+    estado: 'En Curso',
     progreso: 65,
     materiasAprobadas: 26,
     materiasTotal: 40,
@@ -28,9 +28,9 @@ const misCarreras = [
   },
   {
     id: 2,
-    nombre: "Licenciatura en Administración",
-    codigo: "LA-2019",
-    estado: "Completada",
+    nombre: 'Licenciatura en Administración',
+    codigo: 'LA-2019',
+    estado: 'Completada',
     progreso: 100,
     materiasAprobadas: 35,
     materiasTotal: 35,
@@ -44,21 +44,21 @@ const misCarreras = [
 
 const materiasEnCurso = [
   {
-    codigo: "SIS301",
-    nombre: "Bases de Datos Avanzadas",
+    codigo: 'SIS301',
+    nombre: 'Bases de Datos Avanzadas',
     creditos: 6,
-    profesor: "Dr. María González",
-    horario: "Lun/Mié 14:00-16:00",
+    profesor: 'Dr. María González',
+    horario: 'Lun/Mié 14:00-16:00',
     parcial1: 8.5,
     parcial2: null,
     final: null,
   },
   {
-    codigo: "SIS302",
-    nombre: "Ingeniería de Software II",
+    codigo: 'SIS302',
+    nombre: 'Ingeniería de Software II',
     creditos: 8,
-    profesor: "Ing. Carlos Rodríguez",
-    horario: "Mar/Jue 16:00-18:00",
+    profesor: 'Ing. Carlos Rodríguez',
+    horario: 'Mar/Jue 16:00-18:00',
     parcial1: 7.0,
     parcial2: 8.0,
     final: null,
@@ -70,14 +70,14 @@ export default function MisCarrerasPage() {
 
   const getEstadoBadgeColor = (estado: string) => {
     switch (estado) {
-      case "En Curso":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200"
-      case "Completada":
-        return "bg-green-100 text-green-800 hover:bg-green-200"
-      case "Suspendida":
-        return "bg-red-100 text-red-800 hover:bg-red-200"
+      case 'En Curso':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+      case 'Completada':
+        return 'bg-green-100 text-green-800 hover:bg-green-200'
+      case 'Suspendida':
+        return 'bg-red-100 text-red-800 hover:bg-red-200'
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200'
     }
   }
 
@@ -103,7 +103,7 @@ export default function MisCarrerasPage() {
               <Card
                 key={carrera.id}
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  selectedCarrera.id === carrera.id ? "ring-2 ring-blue-500" : ""
+                  selectedCarrera.id === carrera.id ? 'ring-2 ring-blue-500' : ''
                 }`}
                 onClick={() => setSelectedCarrera(carrera)}
               >
@@ -255,15 +255,15 @@ export default function MisCarrerasPage() {
                           <div className="grid grid-cols-3 gap-4 text-center">
                             <div className="space-y-1">
                               <p className="text-sm text-gray-600">Parcial 1</p>
-                              <p className="text-lg font-semibold">{materia.parcial1 || "-"}</p>
+                              <p className="text-lg font-semibold">{materia.parcial1 ?? '-'}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-600">Parcial 2</p>
-                              <p className="text-lg font-semibold">{materia.parcial2 || "-"}</p>
+                              <p className="text-lg font-semibold">{materia.parcial2 ?? '-'}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-600">Final</p>
-                              <p className="text-lg font-semibold">{materia.final || "-"}</p>
+                              <p className="text-lg font-semibold">{materia.final ?? '-'}</p>
                             </div>
                           </div>
                         </CardContent>
