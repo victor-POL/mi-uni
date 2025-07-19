@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,9 +20,16 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
 
 export default function PlanesEstudioPage() {
+  const searchParams = useSearchParams()
+  const planIdFromUrl = searchParams.get('plan')
+  
   const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
+  
+  // Loading states
+  const [isLoadingPlanes, setIsLoadingPlanes] = useState(true)
+  const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
 
   // Filter states
   const [filterYear, setFilterYear] = useState<string>('0')
@@ -38,10 +46,48 @@ export default function PlanesEstudioPage() {
   const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
   const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
 
-  const handleConsultar = () => {
-    if (selectedPlanId) {
-      const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
+  // Simular carga inicial de planes (aquí irá tu fetching)
+  useEffect(() => {
+    const loadPlanes = async () => {
+      setIsLoadingPlanes(true)
+      // Aquí irá tu fetching de planes
+      // await fetchPlanes()
+      
+      // Simulamos delay para mostrar el loading
+      setTimeout(() => {
+        setIsLoadingPlanes(false)
+      }, 1000)
+    }
+    
+    loadPlanes()
+  }, [])
+
+  // Effect to handle URL plan parameter
+  useEffect(() => {
+    if (planIdFromUrl && !isLoadingPlanes) {
+      // Check if the plan exists
+      const planExists = planesDeEstudio.find((p) => p.idPlan.toString() === planIdFromUrl)
+      if (planExists) {
+        setSelectedPlanId(planIdFromUrl)
+        // Auto-load the plan
+        handleConsultarFromUrl(planIdFromUrl)
+      }
+    }
+  }, [planIdFromUrl, isLoadingPlanes])
+
+  const handleConsultarFromUrl = async (planId: string) => {
+    setIsLoadingPlanDetails(true)
+    
+    // Aquí irá tu fetching del plan específico
+    // const planData = await fetchPlanDetails(planId)
+    // setPlanConsultado(planData)
+    
+    // Por ahora usamos los datos locales con delay simulado
+    setTimeout(() => {
+      const plan = planesDeEstudio.find((p) => p.idPlan.toString() === planId)
       setPlanConsultado(plan || null)
+      setIsLoadingPlanDetails(false)
+      
       // Reset filters when a new plan is selected
       setFilterYear('0')
       setFilterCuatrimestre('0')
@@ -50,6 +96,32 @@ export default function PlanesEstudioPage() {
       setFilterHours('')
       setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
+    }, 800)
+  }
+
+  const handleConsultar = async () => {
+    if (selectedPlanId) {
+      setIsLoadingPlanDetails(true)
+      
+      // Aquí irá tu fetching del plan específico
+      // const planData = await fetchPlanDetails(selectedPlanId)
+      // setPlanConsultado(planData)
+      
+      // Por ahora usamos los datos locales con delay simulado
+      setTimeout(() => {
+        const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
+        setPlanConsultado(plan || null)
+        setIsLoadingPlanDetails(false)
+        
+        // Reset filters when a new plan is selected
+        setFilterYear('0')
+        setFilterCuatrimestre('0')
+        setSearchTerm('')
+        setFilterStatus('0')
+        setFilterHours('')
+        setCorrelativeSearchInput('')
+        setCorrelativeMateriasHabilitadas(null)
+      }, 800)
     }
   }
 
@@ -230,21 +302,38 @@ export default function PlanesEstudioPage() {
                 <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
                   Plan de Estudio
                 </Label>
-                <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                <Select value={selectedPlanId} onValueChange={setSelectedPlanId} disabled={isLoadingPlanes}>
                   <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue placeholder="Selecciona un plan de estudio" />
+                    <SelectValue placeholder={isLoadingPlanes ? "Cargando planes..." : "Selecciona un plan de estudio"} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-gray-300">
-                    {planesDeEstudio.map((plan) => (
-                      <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
-                        {plan.nombreCarrera} ({plan.anio})
+                    {isLoadingPlanes ? (
+                      <SelectItem value="loading" disabled>
+                        Cargando planes de estudio...
                       </SelectItem>
-                    ))}
+                    ) : (
+                      planesDeEstudio.map((plan) => (
+                        <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
+                          {plan.nombreCarrera} ({plan.anio})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === '0'} className="px-8">
-                Consultar
+              <Button 
+                onClick={handleConsultar} 
+                disabled={!selectedPlanId || selectedPlanId === '0' || isLoadingPlanes || isLoadingPlanDetails} 
+                className="px-8"
+              >
+                {isLoadingPlanDetails ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Cargando...
+                  </>
+                ) : (
+                  'Consultar'
+                )}
               </Button>
             </div>
           </CardContent>
@@ -424,8 +513,82 @@ export default function PlanesEstudioPage() {
           </Card>
         )}
 
+        {/* Loading state para plan details */}
+        {isLoadingPlanDetails && (
+          <div className="space-y-6">
+            {/* Skeleton para Estadísticas del Plan */}
+            <Card className="bg-white shadow-sm">
+              <CardHeader>
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-80"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i}>
+                      <div className="h-8 bg-gray-200 rounded animate-pulse mb-2 w-16 mx-auto"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mx-auto"></div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Skeleton para Materias por Año */}
+            {[1, 2, 3].map((anio) => (
+              <div key={anio} className="space-y-4">
+                <Card className="bg-white shadow-sm">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-1 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pl-4 space-y-4">
+                    {[1, 2].map((cuatrimestre) => (
+                      <div key={cuatrimestre} className="space-y-4">
+                        <div className="flex items-center gap-2 pl-4">
+                          <div className="h-6 w-1 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-6 bg-gray-200 rounded animate-pulse w-48"></div>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pl-4">
+                          {[1, 2, 3, 4, 5, 6].map((materia) => (
+                            <Card key={materia} className="border-l-4 border-l-gray-200 bg-white shadow-sm animate-pulse">
+                              <CardHeader className="pb-3">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="h-5 bg-gray-200 rounded w-full mb-2"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1">
+                                    <div className="h-6 bg-gray-200 rounded w-12"></div>
+                                    <div className="h-5 bg-gray-200 rounded w-16"></div>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className="space-y-2">
+                                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                                  <div className="space-y-1">
+                                    <div className="h-6 bg-gray-200 rounded w-full"></div>
+                                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                                  </div>
+                                  <div className="h-8 bg-gray-200 rounded w-full mt-3"></div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Resultado del Plan */}
-        {planConsultado && (
+        {planConsultado && !isLoadingPlanDetails && (
           <div className="space-y-6">
             {/* Estadísticas del Plan */}
             <Card className="bg-white shadow-sm">
@@ -586,14 +749,16 @@ export default function PlanesEstudioPage() {
         )}
 
         {/* Estado inicial */}
-        {!planConsultado && (
+        {!planConsultado && !isLoadingPlanDetails && (
           <Card className="bg-white shadow-sm">
             <CardContent className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona un Plan de Estudio</h3>
               <p className="text-gray-600">
-                Elige un plan de estudio del selector de arriba y haz clic en "Consultar" para ver su estructura
-                completa.
+                {isLoadingPlanes 
+                  ? "Cargando planes de estudio disponibles..."
+                  : "Elige un plan de estudio del selector de arriba y haz clic en \"Consultar\" para ver su estructura completa."
+                }
               </p>
             </CardContent>
           </Card>
