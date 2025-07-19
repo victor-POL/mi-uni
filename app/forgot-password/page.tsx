@@ -10,10 +10,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft } from "lucide-react"
+import { useRedirectIfAuthenticated } from "@/components/ProtectedRoute"
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
+
+  // Redirigir si ya está autenticado
+  const { user, loading } = useRedirectIfAuthenticated()
+
+  // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
+  if (loading || user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">
+            {loading ? "Verificando autenticación..." : "Redirigiendo..."}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica para enviar el código de recuperación

@@ -41,7 +41,7 @@ export const useRequireAuth = () => {
 
   useEffect(() => {
     if (isInitialized && !user) {
-      router.push('/login')
+      router.replace('/login')
     }
   }, [isInitialized, user, router])
 
@@ -55,7 +55,7 @@ export const useRedirectIfAuthenticated = (redirectTo: string = '/') => {
 
   useEffect(() => {
     if (isInitialized && user) {
-      router.push(redirectTo)
+      router.replace(redirectTo)
     }
   }, [isInitialized, user, router, redirectTo])
 
