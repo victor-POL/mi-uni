@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { AppLayout } from "@/components/AppLayout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { useAuth } from "@/contexts/AuthContext"
-import { publicOperations, privateOperations } from "@/data/operations.data"
+import { AppLayout } from '@/components/AppLayout'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
+import { publicOperations, privateOperations } from '@/data/operations.data'
 
 export default function HomePage() {
   const { pageUser, isUserInitialized } = useAuth()
@@ -52,21 +52,32 @@ export default function HomePage() {
         {/* Authentication Section */}
         {isUserInitialized && !pageUser && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Accede a tu cuenta</h2>
-            <Card>
-              <CardHeader>
-                <CardTitle>Inicia sesión para acceder a más funciones</CardTitle>
-                <CardDescription>Gestiona tus carreras, consulta tu progreso académico y más.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex gap-4">
-                <Link href="/login">
-                  <Button variant="outline">Iniciar Sesión</Button>
-                </Link>
-                <Link href="/register">
-                  <Button>Registrarse</Button>
-                </Link>
-              </CardContent>
-            </Card>
+            <h2 className="text-2xl font-semibold text-gray-900">Inicia sesión para acceder a más funciones</h2>
+            <p className="text-gray-600">
+              Gestiona tus carreras, consulta tu progreso académico y más.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {privateOperations.map((operation) => (
+                <Card key={operation.href} className="opacity-60 cursor-not-allowed">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${operation.color} opacity-75`}>
+                        <operation.icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-gray-600">{operation.title}</CardTitle>
+                        <CardDescription className="text-gray-500">{operation.description}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Button disabled className="w-full">
+                      Requiere cuenta
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
 
@@ -110,7 +121,7 @@ export default function HomePage() {
               </div>
             )
           }
-          
+
           if (pageUser) {
             // Operaciones privadas para usuarios autenticados
             return (
@@ -141,7 +152,7 @@ export default function HomePage() {
               </div>
             )
           }
-          
+
           return null
         })()}
       </div>
