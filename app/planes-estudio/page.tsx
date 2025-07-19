@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator'
 
 export default function PlanesEstudioPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const planIdFromUrl = searchParams.get('plan')
   
   const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
@@ -31,7 +32,7 @@ export default function PlanesEstudioPage() {
   const [isLoadingPlanes, setIsLoadingPlanes] = useState(true)
   const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
 
-  // Filter states
+  // Filter states - will be synchronized with URL params via useEffect
   const [filterYear, setFilterYear] = useState<string>('0')
   const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>('0')
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -42,9 +43,72 @@ export default function PlanesEstudioPage() {
     null
   )
 
-  // Display toggles
+  // Display toggles - will be synchronized with URL params via useEffect
   const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
   const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
+
+  // Function to update URL with current filters
+  const updateUrlWithFilters = (updates: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()))
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value && value !== '0' && value !== '') {
+        // For toggle values, only add to URL if they're not the default value
+        if ((key === 'showStatus' || key === 'showCorrelatives') && value === 'true') {
+          current.delete(key) // Remove if it's the default value (true)
+        } else {
+          current.set(key, value)
+        }
+      } else {
+        current.delete(key)
+      }
+    })
+
+    // Always preserve the plan parameter if it exists
+    if (planIdFromUrl && !updates.plan) {
+      current.set('plan', planIdFromUrl)
+    }
+
+    const search = current.toString()
+    const query = search ? `?${search}` : ''
+    router.replace(`/planes-estudio${query}`, { scroll: false })
+  }
+
+  // Wrapper functions to update both state and URL
+  const handleFilterYearChange = (value: string) => {
+    setFilterYear(value)
+    updateUrlWithFilters({ year: value })
+  }
+
+  const handleFilterCuatrimestreChange = (value: string) => {
+    setFilterCuatrimestre(value)
+    updateUrlWithFilters({ semester: value })
+  }
+
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value)
+    updateUrlWithFilters({ search: value })
+  }
+
+  const handleFilterStatusChange = (value: string) => {
+    setFilterStatus(value)
+    updateUrlWithFilters({ status: value })
+  }
+
+  const handleFilterHoursChange = (value: string) => {
+    setFilterHours(value)
+    updateUrlWithFilters({ hours: value })
+  }
+
+  const handleShowMateriaStatusChange = (value: boolean) => {
+    setShowMateriaStatus(value)
+    updateUrlWithFilters({ showStatus: value.toString() })
+  }
+
+  const handleShowCorrelativesChange = (value: boolean) => {
+    setShowCorrelatives(value)
+    updateUrlWithFilters({ showCorrelatives: value.toString() })
+  }
 
   // Simular carga inicial de planes (aquí irá tu fetching)
   useEffect(() => {
@@ -75,6 +139,32 @@ export default function PlanesEstudioPage() {
     }
   }, [planIdFromUrl, isLoadingPlanes])
 
+  // Effect to sync toggle states with URL parameters
+  useEffect(() => {
+    const showStatusParam = searchParams.get('showStatus')
+    const showCorrelativesParam = searchParams.get('showCorrelatives')
+    
+    // Update states based on URL parameters
+    if (showStatusParam !== null) {
+      setShowMateriaStatus(showStatusParam === 'true')
+    } else {
+      setShowMateriaStatus(true) // Default value
+    }
+    
+    if (showCorrelativesParam !== null) {
+      setShowCorrelatives(showCorrelativesParam === 'true')
+    } else {
+      setShowCorrelatives(true) // Default value
+    }
+    
+    // Sync other filter states as well
+    setFilterYear(searchParams.get('year') || '0')
+    setFilterCuatrimestre(searchParams.get('semester') || '0')
+    setSearchTerm(searchParams.get('search') || '')
+    setFilterStatus(searchParams.get('status') || '0')
+    setFilterHours(searchParams.get('hours') || '')
+  }, [searchParams])
+
   const handleConsultarFromUrl = async (planId: string) => {
     setIsLoadingPlanDetails(true)
     
@@ -88,12 +178,8 @@ export default function PlanesEstudioPage() {
       setPlanConsultado(plan || null)
       setIsLoadingPlanDetails(false)
       
-      // Reset filters when a new plan is selected
-      setFilterYear('0')
-      setFilterCuatrimestre('0')
-      setSearchTerm('')
-      setFilterStatus('0')
-      setFilterHours('')
+      // No reset filters when loading from URL - preserve URL parameters
+      // Los filtros ya están inicializados desde los parámetros de URL
       setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
     }, 800)
@@ -113,7 +199,7 @@ export default function PlanesEstudioPage() {
         setPlanConsultado(plan || null)
         setIsLoadingPlanDetails(false)
         
-        // Reset filters when a new plan is selected
+        // Reset filters when a new plan is selected manually
         setFilterYear('0')
         setFilterCuatrimestre('0')
         setSearchTerm('')
@@ -121,6 +207,18 @@ export default function PlanesEstudioPage() {
         setFilterHours('')
         setCorrelativeSearchInput('')
         setCorrelativeMateriasHabilitadas(null)
+        
+        // Update URL to clear filters but preserve plan parameter
+        updateUrlWithFilters({
+          plan: selectedPlanId,
+          year: null,
+          semester: null,
+          search: null,
+          status: null,
+          hours: null,
+          showStatus: showMateriaStatus ? 'true' : 'false',
+          showCorrelatives: showCorrelatives ? 'true' : 'false'
+        })
       }, 800)
     }
   }
@@ -359,7 +457,7 @@ export default function PlanesEstudioPage() {
                   <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
                     Año
                   </Label>
-                  <Select value={filterYear} onValueChange={setFilterYear}>
+                  <Select value={filterYear} onValueChange={handleFilterYearChange}>
                     <SelectTrigger id="filter-year" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los años" />
                     </SelectTrigger>
@@ -379,7 +477,7 @@ export default function PlanesEstudioPage() {
                   <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
                     Cuatrimestre
                   </Label>
-                  <Select value={filterCuatrimestre} onValueChange={setFilterCuatrimestre}>
+                  <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
                     <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los cuatrimestres" />
                     </SelectTrigger>
@@ -402,7 +500,7 @@ export default function PlanesEstudioPage() {
                       id="search-term"
                       placeholder="Nombre o código"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => handleSearchTermChange(e.target.value)}
                       className="pl-9 bg-white border-gray-300"
                     />
                     {searchTerm && (
@@ -410,7 +508,7 @@ export default function PlanesEstudioPage() {
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                        onClick={() => setSearchTerm('')}
+                        onClick={() => handleSearchTermChange('')}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -423,7 +521,7 @@ export default function PlanesEstudioPage() {
                   <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                     Estado
                   </Label>
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <Select value={filterStatus} onValueChange={handleFilterStatusChange}>
                     <SelectTrigger id="filter-status" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
@@ -448,14 +546,14 @@ export default function PlanesEstudioPage() {
                     type="number"
                     placeholder="Ej: 4"
                     value={filterHours}
-                    onChange={(e) => setFilterHours(e.target.value)}
+                    onChange={(e) => handleFilterHoursChange(e.target.value)}
                     className="bg-white border-gray-300"
                   />
                 </div>
 
                 {/* Toggle Show Materia Status */}
                 <div className="flex items-center space-x-2 mt-2">
-                  <Switch id="show-status" checked={showMateriaStatus} onCheckedChange={setShowMateriaStatus} />
+                  <Switch id="show-status" checked={showMateriaStatus} onCheckedChange={handleShowMateriaStatusChange} />
                   <Label htmlFor="show-status" className="text-gray-700">
                     Mostrar Estado de Materia
                   </Label>
@@ -463,7 +561,7 @@ export default function PlanesEstudioPage() {
 
                 {/* Toggle Show Correlatives */}
                 <div className="flex items-center space-x-2 mt-2">
-                  <Switch id="show-correlatives" checked={showCorrelatives} onCheckedChange={setShowCorrelatives} />
+                  <Switch id="show-correlatives" checked={showCorrelatives} onCheckedChange={handleShowCorrelativesChange} />
                   <Label htmlFor="show-correlatives" className="text-gray-700">
                     Mostrar Correlativas
                   </Label>
