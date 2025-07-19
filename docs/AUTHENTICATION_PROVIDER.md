@@ -25,7 +25,7 @@ Componente y hooks para proteger rutas y manejar redirecciones:
 ## Uso del Provider
 
 ### Hook useAuth
-```typescript
+\`\`\`typescript
 import { useAuth } from '@/contexts/AuthContext'
 
 function MiComponente() {
@@ -46,10 +46,10 @@ function MiComponente() {
     </div>
   )
 }
-```
+\`\`\`
 
 ### Proteger rutas
-```typescript
+\`\`\`typescript
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 function PaginaProtegida() {
@@ -59,10 +59,10 @@ function PaginaProtegida() {
     </ProtectedRoute>
   )
 }
-```
+\`\`\`
 
 ### Hook para redirigir usuarios autenticados
-```typescript
+\`\`\`typescript
 import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
 
 function LoginPage() {
@@ -73,7 +73,7 @@ function LoginPage() {
   
   return <div>Formulario de login</div>
 }
-```
+\`\`\`
 
 ## Ejemplos implementados
 

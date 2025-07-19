@@ -35,49 +35,49 @@ Un componente reutilizable que maneja diferentes estados del avatar:
 Se actualizaron los hooks para usar `isInitialized` en lugar de `loading`:
 
 #### **useRedirectIfAuthenticated**
-```typescript
+\`\`\`typescript
 // Antes: Redirigía cuando loading era false
 if (!loading && user) { redirect() }
 
 // Ahora: Redirige cuando se inicializa y hay usuario
 if (isInitialized && user) { redirect() }
-```
+\`\`\`
 
 #### **ProtectedRoute**
-```typescript
+\`\`\`typescript
 // Antes: Esperaba que loading fuera false
 if (!loading && !user) { redirect() }
 
 // Ahora: Espera inicialización
 if (isInitialized && !user) { redirect() }
-```
+\`\`\`
 
 ## 🔄 **Flujo de Estados**
 
 ### **Estado 1: Cargando**
-```
+\`\`\`
 isInitialized: false
 user: null
-```
+\`\`\`
 **UI**: Muestra placeholders animados
 
 ### **Estado 2: Usuario Autenticado**
-```
+\`\`\`
 isInitialized: true
 user: { ... datos del usuario ... }
-```
+\`\`\`
 **UI**: Muestra avatar, nombre y botón de logout
 
 ### **Estado 3: Usuario No Autenticado**
-```
+\`\`\`
 isInitialized: true
 user: null
-```
+\`\`\`
 **UI**: Muestra botones de login y registro
 
 ## 🎨 **Ejemplo de Uso del UserAvatar**
 
-```tsx
+\`\`\`tsx
 import { UserAvatar } from '@/components/UserAvatar'
 
 // Avatar normal
@@ -95,7 +95,7 @@ import { UserAvatar } from '@/components/UserAvatar'
   className="border-2 border-blue-500"
   size={40}
 />
-```
+\`\`\`
 
 ## 📱 **Experiencia de Usuario Mejorada**
 
