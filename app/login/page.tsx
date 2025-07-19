@@ -21,10 +21,10 @@ export default function LoginPage() {
   const [isGithubLoading, setIsGithubLoading] = useState(false)
 
   // Redirigir si ya está autenticado
-  const { user, loading } = useRedirectIfAuthenticated()
+  const { pageUser, loading } = useRedirectIfAuthenticated()
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
-  if (loading || user) {
+  if (loading || pageUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="text-center">
@@ -40,12 +40,7 @@ export default function LoginPage() {
   const handleGithubLogin = async () => {
     try {
       setIsGithubLoading(true)
-      const resGithub = await signInWithGitHub()
-
-      const user = resGithub.user
-
-      console.log(user)
-
+      await signInWithGitHub()
       router.push("/")
     } catch (error) {
       console.error("Error al iniciar sesión con GitHub:", error)

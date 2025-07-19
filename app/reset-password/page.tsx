@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
 
   // Redirigir si ya está autenticado
-  const { user, loading } = useRedirectIfAuthenticated()
+  const { pageUser, loading } = useRedirectIfAuthenticated()
 
   useEffect(() => {
     const emailParam = searchParams.get("email")
@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
   }, [searchParams])
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
-  if (loading || user) {
+  if (loading || pageUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="text-center">

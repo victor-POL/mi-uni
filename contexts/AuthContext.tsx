@@ -4,18 +4,20 @@ import type React from 'react'
 import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import type { User } from 'firebase/auth'
 import { onAuthStateChanged, signOut as firebaseSignOut } from '@/lib/firebase/auth'
+import type { PageUser, UserFirebase } from '@/models/user.model'
+import { mapFirebaseUserToPageUser } from '@/utils/user.util'
 
 interface AuthContextType {
-  user: User | null
+  pageUser: PageUser | null
   loading: boolean
-  isInitialized: boolean
+  isUserInitialized: boolean
   signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
+  pageUser: null,
   loading: true,
-  isInitialized: false,
+  isUserInitialized: false,
   signOut: async () => {},
 })
 
@@ -32,15 +34,21 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [pageUser, setPageUser] = useState<PageUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [isUserInitialized, setIsUserInitialized] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged((user: User | null) => {
-      setUser(user)
+    const unsubscribe = onAuthStateChanged((firebaseUser: User | null) => {
+      if (pageUser) {
+        const pageUser: PageUser = mapFirebaseUserToPageUser(firebaseUser as UserFirebase)
+        setPageUser(pageUser)
+      } else {
+        setPageUser(null)
+      }
+
       setLoading(false)
-      setIsInitialized(true)
+      setIsUserInitialized(true)
     })
 
     return () => unsubscribe()
@@ -49,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     try {
       await firebaseSignOut()
-      setUser(null)
+      setPageUser(null)
     } catch (error) {
       console.error('Error signing out:', error)
       throw error
@@ -57,11 +65,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const value = useMemo(() => ({
-    user,
+    pageUser,
     loading,
-    isInitialized,
+    isUserInitialized,
     signOut,
-  }), [user, loading, isInitialized])
+  }), [pageUser, loading, isUserInitialized])
 
   return (
     <AuthContext.Provider value={value}>

@@ -23,7 +23,7 @@ import {
 
 export const AppSidebar: React.FC = () => {
   const pathname = usePathname()
-  const { user, isInitialized, signOut } = useAuth()
+  const { pageUser, isUserInitialized, signOut } = useAuth()
 
   const publicItems = [
     {
@@ -57,7 +57,7 @@ export const AppSidebar: React.FC = () => {
   ]
 
   const renderUserSection = () => {
-    if (!isInitialized) {
+    if (!isUserInitialized) {
       return (
         <div className="flex items-center gap-3 p-2">
           <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
@@ -69,14 +69,14 @@ export const AppSidebar: React.FC = () => {
       )
     }
 
-    if (user) {
+    if (pageUser) {
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-3 p-2">
-            <UserAvatar user={user} size={32} />
+            <UserAvatar pageUser={pageUser} size={32} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user.displayName || user.email}</p>
-              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{pageUser.displayName || pageUser.email}</p>
+              <p className="text-xs text-gray-500 truncate">{pageUser.email}</p>
             </div>
           </div>
           <Button
@@ -142,7 +142,7 @@ export const AppSidebar: React.FC = () => {
         </SidebarGroup>
 
         {(() => {
-          if (!isInitialized) {
+          if (!isUserInitialized) {
             // Placeholder para operaciones privadas mientras se verifica la autenticación
             return (
               <>
@@ -172,7 +172,7 @@ export const AppSidebar: React.FC = () => {
             )
           }
           
-          if (user) {
+          if (pageUser) {
             // Operaciones privadas para usuarios autenticados
             return (
               <>

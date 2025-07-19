@@ -17,10 +17,10 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
 
   // Redirigir si ya está autenticado
-  const { user, loading } = useRedirectIfAuthenticated()
+  const { pageUser, loading } = useRedirectIfAuthenticated()
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
-  if (loading || user) {
+  if (loading || pageUser) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="text-center">

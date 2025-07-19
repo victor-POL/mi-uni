@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { publicOperations, privateOperations } from "@/data/operations.data"
 
 export default function HomePage() {
-  const { user, isInitialized } = useAuth()
+  const { pageUser, isUserInitialized } = useAuth()
 
   return (
     <AppLayout title="Mi Universidad" showBackButton={false}>
@@ -50,7 +50,7 @@ export default function HomePage() {
         </div>
 
         {/* Authentication Section */}
-        {isInitialized && !user && (
+        {isUserInitialized && !pageUser && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">Accede a tu cuenta</h2>
             <Card>
@@ -72,7 +72,7 @@ export default function HomePage() {
 
         {/* Private Operations - Loading state, authenticated users, or nothing */}
         {(() => {
-          if (!isInitialized) {
+          if (!isUserInitialized) {
             // Placeholder mientras se verifica la autenticación
             return (
               <div className="space-y-6">
@@ -111,7 +111,7 @@ export default function HomePage() {
             )
           }
           
-          if (user) {
+          if (pageUser) {
             // Operaciones privadas para usuarios autenticados
             return (
               <div className="space-y-6">

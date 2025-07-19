@@ -29,15 +29,15 @@ Componente y hooks para proteger rutas y manejar redirecciones:
 import { useAuth } from '@/contexts/AuthContext'
 
 function MiComponente() {
-  const { user, loading, signOut } = useAuth()
+  const { pageUser, loading, signOut } = useAuth()
   
   if (loading) return <div>Cargando...</div>
   
   return (
     <div>
-      {user ? (
+      {pageUser ? (
         <div>
-          <p>Bienvenido {user.displayName || user.email}</p>
+          <p>Bienvenido {pageUser.displayName || pageUser.email}</p>
           <button onClick={signOut}>Cerrar sesión</button>
         </div>
       ) : (
