@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -10,7 +9,9 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, AlertCircle, Plus, GraduationCap } from 'lucide-react'
+import { BookOpen, Clock, Edit, Check, AlertCircle, Plus, GraduationCap } from 'lucide-react'
+import { AppLayout } from '@/components/AppLayout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import type {
   CondicionCursadaMateriaEnCurso,
   MateriaEnCurso,
@@ -34,7 +35,6 @@ interface FormNuevaMateriaEnCurso {
 }
 
 export default function MateriasEnCursoPage() {
-  const router = useRouter()
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioMateriasEnCurso | null>(null)
   const [materiasEnCurso, setMateriasEnCurso] = useState<MateriaEnCurso[]>([])
@@ -52,10 +52,6 @@ export default function MateriasEnCursoPage() {
         setMateriasEnCurso(plan.materiasEnCurso)
       }
     }
-  }
-
-  const handleLogout = () => {
-    window.location.href = '/'
   }
 
   const handleEditarMateria = (codigoMateria: string) => {
@@ -160,28 +156,9 @@ export default function MateriasEnCursoPage() {
   const materiasAgrupadas = agruparMateriasPorPeriodo()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Materias En Curso</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-                <LogOut className="h-4 w-4" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <ProtectedRoute>
+      <AppLayout title="Materias En Curso">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Selector de Plan */}
         <Card className="mb-8">
           <CardHeader>
@@ -461,6 +438,7 @@ export default function MateriasEnCursoPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </AppLayout>
+    </ProtectedRoute>
   )
 }

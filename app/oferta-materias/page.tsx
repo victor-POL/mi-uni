@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, LogOut, BookOpen, Clock, Calendar } from 'lucide-react'
+import { BookOpen, Clock, Calendar } from 'lucide-react'
+import { AppLayout } from '@/components/AppLayout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { EstadoMateria, PlanDeEstudio, planesOferta } from '@/app/oferta-materias/data'
 
 // Simulamos estados de materias del usuario
@@ -23,7 +24,6 @@ const estadosMateriasUsuario: { [key: number]: EstadoMateria } = {
 }
 
 export default function OfertaMateriasPage() {
-  const router = useRouter()
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
   const [filtroEstado, setFiltroEstado] = useState<string>('todos')
@@ -33,10 +33,6 @@ export default function OfertaMateriasPage() {
       const plan = planesOferta.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
     }
-  }
-
-  const handleLogout = () => {
-    window.location.href = '/'
   }
 
   const getEstadoBadge = (estado: EstadoMateria) => {
@@ -68,28 +64,9 @@ export default function OfertaMateriasPage() {
   const materiasFiltradas = getFiltrosMaterias()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Oferta de Materias</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-                <LogOut className="h-4 w-4" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <ProtectedRoute>
+      <AppLayout title="Oferta de Materias">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Selector de Plan */}
         <Card className="mb-8">
           <CardHeader>
@@ -289,7 +266,8 @@ export default function OfertaMateriasPage() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
+        </div>
+      </AppLayout>
+    </ProtectedRoute>
   )
 }

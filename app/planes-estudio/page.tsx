@@ -2,12 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, LogOut, BookOpen, Clock, Filter, Search, X } from 'lucide-react'
+import { BookOpen, Clock, Filter, Search, X } from 'lucide-react'
+import { AppLayout } from '@/components/AppLayout'
 import { planesDeEstudio } from '@/data/planes-estudio.data'
 import { getNombreCuatrimestre } from '@/utils/utils'
 import { Input } from '@/components/ui/input'
@@ -19,7 +19,6 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
 
 export default function PlanesEstudioPage() {
-  const router = useRouter()
   const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
@@ -52,10 +51,6 @@ export default function PlanesEstudioPage() {
       setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
     }
-  }
-
-  const handleLogout = () => {
-    window.location.href = '/'
   }
 
   // Función para obtener el nombre de la materia por ID
@@ -160,7 +155,7 @@ export default function PlanesEstudioPage() {
     // Filter by hours
     if (filterHours) {
       const hours = Number.parseInt(filterHours)
-      if (!isNaN(hours)) {
+      if (!Number.isNaN(hours)) {
         currentMaterias = currentMaterias.filter((materia) => materia.horasSemanales === hours)
       }
     }
@@ -221,33 +216,8 @@ export default function PlanesEstudioPage() {
   }, [materiasAgrupadas, planConsultado])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900">Planes de Estudio</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-              >
-                <LogOut className="h-4 w-4" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Selector de Plan */}
+    <AppLayout title="Planes de Estudio">
+      {/* Selector de Plan */}
         <Card className="mb-8 bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-gray-900">Consultar Plan de Estudio</CardTitle>
@@ -629,7 +599,6 @@ export default function PlanesEstudioPage() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
+    </AppLayout>
   )
 }

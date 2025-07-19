@@ -4,69 +4,10 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, Calendar, GraduationCap, Users, Clock, User, LogIn, LogOut } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
-import { UserAvatar } from "@/components/UserAvatar"
+import { BookOpen, Calendar, GraduationCap, Users, Clock } from "lucide-react"
+import { AppLayout } from "@/components/AppLayout"
 
 export default function HomePage() {
-  const { user, isInitialized, signOut } = useAuth()
-
-  const renderAuthSection = () => {
-    if (!isInitialized) {
-      // Mostrar placeholder mientras se inicializa
-      return (
-        <>
-          <div className="text-right animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
-            <div className="h-3 bg-gray-200 rounded w-20"></div>
-          </div>
-          <UserAvatar user={null} showPlaceholder={true} />
-        </>
-      )
-    }
-
-    if (user) {
-      return (
-        <>
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">
-              {user.displayName || user.email}
-            </p>
-            <p className="text-xs text-gray-500">
-              {user.email}
-            </p>
-          </div>
-          <UserAvatar user={user} />
-          <Button 
-            variant="outline" 
-            onClick={signOut}
-            className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Cerrar Sesión
-          </Button>
-        </>
-      )
-    }
-
-    return (
-      <>
-        <Link href="/login">
-          <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300">
-            <LogIn className="h-4 w-4 mr-2" />
-            Iniciar Sesión
-          </Button>
-        </Link>
-        <Link href="/register">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            <User className="h-4 w-4 mr-2" />
-            Registrarse
-          </Button>
-        </Link>
-      </>
-    )
-  }
-
   // Datos de ejemplo para el dashboard
   const stats = [
     {
@@ -138,24 +79,8 @@ export default function HomePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Gestión Académica</h1>
-                <p className="text-gray-600">Consulta planes de estudio, ofertas académicas y gestiona tu progreso</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {renderAuthSection()}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Estadísticas */}
+    <AppLayout title="Sistema de Gestión Académica" showBackButton={false}>
+      {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat) => (
             <Card key={stat.title} className="bg-white shadow-sm hover:shadow-md transition-shadow">
@@ -212,7 +137,7 @@ export default function HomePage() {
             <Card className="bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="text-gray-900 flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                  <Users className="h-5 w-5" />
                   Funcionalidades Personales
                 </CardTitle>
                 <CardDescription className="text-gray-600">
@@ -304,16 +229,6 @@ export default function HomePage() {
                     Ver Oferta de Materias
                   </Button>
                 </Link>
-                <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                    size="sm"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Iniciar Sesión
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
@@ -333,7 +248,6 @@ export default function HomePage() {
             </Card>
           </div>
         </div>
-      </div>
-    </div>
+    </AppLayout>
   )
 }

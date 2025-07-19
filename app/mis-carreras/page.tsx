@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,9 +10,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from 'lucide-react'
+import { BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from 'lucide-react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { useAuth } from '@/contexts/AuthContext'
+import { AppLayout } from '@/components/AppLayout'
 
 // Tipos de datos
 interface MateriaPlanEstudio {
@@ -150,7 +149,6 @@ const planesDeEstudio: PlanDeEstudio[] = [
 const turnosExamen = ['Febrero', 'Marzo', 'Julio', 'Agosto', 'Octubre', 'Diciembre']
 
 export default function MisCarrerasPage() {
-  const router = useRouter()
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
   const [estadosMaterias, setEstadosMaterias] = useState<{ [key: number]: EstadoMateriaUsuario }>({})
@@ -180,10 +178,6 @@ export default function MisCarrerasPage() {
         setEstadosMaterias(estadosIniciales)
       }
     }
-  }
-
-  const handleLogout = () => {
-    window.location.href = '/'
   }
 
   const handleSeleccionMateria = (idMateria: number, seleccionada: boolean) => {
@@ -297,28 +291,8 @@ export default function MisCarrerasPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mis Carreras</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
-                <LogOut className="h-4 w-4" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <AppLayout title="Mis Carreras">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Selector de Plan */}
         <Card className="mb-8">
           <CardHeader>
@@ -809,7 +783,7 @@ export default function MisCarrerasPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </AppLayout>
     </ProtectedRoute>
   )
 }

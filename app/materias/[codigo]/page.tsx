@@ -1,14 +1,14 @@
 "use client"
 import Link from "next/link"
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Clock, ExternalLink, BookOpen, Users, Calendar } from "lucide-react"
+import { Clock, ExternalLink, BookOpen, Users, Calendar } from "lucide-react"
+import { AppLayout } from '@/components/AppLayout'
 import { materiasDetalle } from "@/data/detalles-materias.data"
 
 export default function MateriaDetallePage() {
-  const router = useRouter()
   const params = useParams()
   const codigo = params.codigo as string
 
@@ -48,22 +48,7 @@ export default function MateriaDetallePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Button variant="ghost" size="icon" className="mr-4" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{materia.nombreMateria}</h1>
-              <p className="text-sm text-gray-600 font-mono">{materia.codigoMateria}</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout title={materia.nombreMateria}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Información General */}
         <Card className="mb-8">
@@ -186,6 +171,6 @@ export default function MateriaDetallePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppLayout>
   )
 }
