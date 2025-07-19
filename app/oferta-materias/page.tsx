@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, LogOut, BookOpen, Clock, Calendar } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { EstadoMateria, PlanDeEstudio, planesOferta } from "@/app/oferta-materias/data"
 
 // Simulamos estados de materias del usuario
@@ -81,7 +80,6 @@ export default function OfertaMateriasPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Oferta de Materias</h1>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
                 <LogOut className="h-4 w-4" />
                 Cerrar Sesión

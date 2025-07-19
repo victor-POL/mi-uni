@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, AlertCircle, Plus, GraduationCap } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
 import type {
   CondicionCursadaMateriaEnCurso,
   MateriaEnCurso,
@@ -173,7 +172,6 @@ export default function MateriasEnCursoPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Materias En Curso</h1>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
                 <LogOut className="h-4 w-4" />
                 Cerrar Sesión

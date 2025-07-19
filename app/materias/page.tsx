@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, LogOut, Clock, BookOpen, Trophy, GraduationCap, Calendar } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 // Datos de ejemplo
 const materias = [
@@ -113,7 +112,6 @@ export default function MateriasPage() {
               </Link>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
               <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
                 <LogOut className="h-4 w-4" />
                 Cerrar Sesión
