@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Clock, BookOpen, Trophy, GraduationCap, Calendar } from "lucide-react"
+import { Search, LogOut, Clock, BookOpen, Trophy, GraduationCap, Calendar } from "lucide-react"
 
 // Datos de ejemplo
 const materias = [
@@ -73,14 +73,19 @@ export default function MateriasPage() {
     }
   }
 
+  const handleLogout = () => {
+    // Aquí iría la lógica de logout
+    window.location.href = "/"
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-6">
-              <h1 className="text-2xl font-bold text-gray-900">Sistema de Materias</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sistema de Materias</h1>
               <Link href="/planes-estudio">
                 <Button variant="ghost" className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
@@ -106,7 +111,12 @@ export default function MateriasPage() {
                 </Button>
               </Link>
             </div>
-            {/* El botón de Cerrar Sesión ha sido eliminado de esta página */}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+                <LogOut className="h-4 w-4" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -149,12 +159,12 @@ export default function MateriasPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{materia.descripcion}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{materia.descripcion}</p>
 
                 {/* Correlativas */}
                 {materia.correlativas.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correlativas:</h4>
                     <div className="flex flex-wrap gap-2">
                       {materia.correlativas.map((correlativa) => (
                         <Button
@@ -185,7 +195,9 @@ export default function MateriasPage() {
 
         {filteredMaterias.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">No se encontraron materias que coincidan con tu búsqueda.</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No se encontraron materias que coincidan con tu búsqueda.
+            </p>
           </div>
         )}
       </div>
