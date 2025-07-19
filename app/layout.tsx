@@ -4,8 +4,7 @@ import { Providers } from "@/components/Providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Sistema de Gestión Académica",
-  description: "Gestión de materias, planes de estudio y carreras",
+  title: "MiUni - Inicio",
   generator: "v0.dev",
 }
 

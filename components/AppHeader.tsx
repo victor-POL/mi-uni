@@ -25,7 +25,7 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ 
-  title = "Sistema de Gestión Académica", 
+  title = "-", 
   showBackButton = true,
   backHref
 }) => {
