@@ -4,7 +4,7 @@ import type React from 'react'
 import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import type { User } from 'firebase/auth'
 import { onAuthStateChanged, signOut as firebaseSignOut } from '@/lib/firebase/auth'
-import type { PageUser, UserFirebase } from '@/models/user.model'
+import type { PageUser } from '@/models/user.model'
 import { mapFirebaseUserToPageUser } from '@/utils/user.util'
 
 interface AuthContextType {
@@ -40,9 +40,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged((firebaseUser: User | null) => {
-      if (pageUser) {
-        const pageUser: PageUser = mapFirebaseUserToPageUser(firebaseUser as UserFirebase)
-        setPageUser(pageUser)
+      if (firebaseUser) {
+        const mappedUser: PageUser = mapFirebaseUserToPageUser(firebaseUser)
+        setPageUser(mappedUser)
       } else {
         setPageUser(null)
       }
