@@ -141,31 +141,68 @@ export const AppSidebar: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isInitialized && user && (
-          <>
-            <SidebarSeparator />
-            <SidebarGroup>
-              <SidebarGroupLabel>Mi Cuenta</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {privateItems.map((item) => {
-                    const isActive = pathname === item.href
-                    return (
-                      <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild isActive={isActive}>
-                          <Link href={item.href}>
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
+        {(() => {
+          if (!isInitialized) {
+            // Placeholder para operaciones privadas mientras se verifica la autenticación
+            return (
+              <>
+                <SidebarSeparator />
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
+                          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                        </div>
                       </SidebarMenuItem>
-                    )
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
-        )}
+                      <SidebarMenuItem>
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md">
+                          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+                        </div>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            )
+          }
+          
+          if (user) {
+            // Operaciones privadas para usuarios autenticados
+            return (
+              <>
+                <SidebarSeparator />
+                <SidebarGroup>
+                  <SidebarGroupLabel>Mi Cuenta</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {privateItems.map((item) => {
+                        const isActive = pathname === item.href
+                        return (
+                          <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton asChild isActive={isActive}>
+                              <Link href={item.href}>
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.name}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            )
+          }
+          
+          return null
+        })()}
       </SidebarContent>
 
       <SidebarFooter>{renderUserSection()}</SidebarFooter>

@@ -70,34 +70,80 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Private Operations - Only for authenticated users */}
-        {isInitialized && user && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Mi Cuenta</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {privateOperations.map((operation) => (
-                <Card key={operation.href} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${operation.color}`}>
-                        <operation.icon className="h-6 w-6 text-white" />
+        {/* Private Operations - Loading state, authenticated users, or nothing */}
+        {(() => {
+          if (!isInitialized) {
+            // Placeholder mientras se verifica la autenticación
+            return (
+              <div className="space-y-6">
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-48"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="animate-pulse">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-gray-200 h-10 w-10"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle>{operation.title}</CardTitle>
-                        <CardDescription>{operation.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-10 bg-gray-200 rounded w-full"></div>
+                    </CardContent>
+                  </Card>
+                  <Card className="animate-pulse">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-gray-200 h-10 w-10"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Link href={operation.href}>
-                      <Button className="w-full">Acceder</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-10 bg-gray-200 rounded w-full"></div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )
+          }
+          
+          if (user) {
+            // Operaciones privadas para usuarios autenticados
+            return (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-900">Mi Cuenta</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {privateOperations.map((operation) => (
+                    <Card key={operation.href} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${operation.color}`}>
+                            <operation.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle>{operation.title}</CardTitle>
+                            <CardDescription>{operation.description}</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Link href={operation.href}>
+                          <Button className="w-full">Acceder</Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )
+          }
+          
+          return null
+        })()}
       </div>
     </AppLayout>
   )
