@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, LogOut, BookOpen, Clock, Filter, Search, X } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { planesDeEstudio } from "@/data/planes-estudio.data"
 import { getNombreCuatrimestre } from "@/utils/utils"
 import { Input } from "@/components/ui/input"
@@ -220,9 +219,9 @@ export default function PlanesEstudioPage() {
   }, [materiasAgrupadas, planConsultado])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
@@ -231,11 +230,14 @@ export default function PlanesEstudioPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Planes de Estudio</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Planes de Estudio</h1>
             </div>
             <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 bg-transparent">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+              >
                 <LogOut className="h-4 w-4" />
                 Cerrar Sesión
               </Button>
@@ -246,25 +248,24 @@ export default function PlanesEstudioPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Selector de Plan */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle>Consultar Plan de Estudio</CardTitle>
-            <CardDescription>Selecciona un plan de estudio para ver su estructura completa</CardDescription>
+            <CardTitle className="text-gray-900">Consultar Plan de Estudio</CardTitle>
+            <CardDescription className="text-gray-600">
+              Selecciona un plan de estudio para ver su estructura completa
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4 items-end">
               <div className="flex-1 max-w-md">
-                <Label
-                  htmlFor="plan-select"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
+                <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
                   Plan de Estudio
                 </Label>
                 <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white border-gray-300">
                     <SelectValue placeholder="Selecciona un plan de estudio" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-gray-300">
                     {planesDeEstudio.map((plan) => (
                       <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
                         {plan.nombreCarrera} ({plan.anio})
@@ -282,13 +283,13 @@ export default function PlanesEstudioPage() {
 
         {/* Filtros y Opciones de Visualización */}
         {planConsultado && (
-          <Card className="mb-8">
+          <Card className="mb-8 bg-white shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <Filter className="h-5 w-5" />
                 Filtros y Opciones de Visualización
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-gray-600">
                 Filtra las materias por año, cuatrimestre, nombre, estado u horas. También puedes ajustar la
                 visualización.
               </CardDescription>
@@ -297,17 +298,14 @@ export default function PlanesEstudioPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {/* Filter by Year */}
                 <div>
-                  <Label
-                    htmlFor="filter-year"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
+                  <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
                     Año
                   </Label>
                   <Select value={filterYear} onValueChange={setFilterYear}>
-                    <SelectTrigger id="filter-year">
+                    <SelectTrigger id="filter-year" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los años" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="0">Todos los años</SelectItem>
                       {allYears.map((year) => (
                         <SelectItem key={year} value={year.toString()}>
@@ -320,17 +318,14 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Cuatrimestre */}
                 <div>
-                  <Label
-                    htmlFor="filter-cuatrimestre"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
+                  <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
                     Cuatrimestre
                   </Label>
                   <Select value={filterCuatrimestre} onValueChange={setFilterCuatrimestre}>
-                    <SelectTrigger id="filter-cuatrimestre">
+                    <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los cuatrimestres" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="0">Todos los cuatrimestres</SelectItem>
                       <SelectItem value="1">Primer Cuatrimestre</SelectItem>
                       <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
@@ -340,10 +335,7 @@ export default function PlanesEstudioPage() {
 
                 {/* Search by Name/Code */}
                 <div>
-                  <Label
-                    htmlFor="search-term"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
+                  <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
                     Buscar Materia
                   </Label>
                   <div className="relative">
@@ -353,7 +345,7 @@ export default function PlanesEstudioPage() {
                       placeholder="Nombre o código"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
+                      className="pl-9 bg-white border-gray-300"
                     />
                     {searchTerm && (
                       <Button
@@ -370,17 +362,14 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Status */}
                 <div>
-                  <Label
-                    htmlFor="filter-status"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
+                  <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                     Estado
                   </Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger id="filter-status">
+                    <SelectTrigger id="filter-status" className="bg-white border-gray-300">
                       <SelectValue placeholder="Todos los estados" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="0">Todos los estados</SelectItem>
                       {allStatuses.map((status) => (
                         <SelectItem key={status} value={status}>
@@ -393,10 +382,7 @@ export default function PlanesEstudioPage() {
 
                 {/* Filter by Hours */}
                 <div>
-                  <Label
-                    htmlFor="filter-hours"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
+                  <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
                     Horas Semanales
                   </Label>
                   <Input
@@ -405,33 +391,35 @@ export default function PlanesEstudioPage() {
                     placeholder="Ej: 4"
                     value={filterHours}
                     onChange={(e) => setFilterHours(e.target.value)}
+                    className="bg-white border-gray-300"
                   />
                 </div>
 
                 {/* Toggle Show Materia Status */}
                 <div className="flex items-center space-x-2 mt-2">
                   <Switch id="show-status" checked={showMateriaStatus} onCheckedChange={setShowMateriaStatus} />
-                  <Label htmlFor="show-status">Mostrar Estado de Materia</Label>
+                  <Label htmlFor="show-status" className="text-gray-700">
+                    Mostrar Estado de Materia
+                  </Label>
                 </div>
 
                 {/* Toggle Show Correlatives */}
                 <div className="flex items-center space-x-2 mt-2">
                   <Switch id="show-correlatives" checked={showCorrelatives} onCheckedChange={setShowCorrelatives} />
-                  <Label htmlFor="show-correlatives">Mostrar Correlativas</Label>
+                  <Label htmlFor="show-correlatives" className="text-gray-700">
+                    Mostrar Correlativas
+                  </Label>
                 </div>
               </div>
 
               {/* Correlative Search */}
-              <div className="mt-6 pt-4 border-t dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Buscar Materias Habilitadas por Correlativa
                 </h3>
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
-                    <Label
-                      htmlFor="correlative-search"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
+                    <Label htmlFor="correlative-search" className="block text-sm font-medium text-gray-700 mb-2">
                       Materia Correlativa
                     </Label>
                     <Input
@@ -439,6 +427,7 @@ export default function PlanesEstudioPage() {
                       placeholder="Nombre o código de la correlativa"
                       value={correlativeSearchInput}
                       onChange={(e) => setCorrelativeSearchInput(e.target.value)}
+                      className="bg-white border-gray-300"
                     />
                   </div>
                   <Button onClick={handleCorrelativeSearch} disabled={!correlativeSearchInput}>
@@ -446,14 +435,18 @@ export default function PlanesEstudioPage() {
                     Buscar Habilitadas
                   </Button>
                   {correlativeMateriasHabilitadas !== null && (
-                    <Button variant="outline" onClick={handleClearCorrelativeSearch}>
+                    <Button
+                      variant="outline"
+                      onClick={handleClearCorrelativeSearch}
+                      className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                    >
                       <X className="h-4 w-4 mr-2" />
                       Limpiar
                     </Button>
                   )}
                 </div>
                 {correlativeMateriasHabilitadas && correlativeMateriasHabilitadas.length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  <p className="text-sm text-gray-500 mt-2">
                     No se encontraron materias habilitadas por la correlativa ingresada o la correlativa no existe.
                   </p>
                 )}
@@ -466,33 +459,33 @@ export default function PlanesEstudioPage() {
         {planConsultado && (
           <div className="space-y-6">
             {/* Estadísticas del Plan */}
-            <Card>
+            <Card className="bg-white shadow-sm">
               <CardHeader>
-                <CardTitle className="text-2xl">{`${planConsultado.nombreCarrera} - Año ${planConsultado.anio}`}</CardTitle>
+                <CardTitle className="text-2xl text-gray-900">{`${planConsultado.nombreCarrera} - Año ${planConsultado.anio}`}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-blue-600">{planConsultado.materias.length}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Materias</div>
+                    <div className="text-sm text-gray-600">Total Materias</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-green-600">
                       {planConsultado.materias.reduce((sum, m) => sum + (m.horasSemanales || 0), 0)}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Horas Totales</div>
+                    <div className="text-sm text-gray-600">Horas Totales</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-purple-600">
                       {Math.max(...planConsultado.materias.map((m) => m.anioCursada))}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Años de Duración</div>
+                    <div className="text-sm text-gray-600">Años de Duración</div>
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-orange-600">
                       {planConsultado.materias.filter((m) => m.listaCorrelativas.length === 0).length}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Sin Correlativas</div>
+                    <div className="text-sm text-gray-600">Sin Correlativas</div>
                   </div>
                 </div>
               </CardContent>
@@ -505,8 +498,8 @@ export default function PlanesEstudioPage() {
                 .sort((a, b) => a - b)
                 .map((anio) => (
                   <div key={anio}>
-                    <AccordionItem  value={`anio-${anio}`} className="border-none">
-                      <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white hover:no-underline">
+                    <AccordionItem value={`anio-${anio}`} className="border-none">
+                      <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 hover:no-underline">
                         <div className="h-8 w-1 bg-blue-600 rounded"></div>
                         {`${anio}°`} Año
                         {/* Removed redundant ChevronDown */}
@@ -522,7 +515,7 @@ export default function PlanesEstudioPage() {
                                 value={`cuatrimestre-${anio}-${cuatrimestre}`}
                                 className="border-none"
                               >
-                                <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 dark:text-gray-200 hover:no-underline">
+                                <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 hover:no-underline">
                                   <div className="h-6 w-1 bg-green-500 rounded"></div>
                                   {getNombreCuatrimestre(cuatrimestre)}
                                   {/* Removed redundant ChevronDown */}
@@ -533,22 +526,27 @@ export default function PlanesEstudioPage() {
                                       <Card
                                         key={materia.codigoMateria}
                                         id={`materia-${materia.codigoMateria}`}
-                                        className={`border-l-4 border-l-blue-200 transition-all duration-500 ${
+                                        className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
                                           materiaResaltada === materia.codigoMateria
-                                            ? "ring-2 ring-blue-500 shadow-lg bg-blue-50 dark:bg-blue-900/20"
+                                            ? "ring-2 ring-blue-500 shadow-lg bg-blue-50"
                                             : ""
                                         }`}
                                       >
                                         <CardHeader className="pb-3">
                                           <div className="flex justify-between items-start">
                                             <div>
-                                              <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
-                                              <CardDescription className="font-mono text-sm">
+                                              <CardTitle className="text-base text-gray-900">
+                                                {materia.nombreMateria}
+                                              </CardTitle>
+                                              <CardDescription className="font-mono text-sm text-gray-600">
                                                 {materia.codigoMateria}
                                               </CardDescription>
                                             </div>
                                             <div className="flex flex-col items-end gap-1">
-                                              <Badge variant="secondary" className="flex items-center gap-1">
+                                              <Badge
+                                                variant="secondary"
+                                                className="flex items-center gap-1 bg-gray-100 text-gray-800"
+                                              >
                                                 <Clock className="h-3 w-3" />
                                                 {materia.horasSemanales}h
                                               </Badge>
@@ -567,9 +565,7 @@ export default function PlanesEstudioPage() {
                                           {/* Correlativas */}
                                           {showCorrelatives && materia.listaCorrelativas.length > 0 && (
                                             <div>
-                                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Correlativas:
-                                              </h4>
+                                              <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
                                               <div className="space-y-1">
                                                 {materia.listaCorrelativas.map((codigoCorrelativa) => (
                                                   <Button
@@ -577,7 +573,7 @@ export default function PlanesEstudioPage() {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => navegarACorrelativa(codigoCorrelativa)}
-                                                    className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 dark:bg-gray-800 dark:hover:bg-blue-900 px-2 py-1 h-auto"
+                                                    className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
                                                   >
                                                     {getNombreMateriaById(codigoCorrelativa)}
                                                   </Button>
@@ -586,19 +582,19 @@ export default function PlanesEstudioPage() {
                                             </div>
                                           )}
                                           {showCorrelatives && materia.listaCorrelativas.length === 0 && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                              Sin correlativas
-                                            </div>
+                                            <div className="text-xs text-gray-500 italic">Sin correlativas</div>
                                           )}
                                           {!showCorrelatives && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                              Correlativas ocultas
-                                            </div>
+                                            <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
                                           )}
-  
+
                                           {/* Botón Ver Detalles */}
                                           <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                            <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                                            >
                                               <BookOpen className="h-3 w-3 mr-1" />
                                               Ver Detalles
                                             </Button>
@@ -613,7 +609,7 @@ export default function PlanesEstudioPage() {
                         </Accordion>
                       </AccordionContent>
                     </AccordionItem>
-                    <Separator />
+                    <Separator className="bg-gray-200" />
                   </div>
                 ))}
             </Accordion>
@@ -622,11 +618,11 @@ export default function PlanesEstudioPage() {
 
         {/* Estado inicial */}
         {!planConsultado && (
-          <Card>
+          <Card className="bg-white shadow-sm">
             <CardContent className="text-center py-12">
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Selecciona un Plan de Estudio</h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona un Plan de Estudio</h3>
+              <p className="text-gray-600">
                 Elige un plan de estudio del selector de arriba y haz clic en "Consultar" para ver su estructura
                 completa.
               </p>

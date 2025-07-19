@@ -1,11 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "Sistema de Gestión Académica",
+  description: "Gestión de materias, planes de estudio y carreras",
   generator: "v0.dev",
 }
 
@@ -15,12 +14,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
-      </body>
+    <html lang="es" className="light">
+      <body className="bg-white text-gray-900 antialiased">{children}</body>
     </html>
   )
 }
