@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from 'lucide-react'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Tipos de datos
 interface MateriaPlanEstudio {
@@ -294,7 +296,8 @@ export default function MisCarrerasPage() {
   const estadisticas = getEstadisticas()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -807,5 +810,6 @@ export default function MisCarrerasPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </ProtectedRoute>
   )
 }
