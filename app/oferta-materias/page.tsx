@@ -1,30 +1,32 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, LogOut, BookOpen, Clock, Calendar } from "lucide-react"
-import { EstadoMateria, PlanDeEstudio, planesOferta } from "@/app/oferta-materias/data"
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, LogOut, BookOpen, Clock, Calendar } from 'lucide-react'
+import { EstadoMateria, PlanDeEstudio, planesOferta } from '@/app/oferta-materias/data'
 
 // Simulamos estados de materias del usuario
 const estadosMateriasUsuario: { [key: number]: EstadoMateria } = {
-  1: "Aprobada",
-  2: "Cursando",
-  3: "Pendiente",
-  4: "En Final",
-  5: "Pendiente",
-  6: "Pendiente",
-  101: "Aprobada",
-  102: "Pendiente",
+  1: 'Aprobada',
+  2: 'Cursando',
+  3: 'Pendiente',
+  4: 'En Final',
+  5: 'Pendiente',
+  6: 'Pendiente',
+  101: 'Aprobada',
+  102: 'Pendiente',
 }
 
 export default function OfertaMateriasPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("")
+  const router = useRouter()
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
-  const [filtroEstado, setFiltroEstado] = useState<string>("todos")
+  const [filtroEstado, setFiltroEstado] = useState<string>('todos')
 
   const handleConsultar = () => {
     if (selectedPlanId) {
@@ -34,15 +36,15 @@ export default function OfertaMateriasPage() {
   }
 
   const handleLogout = () => {
-    window.location.href = "/"
+    window.location.href = '/'
   }
 
   const getEstadoBadge = (estado: EstadoMateria) => {
     const colors = {
-      Pendiente: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-      Cursando: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      "En Final": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      Aprobada: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      Pendiente: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+      Cursando: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      'En Final': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      Aprobada: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     }
 
     return <Badge className={colors[estado]}>{estado}</Badge>
@@ -52,10 +54,10 @@ export default function OfertaMateriasPage() {
     if (!planConsultado) return []
 
     return planConsultado.materias.filter((materia) => {
-      const estadoMateria = "Pendiente"
+      const estadoMateria = 'Pendiente'
 
       // Filtro por estado
-      if (filtroEstado !== "todos" && estadoMateria !== filtroEstado) {
+      if (filtroEstado !== 'todos' && estadoMateria !== filtroEstado) {
         return false
       }
 
@@ -72,11 +74,9 @@ export default function OfertaMateriasPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
-              <Link href="/materias">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Oferta de Materias</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export default function OfertaMateriasPage() {
                   </Select>
                 </div>
                 <div className="flex items-end">
-                  <Button variant="outline" onClick={() => setFiltroEstado("todos")} className="w-full">
+                  <Button variant="outline" onClick={() => setFiltroEstado('todos')} className="w-full">
                     Limpiar Filtros
                   </Button>
                 </div>
@@ -186,7 +186,7 @@ export default function OfertaMateriasPage() {
         {planConsultado && (
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
             {materiasFiltradas.map((materia) => {
-              const estadoMateria = "Pendiente"
+              const estadoMateria = 'Pendiente'
               return (
                 <Card key={materia.codigoMateria} className="relative">
                   <CardHeader className="pb-4">
@@ -199,9 +199,7 @@ export default function OfertaMateriasPage() {
                           <span className="font-mono">Código: {materia.codigoMateria}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getEstadoBadge(estadoMateria)}
-                      </div>
+                      <div className="flex items-center gap-2">{getEstadoBadge(estadoMateria)}</div>
                     </div>
 
                     {/* Botón Ver Detalles */}
@@ -231,7 +229,7 @@ export default function OfertaMateriasPage() {
                                 Comisión {comision.comisionNombre}
                               </div>
                               <Badge variant="outline" className="text-xs">
-                                {comision.diasYHorarios.length} día{comision.diasYHorarios.length > 1 ? "s" : ""}
+                                {comision.diasYHorarios.length} día{comision.diasYHorarios.length > 1 ? 's' : ''}
                               </Badge>
                             </div>
 
@@ -285,7 +283,7 @@ export default function OfertaMateriasPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 No se encontraron materias que coincidan con los filtros seleccionados.
               </p>
-              <Button variant="outline" onClick={() => setFiltroEstado("todos")}>
+              <Button variant="outline" onClick={() => setFiltroEstado('todos')}>
                 Limpiar Filtros
               </Button>
             </CardContent>

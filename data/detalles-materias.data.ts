@@ -5,8 +5,8 @@ const plan = planesDeEstudio.find(p => p.idPlan === 1);  // Ingeniería en Siste
 
 export const materiasDetalle: MateriaDetalle[] = plan
   ? plan.materias.map((m): MateriaDetalle => ({
-      codigo: m.codigoMateria,
-      nombre: m.nombreMateria,
+      codigoMateria: m.codigoMateria,
+      nombreMateria: m.nombreMateria,
       horasSemanales: m.horasSemanales,
       correlativas: m.listaCorrelativas,
       descripcion: `Esta materia aborda los conceptos fundamentales de ${m.nombreMateria.toLowerCase()} y su aplicación práctica.`,

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,9 +12,8 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft } from "lucide-react"
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
   const router = useRouter()
-
+  const [email, setEmail] = useState("")
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica para enviar el código de recuperación

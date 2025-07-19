@@ -1,36 +1,38 @@
-"use client"
+'use client'
 
-import { useState, useMemo } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, LogOut, BookOpen, Clock, Filter, Search, X } from "lucide-react"
-import { planesDeEstudio } from "@/data/planes-estudio.data"
-import { getNombreCuatrimestre } from "@/utils/utils"
-import { Input } from "@/components/ui/input"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from "@/models/materias.model"
-import type { PlanDeEstudioDetalle } from "@/models/plan-estudio.model"
-import { Separator } from "@/components/ui/separator"
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, LogOut, BookOpen, Clock, Filter, Search, X } from 'lucide-react'
+import { planesDeEstudio } from '@/data/planes-estudio.data'
+import { getNombreCuatrimestre } from '@/utils/utils'
+import { Input } from '@/components/ui/input'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
+import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import { Separator } from '@/components/ui/separator'
 
 export default function PlanesEstudioPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("0")
+  const router = useRouter()
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
   // Filter states
-  const [filterYear, setFilterYear] = useState<string>("0")
-  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>("0")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [filterStatus, setFilterStatus] = useState<string>("0")
-  const [filterHours, setFilterHours] = useState<string>("")
-  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>("")
+  const [filterYear, setFilterYear] = useState<string>('0')
+  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>('0')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [filterStatus, setFilterStatus] = useState<string>('0')
+  const [filterHours, setFilterHours] = useState<string>('')
+  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>('')
   const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
-    null,
+    null
   )
 
   // Display toggles
@@ -42,23 +44,23 @@ export default function PlanesEstudioPage() {
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
       setPlanConsultado(plan || null)
       // Reset filters when a new plan is selected
-      setFilterYear("0")
-      setFilterCuatrimestre("0")
-      setSearchTerm("")
-      setFilterStatus("0")
-      setFilterHours("")
-      setCorrelativeSearchInput("")
+      setFilterYear('0')
+      setFilterCuatrimestre('0')
+      setSearchTerm('')
+      setFilterStatus('0')
+      setFilterHours('')
+      setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
     }
   }
 
   const handleLogout = () => {
-    window.location.href = "/"
+    window.location.href = '/'
   }
 
   // Función para obtener el nombre de la materia por ID
   const getNombreMateriaById = (codigoMateria: string): string => {
-    if (!planConsultado) return ""
+    if (!planConsultado) return ''
     const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
     return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
   }
@@ -90,12 +92,12 @@ export default function PlanesEstudioPage() {
     const foundCorrelativeMateria = planConsultado.materias.find(
       (materia) =>
         materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
-        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch),
+        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
     )
 
     if (foundCorrelativeMateria) {
       const habilitadas = planConsultado.materias.filter((materia) =>
-        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria),
+        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
       )
       setCorrelativeMateriasHabilitadas(habilitadas)
     } else {
@@ -104,7 +106,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleClearCorrelativeSearch = () => {
-    setCorrelativeSearchInput("")
+    setCorrelativeSearchInput('')
     setCorrelativeMateriasHabilitadas(null)
   }
 
@@ -113,7 +115,7 @@ export default function PlanesEstudioPage() {
     return [...new Set(planConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
   }, [planConsultado])
 
-  const allStatuses: EstadoMateriaPlanEstudio[] = ["Pendiente", "En Curso", "En Final", "Aprobada", "Regularizada"]
+  const allStatuses: EstadoMateriaPlanEstudio[] = ['Pendiente', 'En Curso', 'En Final', 'Aprobada', 'Regularizada']
 
   const filteredMaterias = useMemo(() => {
     if (!planConsultado) return []
@@ -129,14 +131,14 @@ export default function PlanesEstudioPage() {
 
     // Apply general filters only if correlative search is not active
     // Filter by year
-    if (filterYear !== "0") {
+    if (filterYear !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
     }
 
     // Filter by cuatrimestre
-    if (filterCuatrimestre !== "0") {
+    if (filterCuatrimestre !== '0') {
       currentMaterias = currentMaterias.filter(
-        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre,
+        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
       )
     }
 
@@ -146,12 +148,12 @@ export default function PlanesEstudioPage() {
       currentMaterias = currentMaterias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
-          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm),
+          materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm)
       )
     }
 
     // Filter by status
-    if (filterStatus !== "0") {
+    if (filterStatus !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
     }
 
@@ -180,24 +182,24 @@ export default function PlanesEstudioPage() {
     setMateriaResaltada(codigoMateria)
     const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" })
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
   }
 
   const getStatusBadgeVariant = (status: EstadoMateriaPlanEstudio) => {
     switch (status) {
-      case "Aprobada":
-        return "default" // Green-ish by default
-      case "Regularizada":
-        return "secondary" // Gray-ish
-      case "En Curso":
-        return "outline" // Bordered
-      case "En Final":
-        return "destructive" // Red-ish
-      case "Pendiente":
+      case 'Aprobada':
+        return 'default' // Green-ish by default
+      case 'Regularizada':
+        return 'secondary' // Gray-ish
+      case 'En Curso':
+        return 'outline' // Bordered
+      case 'En Final':
+        return 'destructive' // Red-ish
+      case 'Pendiente':
       default:
-        return "default" // Default for pending, can be changed
+        return 'default' // Default for pending, can be changed
     }
   }
 
@@ -225,11 +227,9 @@ export default function PlanesEstudioPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
-              <Link href="/materias">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <h1 className="text-2xl font-bold text-gray-900">Planes de Estudio</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -274,7 +274,7 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === "0"} className="px-8">
+              <Button onClick={handleConsultar} disabled={!selectedPlanId || selectedPlanId === '0'} className="px-8">
                 Consultar
               </Button>
             </div>
@@ -352,7 +352,7 @@ export default function PlanesEstudioPage() {
                         variant="ghost"
                         size="icon"
                         className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                        onClick={() => setSearchTerm("")}
+                        onClick={() => setSearchTerm('')}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -528,8 +528,8 @@ export default function PlanesEstudioPage() {
                                         id={`materia-${materia.codigoMateria}`}
                                         className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
                                           materiaResaltada === materia.codigoMateria
-                                            ? "ring-2 ring-blue-500 shadow-lg bg-blue-50"
-                                            : ""
+                                            ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
+                                            : ''
                                         }`}
                                       >
                                         <CardHeader className="pb-3">

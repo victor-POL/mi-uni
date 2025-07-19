@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,6 @@ import { ArrowLeft } from "lucide-react"
 export default function VerifyCodePage() {
   const [code, setCode] = useState("")
   const [email, setEmail] = useState("")
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {

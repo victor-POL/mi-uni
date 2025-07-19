@@ -1,29 +1,29 @@
 "use client"
 import Link from "next/link"
+import { useRouter, useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Clock, ExternalLink, BookOpen, Users, Calendar } from "lucide-react"
 import { materiasDetalle } from "@/data/detalles-materias.data"
 
-interface PageProps {
-  params: { codigo: string }
-}
+export default function MateriaDetallePage() {
+  const router = useRouter()
+  const params = useParams()
+  const codigo = params.codigo as string
 
-export default function MateriaDetallePage({ params }: PageProps) {
-  const { codigo } = params
-  const materia = materiasDetalle.find((m) => m.codigo === codigo)
+  const materia = materiasDetalle.find((m) => m.codigoMateria === codigo)
 
   // validar que el codigo sera del formato 00000 a 99999
-  if (!/^\d{5}$/.test(codigo)) {
+  if (!codigo || Array.isArray(codigo) || !/^\d{5}$/.test(codigo)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="text-center py-8">
             <h2 className="text-xl font-bold mb-2">Código de materia inválido</h2>
             <p className="text-gray-600 mb-4">El código {codigo} no es válido. Debe ser un número de 5 dígitos.</p>
-            <Link href="/materias">
-              <Button>Volver a Materias</Button>
+            <Link href="/">
+              <Button>Volver a Inicio</Button>
             </Link>
           </CardContent>
         </Card>
@@ -39,7 +39,7 @@ export default function MateriaDetallePage({ params }: PageProps) {
             <h2 className="text-xl font-bold mb-2">Materia no encontrada</h2>
             <p className="text-gray-600 mb-4">El código {codigo} no corresponde a ninguna materia.</p>
             <Link href="/planes-estudio">
-              <Button>Volver a Materias</Button>
+              <Button>Volver a Planes de Estudio</Button>
             </Link>
           </CardContent>
         </Card>
@@ -53,14 +53,12 @@ export default function MateriaDetallePage({ params }: PageProps) {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
-            <Link href="/materias">
-              <Button variant="ghost" size="icon" className="mr-4">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button variant="ghost" size="icon" className="mr-4" onClick={() => router.back()}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{materia.nombre}</h1>
-              <p className="text-sm text-gray-600 font-mono">{materia.codigo}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{materia.nombreMateria}</h1>
+              <p className="text-sm text-gray-600 font-mono">{materia.codigoMateria}</p>
             </div>
           </div>
         </div>
@@ -72,7 +70,7 @@ export default function MateriaDetallePage({ params }: PageProps) {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-2xl">{materia.nombre}</CardTitle>
+                <CardTitle className="text-2xl">{materia.nombreMateria}</CardTitle>
                 <CardDescription className="text-lg mt-2">{materia.descripcion}</CardDescription>
               </div>
               <Badge variant="secondary" className="flex items-center gap-1">

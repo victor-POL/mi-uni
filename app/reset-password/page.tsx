@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 
 export default function ResetPasswordPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -19,7 +20,6 @@ export default function ResetPasswordPage() {
     confirmPassword: "",
   })
   const [email, setEmail] = useState("")
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {

@@ -1,16 +1,17 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from "lucide-react"
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft, LogOut, BookOpen, Clock, Edit, Check, X, AlertCircle, Trophy } from 'lucide-react'
 
 // Tipos de datos
 interface MateriaPlanEstudio {
@@ -30,8 +31,8 @@ interface PlanDeEstudio {
   materias: MateriaPlanEstudio[]
 }
 
-type EstadoMateria = "Pendiente" | "Cursando" | "En Final" | "Aprobada"
-type TipoNota = "Por Promocion" | "Por Final"
+type EstadoMateria = 'Pendiente' | 'Cursando' | 'En Final' | 'Aprobada'
+type TipoNota = 'Por Promocion' | 'Por Final'
 
 interface EstadoMateriaUsuario {
   idMateria: number
@@ -49,13 +50,13 @@ interface EstadoMateriaUsuario {
 const planesDeEstudio: PlanDeEstudio[] = [
   {
     idPlan: 1,
-    nombreCarrera: "Ingeniería en Sistemas",
+    nombreCarrera: 'Ingeniería en Sistemas',
     anio: 2023,
     materias: [
       {
         idMateria: 1,
-        codigoMateria: "MAT101",
-        nombreMateria: "Matemática I",
+        codigoMateria: 'MAT101',
+        nombreMateria: 'Matemática I',
         anioCursada: 1,
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
@@ -63,8 +64,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 2,
-        codigoMateria: "PRG101",
-        nombreMateria: "Programación I",
+        codigoMateria: 'PRG101',
+        nombreMateria: 'Programación I',
         anioCursada: 1,
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
@@ -72,8 +73,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 3,
-        codigoMateria: "ING101",
-        nombreMateria: "Introducción a la Ingeniería",
+        codigoMateria: 'ING101',
+        nombreMateria: 'Introducción a la Ingeniería',
         anioCursada: 1,
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
@@ -81,8 +82,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 4,
-        codigoMateria: "MAT102",
-        nombreMateria: "Matemática II",
+        codigoMateria: 'MAT102',
+        nombreMateria: 'Matemática II',
         anioCursada: 1,
         cuatrimestreCursada: 2,
         listaCorrelativas: [1],
@@ -90,8 +91,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 5,
-        codigoMateria: "PRG102",
-        nombreMateria: "Programación II",
+        codigoMateria: 'PRG102',
+        nombreMateria: 'Programación II',
         anioCursada: 1,
         cuatrimestreCursada: 2,
         listaCorrelativas: [2],
@@ -99,8 +100,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 6,
-        codigoMateria: "FIS101",
-        nombreMateria: "Física I",
+        codigoMateria: 'FIS101',
+        nombreMateria: 'Física I',
         anioCursada: 1,
         cuatrimestreCursada: 2,
         listaCorrelativas: [1],
@@ -110,13 +111,13 @@ const planesDeEstudio: PlanDeEstudio[] = [
   },
   {
     idPlan: 2,
-    nombreCarrera: "Licenciatura en Informática",
+    nombreCarrera: 'Licenciatura en Informática',
     anio: 2022,
     materias: [
       {
         idMateria: 101,
-        codigoMateria: "MAT101",
-        nombreMateria: "Matemática Discreta",
+        codigoMateria: 'MAT101',
+        nombreMateria: 'Matemática Discreta',
         anioCursada: 1,
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
@@ -124,8 +125,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 102,
-        codigoMateria: "PRG101",
-        nombreMateria: "Fundamentos de Programación",
+        codigoMateria: 'PRG101',
+        nombreMateria: 'Fundamentos de Programación',
         anioCursada: 1,
         cuatrimestreCursada: 1,
         listaCorrelativas: [],
@@ -133,8 +134,8 @@ const planesDeEstudio: PlanDeEstudio[] = [
       },
       {
         idMateria: 103,
-        codigoMateria: "LOG101",
-        nombreMateria: "Lógica y Algoritmos",
+        codigoMateria: 'LOG101',
+        nombreMateria: 'Lógica y Algoritmos',
         anioCursada: 1,
         cuatrimestreCursada: 2,
         listaCorrelativas: [101, 102],
@@ -144,10 +145,11 @@ const planesDeEstudio: PlanDeEstudio[] = [
   },
 ]
 
-const turnosExamen = ["Febrero", "Marzo", "Julio", "Agosto", "Octubre", "Diciembre"]
+const turnosExamen = ['Febrero', 'Marzo', 'Julio', 'Agosto', 'Octubre', 'Diciembre']
 
 export default function MisCarrerasPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("")
+  const router = useRouter()
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudio | null>(null)
   const [estadosMaterias, setEstadosMaterias] = useState<{ [key: number]: EstadoMateriaUsuario }>({})
   const [materiasSeleccionadas, setMateriasSeleccionadas] = useState<number[]>([])
@@ -155,9 +157,9 @@ export default function MisCarrerasPage() {
   const [materiaEditando, setMateriaEditando] = useState<number | null>(null)
   const [formData, setFormData] = useState<Partial<EstadoMateriaUsuario>>({})
 
-  const [filtroEstado, setFiltroEstado] = useState<string>("todos")
-  const [filtroAnio, setFiltroAnio] = useState<string>("todos")
-  const [filtroCuatrimestre, setFiltroCuatrimestre] = useState<string>("todos")
+  const [filtroEstado, setFiltroEstado] = useState<string>('todos')
+  const [filtroAnio, setFiltroAnio] = useState<string>('todos')
+  const [filtroCuatrimestre, setFiltroCuatrimestre] = useState<string>('todos')
 
   const handleConsultar = () => {
     if (selectedPlanId) {
@@ -170,7 +172,7 @@ export default function MisCarrerasPage() {
         plan.materias.forEach((materia) => {
           estadosIniciales[materia.idMateria] = {
             idMateria: materia.idMateria,
-            estado: "Pendiente",
+            estado: 'Pendiente',
           }
         })
         setEstadosMaterias(estadosIniciales)
@@ -179,7 +181,7 @@ export default function MisCarrerasPage() {
   }
 
   const handleLogout = () => {
-    window.location.href = "/"
+    window.location.href = '/'
   }
 
   const handleSeleccionMateria = (idMateria: number, seleccionada: boolean) => {
@@ -204,7 +206,7 @@ export default function MisCarrerasPage() {
 
   const handleEditarMateria = (idMateria: number) => {
     setMateriaEditando(idMateria)
-    setFormData(estadosMaterias[idMateria] || { idMateria, estado: "Pendiente" })
+    setFormData(estadosMaterias[idMateria] || { idMateria, estado: 'Pendiente' })
     setDialogAbierto(true)
   }
 
@@ -214,7 +216,7 @@ export default function MisCarrerasPage() {
         ...estadosMaterias,
         [materiaEditando]: {
           idMateria: materiaEditando,
-          estado: formData.estado || "Pendiente",
+          estado: formData.estado || 'Pendiente',
           nota: formData.nota,
           tipoNota: formData.tipoNota,
           anioCursado: formData.anioCursado,
@@ -232,17 +234,17 @@ export default function MisCarrerasPage() {
 
   const getEstadoBadge = (estado: EstadoMateria) => {
     const colors = {
-      Pendiente: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-      Cursando: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      "En Final": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      Aprobada: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      Pendiente: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+      Cursando: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+      'En Final': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+      Aprobada: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     }
 
     return (
       <Badge className={colors[estado]}>
-        {estado === "Aprobada" && <Check className="h-3 w-3 mr-1" />}
-        {estado === "Cursando" && <Clock className="h-3 w-3 mr-1" />}
-        {estado === "En Final" && <AlertCircle className="h-3 w-3 mr-1" />}
+        {estado === 'Aprobada' && <Check className="h-3 w-3 mr-1" />}
+        {estado === 'Cursando' && <Clock className="h-3 w-3 mr-1" />}
+        {estado === 'En Final' && <AlertCircle className="h-3 w-3 mr-1" />}
         {estado}
       </Badge>
     )
@@ -252,9 +254,9 @@ export default function MisCarrerasPage() {
     if (!planConsultado) return null
 
     const total = planConsultado.materias.length
-    const aprobadas = Object.values(estadosMaterias).filter((e) => e.estado === "Aprobada").length
-    const cursando = Object.values(estadosMaterias).filter((e) => e.estado === "Cursando").length
-    const enFinal = Object.values(estadosMaterias).filter((e) => e.estado === "En Final").length
+    const aprobadas = Object.values(estadosMaterias).filter((e) => e.estado === 'Aprobada').length
+    const cursando = Object.values(estadosMaterias).filter((e) => e.estado === 'Cursando').length
+    const enFinal = Object.values(estadosMaterias).filter((e) => e.estado === 'En Final').length
     const pendientes = total - aprobadas - cursando - enFinal
 
     const progreso = Math.round((aprobadas / total) * 100)
@@ -269,17 +271,17 @@ export default function MisCarrerasPage() {
       const estadoMateria = estadosMaterias[materia.idMateria]
 
       // Filtro por estado
-      if (filtroEstado !== "todos" && estadoMateria?.estado !== filtroEstado) {
+      if (filtroEstado !== 'todos' && estadoMateria?.estado !== filtroEstado) {
         return false
       }
 
       // Filtro por año de cursada del plan
-      if (filtroAnio !== "todos" && materia.anioCursada.toString() !== filtroAnio) {
+      if (filtroAnio !== 'todos' && materia.anioCursada.toString() !== filtroAnio) {
         return false
       }
 
       // Filtro por cuatrimestre del plan
-      if (filtroCuatrimestre !== "todos" && materia.cuatrimestreCursada.toString() !== filtroCuatrimestre) {
+      if (filtroCuatrimestre !== 'todos' && materia.cuatrimestreCursada.toString() !== filtroCuatrimestre) {
         return false
       }
 
@@ -298,11 +300,9 @@ export default function MisCarrerasPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
-              <Link href="/materias">
-                <Button variant="ghost" size="icon">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mis Carreras</h1>
             </div>
             <div className="flex items-center gap-2">
@@ -428,7 +428,7 @@ export default function MisCarrerasPage() {
                         .sort()
                         .map((anio) => (
                           <SelectItem key={anio} value={anio.toString()}>
-                            {anio === 1 ? "1er" : anio === 2 ? "2do" : anio === 3 ? "3er" : `${anio}°`} Año
+                            {anio === 1 ? '1er' : anio === 2 ? '2do' : anio === 3 ? '3er' : `${anio}°`} Año
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -451,9 +451,9 @@ export default function MisCarrerasPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setFiltroEstado("todos")
-                      setFiltroAnio("todos")
-                      setFiltroCuatrimestre("todos")
+                      setFiltroEstado('todos')
+                      setFiltroAnio('todos')
+                      setFiltroCuatrimestre('todos')
                     }}
                     className="w-full"
                   >
@@ -472,16 +472,16 @@ export default function MisCarrerasPage() {
               <div className="flex items-center gap-4 flex-wrap">
                 <span className="text-sm font-medium">{materiasSeleccionadas.length} materia(s) seleccionada(s):</span>
                 <div className="flex gap-2 flex-wrap">
-                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo("Pendiente")} variant="outline">
+                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo('Pendiente')} variant="outline">
                     Marcar Pendiente
                   </Button>
-                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo("Cursando")} variant="outline">
+                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo('Cursando')} variant="outline">
                     Marcar Cursando
                   </Button>
-                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo("En Final")} variant="outline">
+                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo('En Final')} variant="outline">
                     Marcar En Final
                   </Button>
-                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo("Aprobada")} variant="outline">
+                  <Button size="sm" onClick={() => handleCambiarEstadoMasivo('Aprobada')} variant="outline">
                     Marcar Aprobada
                   </Button>
                 </div>
@@ -525,7 +525,7 @@ export default function MisCarrerasPage() {
                           </Badge>
                         </div>
                         <div className="flex justify-between items-center">
-                          {getEstadoBadge(estadoMateria?.estado || "Pendiente")}
+                          {getEstadoBadge(estadoMateria?.estado || 'Pendiente')}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -547,19 +547,19 @@ export default function MisCarrerasPage() {
                             Nota: {estadoMateria.nota} ({estadoMateria.tipoNota})
                           </div>
                         )}
-                        {estadoMateria.estado === "Cursando" && estadoMateria.anioCursado && (
+                        {estadoMateria.estado === 'Cursando' && estadoMateria.anioCursado && (
                           <div>
                             Cursando: {estadoMateria.anioCursado} - {estadoMateria.cuatrimestreCursado}° Cuatrimestre
                           </div>
                         )}
-                        {estadoMateria.estado === "En Final" && estadoMateria.anioCursado && (
+                        {estadoMateria.estado === 'En Final' && estadoMateria.anioCursado && (
                           <div>
                             Final desde: {estadoMateria.anioCursado} - {estadoMateria.cuatrimestreCursado}° Cuatrimestre
                           </div>
                         )}
-                        {estadoMateria.estado === "Aprobada" && estadoMateria.anioAprobacion && (
+                        {estadoMateria.estado === 'Aprobada' && estadoMateria.anioAprobacion && (
                           <div>
-                            {estadoMateria.tipoNota === "Por Promocion"
+                            {estadoMateria.tipoNota === 'Por Promocion'
                               ? `Promocionada: ${estadoMateria.anioAprobacion} - ${estadoMateria.cuatrimestreAprobacion}° Cuatrimestre`
                               : `Aprobada: ${estadoMateria.anioAprobacion} - ${estadoMateria.turnoExamen}`}
                           </div>
@@ -610,7 +610,7 @@ export default function MisCarrerasPage() {
             <div>
               <Label>Estado</Label>
               <Select
-                value={formData.estado || "Pendiente"}
+                value={formData.estado || 'Pendiente'}
                 onValueChange={(value: EstadoMateria) => setFormData({ ...formData, estado: value })}
               >
                 <SelectTrigger>
@@ -626,7 +626,7 @@ export default function MisCarrerasPage() {
             </div>
 
             {/* Campos para Cursando */}
-            {formData.estado === "Cursando" && (
+            {formData.estado === 'Cursando' && (
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -635,14 +635,14 @@ export default function MisCarrerasPage() {
                       type="number"
                       min="2020"
                       max="2030"
-                      value={formData.anioCursado || ""}
+                      value={formData.anioCursado || ''}
                       onChange={(e) => setFormData({ ...formData, anioCursado: Number.parseInt(e.target.value) })}
                     />
                   </div>
                   <div>
                     <Label>Cuatrimestre</Label>
                     <Select
-                      value={formData.cuatrimestreCursado?.toString() || ""}
+                      value={formData.cuatrimestreCursado?.toString() || ''}
                       onValueChange={(value) =>
                         setFormData({ ...formData, cuatrimestreCursado: Number.parseInt(value) })
                       }
@@ -661,7 +661,7 @@ export default function MisCarrerasPage() {
             )}
 
             {/* Campos para En Final */}
-            {formData.estado === "En Final" && (
+            {formData.estado === 'En Final' && (
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -670,14 +670,14 @@ export default function MisCarrerasPage() {
                       type="number"
                       min="2020"
                       max="2030"
-                      value={formData.anioCursado || ""}
+                      value={formData.anioCursado || ''}
                       onChange={(e) => setFormData({ ...formData, anioCursado: Number.parseInt(e.target.value) })}
                     />
                   </div>
                   <div>
                     <Label>Cuatrimestre</Label>
                     <Select
-                      value={formData.cuatrimestreCursado?.toString() || ""}
+                      value={formData.cuatrimestreCursado?.toString() || ''}
                       onValueChange={(value) =>
                         setFormData({ ...formData, cuatrimestreCursado: Number.parseInt(value) })
                       }
@@ -696,12 +696,12 @@ export default function MisCarrerasPage() {
             )}
 
             {/* Campos para Aprobada */}
-            {formData.estado === "Aprobada" && (
+            {formData.estado === 'Aprobada' && (
               <>
                 <div>
                   <Label>Tipo de Aprobación</Label>
                   <Select
-                    value={formData.tipoNota || ""}
+                    value={formData.tipoNota || ''}
                     onValueChange={(value: TipoNota) => setFormData({ ...formData, tipoNota: value })}
                   >
                     <SelectTrigger>
@@ -718,17 +718,17 @@ export default function MisCarrerasPage() {
                   <Label>Nota</Label>
                   <Input
                     type="number"
-                    min={formData.tipoNota === "Por Promocion" ? 7 : 4}
+                    min={formData.tipoNota === 'Por Promocion' ? 7 : 4}
                     max="10"
-                    value={formData.nota || ""}
+                    value={formData.nota || ''}
                     onChange={(e) => setFormData({ ...formData, nota: Number.parseInt(e.target.value) })}
                   />
                   <div className="text-xs text-gray-500 mt-1">
-                    {formData.tipoNota === "Por Promocion" ? "Nota de 7 a 10" : "Nota de 4 a 10"}
+                    {formData.tipoNota === 'Por Promocion' ? 'Nota de 7 a 10' : 'Nota de 4 a 10'}
                   </div>
                 </div>
 
-                {formData.tipoNota === "Por Promocion" && (
+                {formData.tipoNota === 'Por Promocion' && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label>Año de Promoción</Label>
@@ -736,14 +736,14 @@ export default function MisCarrerasPage() {
                         type="number"
                         min="2020"
                         max="2030"
-                        value={formData.anioAprobacion || ""}
+                        value={formData.anioAprobacion || ''}
                         onChange={(e) => setFormData({ ...formData, anioAprobacion: Number.parseInt(e.target.value) })}
                       />
                     </div>
                     <div>
                       <Label>Cuatrimestre</Label>
                       <Select
-                        value={formData.cuatrimestreAprobacion?.toString() || ""}
+                        value={formData.cuatrimestreAprobacion?.toString() || ''}
                         onValueChange={(value) =>
                           setFormData({ ...formData, cuatrimestreAprobacion: Number.parseInt(value) })
                         }
@@ -760,7 +760,7 @@ export default function MisCarrerasPage() {
                   </div>
                 )}
 
-                {formData.tipoNota === "Por Final" && (
+                {formData.tipoNota === 'Por Final' && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label>Año del Final</Label>
@@ -768,14 +768,14 @@ export default function MisCarrerasPage() {
                         type="number"
                         min="2020"
                         max="2030"
-                        value={formData.anioAprobacion || ""}
+                        value={formData.anioAprobacion || ''}
                         onChange={(e) => setFormData({ ...formData, anioAprobacion: Number.parseInt(e.target.value) })}
                       />
                     </div>
                     <div>
                       <Label>Turno de Examen</Label>
                       <Select
-                        value={formData.turnoExamen || ""}
+                        value={formData.turnoExamen || ''}
                         onValueChange={(value) => setFormData({ ...formData, turnoExamen: value })}
                       >
                         <SelectTrigger>
