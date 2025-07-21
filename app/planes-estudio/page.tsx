@@ -46,6 +46,9 @@ export default function PlanesEstudioPage() {
   // Display toggles - will be synchronized with URL params via useEffect
   const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
   const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
+  
+  // Local UI state for showing/hiding filters section
+  const [showFilters, setShowFilters] = useState<boolean>(false)
 
   // Function to update URL with current filters
   const updateUrlWithFilters = (updates: Record<string, string | null>) => {
@@ -275,6 +278,25 @@ export default function PlanesEstudioPage() {
     setCorrelativeMateriasHabilitadas(null)
   }
 
+  const handleClearAllFilters = () => {
+    setFilterYear('0')
+    setFilterCuatrimestre('0')
+    setSearchTerm('')
+    setFilterStatus('0')
+    setFilterHours('')
+    setCorrelativeSearchInput('')
+    setCorrelativeMateriasHabilitadas(null)
+    
+    // Update URL to clear all filters
+    updateUrlWithFilters({
+      year: null,
+      semester: null,
+      search: null,
+      status: null,
+      hours: null
+    })
+  }
+
   const allYears = useMemo(() => {
     if (!planConsultado) return []
     return [...new Set(planConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
@@ -342,6 +364,16 @@ export default function PlanesEstudioPage() {
   ])
 
   const materiasAgrupadas = useMemo(() => agruparMaterias(filteredMaterias), [filteredMaterias])
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return filterYear !== '0' || 
+           filterCuatrimestre !== '0' || 
+           searchTerm !== '' || 
+           filterStatus !== '0' || 
+           filterHours !== '' ||
+           correlativeMateriasHabilitadas !== null
+  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeMateriasHabilitadas])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -441,16 +473,42 @@ export default function PlanesEstudioPage() {
         {planConsultado && (
           <Card className="mb-8 bg-white shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-900">
-                <Filter className="h-5 w-5" />
-                Filtros y Opciones de Visualización
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  <CardTitle className="text-gray-900">
+                    Filtros y Opciones de Visualización
+                  </CardTitle>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`bg-white hover:bg-gray-50 border-gray-300 ${hasActiveFilters ? 'text-blue-700 border-blue-300' : 'text-gray-700'}`}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
+                      {[
+                        filterYear !== '0',
+                        filterCuatrimestre !== '0',
+                        searchTerm !== '',
+                        filterStatus !== '0',
+                        filterHours !== '',
+                        correlativeMateriasHabilitadas !== null
+                      ].filter(Boolean).length}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
               <CardDescription className="text-gray-600">
                 Filtra las materias por año, cuatrimestre, nombre, estado u horas. También puedes ajustar la
                 visualización.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            {showFilters && (
+              <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {/* Filter by Year */}
                 <div>
@@ -568,6 +626,21 @@ export default function PlanesEstudioPage() {
                 </div>
               </div>
 
+              {/* Clear all filters button */}
+              {hasActiveFilters && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAllFilters}
+                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Limpiar Todos los Filtros
+                  </Button>
+                </div>
+              )}
+
               {/* Correlative Search */}
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -608,6 +681,7 @@ export default function PlanesEstudioPage() {
                 )}
               </div>
             </CardContent>
+            )}
           </Card>
         )}
 
