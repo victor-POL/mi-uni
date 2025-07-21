@@ -18,18 +18,29 @@ import { Label } from '@/components/ui/label'
 import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
+import { usePlanesSummary } from '@/hooks/use-planes-estudio'
 
 export default function PlanesEstudioPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const planIdFromUrl = searchParams.get('plan')
   
+  // Hook para obtener planes disponibles (solo summary)
+  const { 
+    planes: planesDisponibles, 
+    loading: isLoadingPlanes,
+    fetchPlanById
+  } = usePlanesSummary()
+  
+  // Estados para el plan seleccionado
   const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
   
-  // Loading states
-  const [isLoadingPlanes, setIsLoadingPlanes] = useState(true)
+  // Estado para controlar si el plan ya fue cargado manualmente
+  const [planLoadedManually, setPlanLoadedManually] = useState<boolean>(false)
+  
+  // Loading state para detalles del plan
   const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
 
   // Filter states - will be synchronized with URL params via useEffect
@@ -113,34 +124,41 @@ export default function PlanesEstudioPage() {
     updateUrlWithFilters({ showCorrelatives: value.toString() })
   }
 
-  // Simular carga inicial de planes (aquí irá tu fetching)
-  useEffect(() => {
-    const loadPlanes = async () => {
-      setIsLoadingPlanes(true)
-      // Aquí irá tu fetching de planes
-      // await fetchPlanes()
-      
-      // Simulamos delay para mostrar el loading
-      setTimeout(() => {
-        setIsLoadingPlanes(false)
-      }, 1000)
+  // Función para obtener el plan completo con todas las materias usando el hook
+  const fetchPlanDetallado = async (planId: string) => {
+    try {
+      setIsLoadingPlanDetails(true)
+      const planData = await fetchPlanById(parseInt(planId))
+      setPlanConsultado(planData)
+      return planData
+    } catch (error) {
+      console.error('Error fetching plan details:', error)
+      // Fallback a datos estáticos si hay error
+      const plan = planesDeEstudio.find((p) => p.idPlan.toString() === planId)
+      setPlanConsultado(plan || null)
+      return plan || null
+    } finally {
+      setIsLoadingPlanDetails(false)
     }
-    
-    loadPlanes()
-  }, [])
+  }
 
   // Effect to handle URL plan parameter
   useEffect(() => {
-    if (planIdFromUrl && !isLoadingPlanes) {
-      // Check if the plan exists
-      const planExists = planesDeEstudio.find((p) => p.idPlan.toString() === planIdFromUrl)
+    if (planIdFromUrl && !isLoadingPlanes && !planLoadedManually) {
+      // Check if the plan exists in the available plans
+      const planExists = planesDisponibles.find((p) => p.idPlan.toString() === planIdFromUrl)
       if (planExists) {
         setSelectedPlanId(planIdFromUrl)
         // Auto-load the plan
         handleConsultarFromUrl(planIdFromUrl)
       }
     }
-  }, [planIdFromUrl, isLoadingPlanes])
+  }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planLoadedManually])
+
+  // Reset manual flag when plan selection changes
+  useEffect(() => {
+    setPlanLoadedManually(false)
+  }, [selectedPlanId])
 
   // Effect to sync toggle states with URL parameters
   useEffect(() => {
@@ -171,35 +189,27 @@ export default function PlanesEstudioPage() {
   const handleConsultarFromUrl = async (planId: string) => {
     setIsLoadingPlanDetails(true)
     
-    // Aquí irá tu fetching del plan específico
-    // const planData = await fetchPlanDetails(planId)
-    // setPlanConsultado(planData)
-    
-    // Por ahora usamos los datos locales con delay simulado
-    setTimeout(() => {
-      const plan = planesDeEstudio.find((p) => p.idPlan.toString() === planId)
-      setPlanConsultado(plan || null)
+    try {
+      await fetchPlanDetallado(planId)
       setIsLoadingPlanDetails(false)
       
       // No reset filters when loading from URL - preserve URL parameters
       // Los filtros ya están inicializados desde los parámetros de URL
       setCorrelativeSearchInput('')
       setCorrelativeMateriasHabilitadas(null)
-    }, 800)
+    } catch (error) {
+      console.error('Error loading plan from URL:', error)
+      setIsLoadingPlanDetails(false)
+    }
   }
 
   const handleConsultar = async () => {
     if (selectedPlanId) {
       setIsLoadingPlanDetails(true)
+      setPlanLoadedManually(true) // Marcar que fue cargado manualmente
       
-      // Aquí irá tu fetching del plan específico
-      // const planData = await fetchPlanDetails(selectedPlanId)
-      // setPlanConsultado(planData)
-      
-      // Por ahora usamos los datos locales con delay simulado
-      setTimeout(() => {
-        const plan = planesDeEstudio.find((p) => p.idPlan.toString() === selectedPlanId)
-        setPlanConsultado(plan || null)
+      try {
+        await fetchPlanDetallado(selectedPlanId)
         setIsLoadingPlanDetails(false)
         
         // Reset filters when a new plan is selected manually
@@ -222,7 +232,11 @@ export default function PlanesEstudioPage() {
           showStatus: showMateriaStatus ? 'true' : 'false',
           showCorrelatives: showCorrelatives ? 'true' : 'false'
         })
-      }, 800)
+      } catch (error) {
+        console.error('Error loading plan:', error)
+        setIsLoadingPlanDetails(false)
+        setPlanLoadedManually(false) // Reset en caso de error
+      }
     }
   }
 
@@ -442,7 +456,7 @@ export default function PlanesEstudioPage() {
                         Cargando planes de estudio...
                       </SelectItem>
                     ) : (
-                      planesDeEstudio.map((plan) => (
+                      planesDisponibles.map((plan) => (
                         <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
                           {plan.nombreCarrera} ({plan.anio})
                         </SelectItem>
