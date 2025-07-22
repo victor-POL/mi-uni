@@ -10,76 +10,8 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GraduationCap, BookOpen, Trophy, Clock, Plus } from 'lucide-react'
-
-interface Carrera {
-  id: number
-  nombre: string
-  codigo: string
-  estado: string
-  progreso: number
-  materiasAprobadas: number
-  materiasTotal: number
-  creditosObtenidos: number
-  creditosTotal: number
-  promedioGeneral: number
-  añoIngreso: number
-  añoEstimadoEgreso: number
-}
-
-// Mock data - En una aplicación real, esto vendría de una API
-const misCarreras: Carrera[] = [
-  {
-    id: 1,
-    nombre: 'Ingeniería en Sistemas',
-    codigo: 'IS-2020',
-    estado: 'En Curso',
-    progreso: 65,
-    materiasAprobadas: 26,
-    materiasTotal: 40,
-    creditosObtenidos: 156,
-    creditosTotal: 240,
-    promedioGeneral: 8.5,
-    añoIngreso: 2021,
-    añoEstimadoEgreso: 2026,
-  },
-  {
-    id: 2,
-    nombre: 'Licenciatura en Administración',
-    codigo: 'LA-2019',
-    estado: 'Completada',
-    progreso: 100,
-    materiasAprobadas: 35,
-    materiasTotal: 35,
-    creditosObtenidos: 210,
-    creditosTotal: 210,
-    promedioGeneral: 7.8,
-    añoIngreso: 2019,
-    añoEstimadoEgreso: 2023,
-  },
-]
-
-const materiasEnCurso = [
-  {
-    codigo: 'SIS301',
-    nombre: 'Bases de Datos Avanzadas',
-    creditos: 6,
-    profesor: 'Dr. María González',
-    horario: 'Lun/Mié 14:00-16:00',
-    parcial1: 8.5,
-    parcial2: null,
-    final: null,
-  },
-  {
-    codigo: 'SIS302',
-    nombre: 'Ingeniería de Software II',
-    creditos: 8,
-    profesor: 'Ing. Carlos Rodríguez',
-    horario: 'Mar/Jue 16:00-18:00',
-    parcial1: 7.0,
-    parcial2: 8.0,
-    final: null,
-  },
-]
+import { resumenesCarreras, materiasEnCursoPorCarrera, historiaAcademicaPorCarrera } from '@/data/mis-carreras.data'
+import type { CarreraResumen } from '@/models/mis-carreras.model'
 
 // Componente para skeleton de carrera
 const CarreraSkeleton = () => (
@@ -155,10 +87,10 @@ const DetalleSkeleton = () => (
 )
 
 export default function MisCarrerasPage() {
-  const [selectedCarrera, setSelectedCarrera] = useState<Carrera | null>(null)
+  const [selectedCarrera, setSelectedCarrera] = useState<CarreraResumen | null>(null)
   const [isLoadingCarreras, setIsLoadingCarreras] = useState(true)
   const [isLoadingDetalle, setIsLoadingDetalle] = useState(false)
-  const [carreras, setCarreras] = useState<Carrera[]>([])
+  const [carreras, setCarreras] = useState<CarreraResumen[]>([])
 
   // Simular carga inicial de carreras
   useEffect(() => {
@@ -166,7 +98,7 @@ export default function MisCarrerasPage() {
       setIsLoadingCarreras(true)
       // Simular delay de API
       await new Promise(resolve => setTimeout(resolve, 1500))
-      setCarreras(misCarreras)
+      setCarreras(resumenesCarreras)
       setIsLoadingCarreras(false)
     }
 
@@ -174,7 +106,7 @@ export default function MisCarrerasPage() {
   }, [])
 
   // Simular carga de detalle cuando se selecciona una carrera
-  const handleSelectCarrera = async (carrera: Carrera) => {
+  const handleSelectCarrera = async (carrera: CarreraResumen) => {
     if (selectedCarrera?.id === carrera.id) return
     
     setIsLoadingDetalle(true)
@@ -235,7 +167,6 @@ export default function MisCarrerasPage() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-2">
                         <CardTitle className="text-xl">{carrera.nombre}</CardTitle>
-                        <CardDescription>{carrera.codigo}</CardDescription>
                       </div>
                       <Badge className={getEstadoBadgeColor(carrera.estado)}>{carrera.estado}</Badge>
                     </div>
@@ -348,18 +279,6 @@ export default function MisCarrerasPage() {
                             className="h-2"
                           />
                         </div>
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span>Créditos Obtenidos</span>
-                            <span>
-                              {selectedCarrera.creditosObtenidos}/{selectedCarrera.creditosTotal}
-                            </span>
-                          </div>
-                          <Progress
-                            value={(selectedCarrera.creditosObtenidos / selectedCarrera.creditosTotal) * 100}
-                            className="h-2"
-                          />
-                        </div>
                       </div>
                     </div>
                   </TabsContent>
@@ -367,14 +286,14 @@ export default function MisCarrerasPage() {
                   <TabsContent value="materias" className="space-y-4">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Materias en Curso</h3>
-                      {materiasEnCurso.map((materia) => (
+                      {materiasEnCursoPorCarrera[selectedCarrera.id]?.map((materia) => (
                         <Card key={materia.codigo}>
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-4">
                               <div>
                                 <h4 className="font-semibold text-lg">{materia.nombre}</h4>
                                 <p className="text-gray-600">
-                                  {materia.codigo} - {materia.creditos} créditos
+                                  {materia.codigo}
                                 </p>
                                 <p className="text-sm text-gray-500">{materia.profesor}</p>
                               </div>
@@ -402,10 +321,34 @@ export default function MisCarrerasPage() {
                   </TabsContent>
 
                   <TabsContent value="historial" className="space-y-4">
-                    <div className="text-center py-8">
-                      <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">Historial Académico</h3>
-                      <p className="text-gray-500">Esta funcionalidad estará disponible próximamente</p>
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Historial Académico</h3>
+                      {
+                        historiaAcademicaPorCarrera[selectedCarrera.id]?.length ? (
+                          <div className="space-y-4">
+                            {historiaAcademicaPorCarrera[selectedCarrera.id].map((materia) => (
+                              <Card key={materia.codigo}>
+                                <CardContent className="p-6">
+                                  <div className="flex items-start justify-between mb-4">
+                                    <div>
+                                      <h4 className="font-semibold text-lg">{materia.nombre}</h4>
+                                      <p className="text-gray-600">{materia.codigo}</p>
+                                    </div>
+                                    <Badge className={getEstadoBadgeColor(materia.estado)}>
+                                      {materia.estado}
+                                    </Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    Nota: {materia.nota} | Año: {materia.anioCursada} | Cuatrimestre: {materia.cuatrimestreCursada}
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500">No hay materias registradas en el historial académico.</p>
+                        )
+                      }
                     </div>
                   </TabsContent>
                 </Tabs>
