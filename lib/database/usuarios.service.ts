@@ -35,6 +35,21 @@ export interface GitHubUserData {
   avatar_url?: string
 }
 
+export interface EmailPasswordUserData {
+  id: string // Firebase UID
+  email: string
+  displayName?: string
+  photoURL?: string
+}
+
+export interface AuthUserData {
+  id: string
+  email: string
+  name?: string
+  provider: 'github' | 'email'
+  providerData?: any
+}
+
 /**
  * Busca un usuario por su ID externo de GitHub
  */
@@ -59,6 +74,34 @@ export async function findUserByGitHubId(githubId: string): Promise<Usuario | nu
 
   } catch (error) {
     console.error('Database error finding user by GitHub ID:', error)
+    throw error
+  }
+}
+
+/**
+ * Busca un usuario por su Firebase UID
+ */
+export async function findUserByFirebaseId(firebaseId: string): Promise<Usuario | null> {
+  try {
+    await pool.query(`SET search_path = prod, public`)
+    
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.nombre,
+        u.apellido,
+        u.email,
+        u.creado_at
+      FROM prod.usuario u
+      JOIN prod.usuario_autenticacion ua ON u.id = ua.usuario_id
+      WHERE ua.tipo_autenticacion = 'email' 
+        AND ua.external_id = $1
+    `, [firebaseId])
+
+    return result.rows.length > 0 ? result.rows[0] : null
+
+  } catch (error) {
+    console.error('Database error finding user by Firebase ID:', error)
     throw error
   }
 }
@@ -144,6 +187,59 @@ export async function createUserWithGitHub(githubData: GitHubUserData): Promise<
 }
 
 /**
+ * Crea un nuevo usuario y su registro de autenticación Email/Password
+ */
+export async function createUserWithEmailPassword(userData: EmailPasswordUserData): Promise<Usuario> {
+  const client = await pool.connect()
+  
+  try {
+    await client.query('BEGIN')
+    await client.query(`SET search_path = prod, public`)
+
+    // Parsear el nombre completo
+    const fullName = userData.displayName || userData.email.split('@')[0]
+    const nameParts = fullName.split(' ')
+    const nombre = nameParts[0] || userData.email.split('@')[0]
+    const apellido = nameParts.slice(1).join(' ') || ''
+
+    // 1. Crear el usuario
+    const userResult = await client.query(`
+      INSERT INTO prod.usuario (nombre, apellido, email)
+      VALUES ($1, $2, $3)
+      RETURNING id, nombre, apellido, email, creado_at
+    `, [nombre, apellido, userData.email])
+
+    const newUser = userResult.rows[0]
+
+    // 2. Crear el registro de autenticación
+    await client.query(`
+      INSERT INTO prod.usuario_autenticacion 
+      (usuario_id, tipo_autenticacion, external_id, datos_extra)
+      VALUES ($1, 'email', $2, $3)
+    `, [
+      newUser.id, 
+      userData.id, // Firebase UID
+      JSON.stringify({
+        displayName: userData.displayName,
+        photoURL: userData.photoURL
+      })
+    ])
+
+    await client.query('COMMIT')
+    
+    console.log(`Usuario creado exitosamente: ${newUser.email} (Email/Password)`)
+    return newUser
+
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('Database error creating user with Email/Password:', error)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+/**
  * Actualiza los datos extra de autenticación GitHub (para sincronizar perfil)
  */
 export async function updateGitHubAuthData(userId: number, githubData: GitHubUserData): Promise<void> {
@@ -216,6 +312,54 @@ export async function verifyOrCreateGitHubUser(githubData: GitHubUserData): Prom
 
   } catch (error) {
     console.error('Error in verifyOrCreateGitHubUser:', error)
+    throw error
+  }
+}
+
+/**
+ * Función principal: Verificar o crear usuario de Email/Password
+ * Esta es la función que se llamará en cada login con email/password
+ */
+export async function verifyOrCreateEmailPasswordUser(userData: EmailPasswordUserData): Promise<Usuario> {
+  try {
+    // 1. Buscar por Firebase UID primero
+    let user = await findUserByFirebaseId(userData.id)
+    
+    if (user) {
+      console.log(`Usuario existente encontrado (Email/Password): ${user.email}`)
+      return user
+    }
+
+    // 2. Si no se encuentra por Firebase UID, buscar por email
+    user = await findUserByEmail(userData.email)
+    
+    if (user) {
+      // Usuario existe con el mismo email pero sin Firebase auth, agregar Firebase auth
+      await pool.query(`SET search_path = prod, public`)
+      await pool.query(`
+        INSERT INTO prod.usuario_autenticacion 
+        (usuario_id, tipo_autenticacion, external_id, datos_extra)
+        VALUES ($1, 'email', $2, $3)
+        ON CONFLICT (tipo_autenticacion, external_id) DO UPDATE SET
+          datos_extra = EXCLUDED.datos_extra
+      `, [
+        user.id, 
+        userData.id, // Firebase UID
+        JSON.stringify({
+          displayName: userData.displayName,
+          photoURL: userData.photoURL
+        })
+      ])
+      
+      console.log(`Firebase Email/Password vinculado a usuario existente: ${user.email}`)
+      return user
+    }
+
+    // 3. Usuario no existe, crear nuevo
+    return await createUserWithEmailPassword(userData)
+
+  } catch (error) {
+    console.error('Error in verifyOrCreateEmailPasswordUser:', error)
     throw error
   }
 }

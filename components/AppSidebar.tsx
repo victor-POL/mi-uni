@@ -56,6 +56,19 @@ export const AppSidebar: React.FC = () => {
     },
   ]
 
+  const devItems = [
+    {
+      name: "Test Auth Firebase",
+      href: "/test-firebase-auth",
+      icon: User,
+    },
+    {
+      name: "Configuración Cuenta",
+      href: "/account-settings",
+      icon: User,
+    },
+  ]
+
   const renderUserSection = () => {
     if (!isUserInitialized) {
       return (
@@ -182,6 +195,27 @@ export const AppSidebar: React.FC = () => {
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {privateItems.map((item) => {
+                        const isActive = pathname === item.href
+                        return (
+                          <SidebarMenuItem key={item.href}>
+                            <SidebarMenuButton asChild isActive={isActive}>
+                              <Link href={item.href}>
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.name}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        )
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+                <SidebarSeparator />
+                <SidebarGroup>
+                  <SidebarGroupLabel>Desarrollo</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {devItems.map((item) => {
                         const isActive = pathname === item.href
                         return (
                           <SidebarMenuItem key={item.href}>

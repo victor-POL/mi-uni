@@ -46,24 +46,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Mapear usuario de Firebase
       const user: PageUser = mapFirebaseUserToPageUser(firebaseUser)
       
-      // Extraer información para la API
-      const githubData = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        name: firebaseUser.displayName || '',
-        login: firebaseUser.email?.split('@')[0] || '',
-        avatar_url: firebaseUser.photoURL || undefined
-      }
+      // Determinar el tipo de proveedor
+      const providerData = firebaseUser.providerData[0]
+      const isGitHubProvider = providerData?.providerId === 'github.com'
       
-      // Sincronizar con base de datos
-      const response = await fetch('/api/auth/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ githubData })
-      })
-
+      let response: Response | undefined = undefined
       let dbUser = null
-      if (response.ok) {
+      
+      if (isGitHubProvider) {
+        // Extraer información para la API de GitHub
+        const githubData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || '',
+          login: firebaseUser.email?.split('@')[0] || '',
+          avatar_url: firebaseUser.photoURL || undefined
+        }
+        
+        // Sincronizar con base de datos como GitHub
+        response = await fetch('/api/auth/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ githubData })
+        })
+      } else {
+        // Es email/password - extraer información para la API
+        const emailPasswordData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || undefined,
+          photoURL: firebaseUser.photoURL || undefined
+        }
+        
+        // Sincronizar con base de datos como Email/Password
+        response = await fetch('/api/auth/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emailPasswordData })
+        })
+      }
+
+      if (response?.ok) {
         const result = await response.json()
         if (result.success) {
           dbUser = result.data.user
@@ -72,7 +95,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Crear usuario unificado
-      const unifiedUser = createUnifiedUser(user, dbUser)
+      const providerType = isGitHubProvider ? 'github.com' : 'password'
+      const unifiedUser = createUnifiedUser(user, dbUser, providerType)
       setUser(unifiedUser)
             
     } catch (error) {
@@ -80,7 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // En caso de error, crear usuario solo con datos de Firebase
       const user: PageUser = mapFirebaseUserToPageUser(firebaseUser)
-      const fallbackUser = createUnifiedUser(user, null)
+      const fallbackUser = createUnifiedUser(user, null, 'unknown')
       setUser(fallbackUser)
     }
   }

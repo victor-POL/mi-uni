@@ -10,13 +10,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff } from "lucide-react"
+import { signUpWithEmailAdvanced } from '@/lib/firebase/auth'
 import { useRedirectIfAuthenticated } from "@/components/ProtectedRoute"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -39,16 +43,52 @@ export default function RegisterPage() {
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden")
+    
+    // Validaciones básicas
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Por favor, completa todos los campos')
       return
     }
-    // Aquí iría la lógica de registro
-    console.log("Register:", formData)
-    // Simular registro exitoso
-    router.push("/login")
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
+    
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError('')
+      
+      await signUpWithEmailAdvanced(formData.email, formData.password)
+      
+      // Registro exitoso, redirigir al login con mensaje
+      router.push('/login?message=registro-exitoso')
+    } catch (error) {
+      console.error('Error al registrarse:', error)
+      
+      // Manejo de errores específicos de Firebase
+      let errorMessage = 'Error al crear la cuenta'
+      if (error instanceof Error) {
+        if (error.message.includes('email-already-in-use')) {
+          errorMessage = 'Ya existe una cuenta con este email'
+        } else if (error.message.includes('invalid-email')) {
+          errorMessage = 'Email no válido'
+        } else if (error.message.includes('weak-password')) {
+          errorMessage = 'La contraseña es muy débil'
+        }
+      }
+      
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,8 +165,23 @@ export default function RegisterPage() {
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Crear Cuenta
+            
+            {/* Mensaje de error */}
+            {error && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                {error}
+              </div>
+            )}
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  Creando cuenta...
+                </>
+              ) : (
+                'Crear Cuenta'
+              )}
             </Button>
           </form>
           <div className="mt-4 text-center">

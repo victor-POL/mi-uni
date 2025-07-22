@@ -7,6 +7,7 @@ export interface UnifiedUser {
   firebaseEmail: string     // Email de Firebase
   firebaseDisplayName?: string
   firebasePhotoURL?: string
+  authProvider?: string     // Tipo de proveedor (github.com, password, etc.)
   
   // Datos de la aplicación (PostgreSQL)
   dbId: number             // ID de la BD para relaciones
@@ -22,7 +23,8 @@ export interface UnifiedUser {
 // Función para crear usuario unificado
 export function createUnifiedUser(
   user: PageUser, 
-  dbUser: { id: number; nombre: string; apellido: string; email: string } | null
+  dbUser: { id: number; nombre: string; apellido: string; email: string } | null,
+  authProvider?: string
 ): UnifiedUser | null {
   if (!user) return null
   
@@ -32,6 +34,7 @@ export function createUnifiedUser(
     firebaseEmail: user.email,
     firebaseDisplayName: user.displayName,
     firebasePhotoURL: user.photoURL,
+    authProvider: authProvider,
     
     // DB data (si existe)
     dbId: dbUser?.id || 0,

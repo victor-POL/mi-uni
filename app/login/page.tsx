@@ -4,24 +4,31 @@ import type React from 'react'
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
-import { signInWithGitHub } from '@/lib/firebase/auth'
+import { signInWithEmailAdvanced, signInWithGitHubAdvanced } from '@/lib/firebase/auth'
 import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isGithubLoading, setIsGithubLoading] = useState(false)
+  const [isEmailLoading, setIsEmailLoading] = useState(false)
+  const [error, setError] = useState('')
 
   // Redirigir si ya está autenticado
   const { user, loading } = useRedirectIfAuthenticated()
+
+  // Verificar si hay mensaje de registro exitoso
+  const message = searchParams.get('message')
+  const showSuccessMessage = message === 'registro-exitoso'
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
   if (loading || user) {
@@ -38,21 +45,58 @@ export default function LoginPage() {
   const handleGithubLogin = async () => {
     try {
       setIsGithubLoading(true)
-      await signInWithGitHub()
+      setError('')
+      await signInWithGitHubAdvanced()
       router.push('/')
     } catch (error) {
       console.error('Error al iniciar sesión con GitHub:', error)
+      
+      let errorMessage = 'Error al iniciar sesión con GitHub'
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsGithubLoading(false)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Aquí iría la lógica de autenticación
-    console.log('Login:', { email, password })
-    // Simular login exitoso
-    router.push('/')
+    
+    if (!email || !password) {
+      setError('Por favor, completa todos los campos')
+      return
+    }
+
+    try {
+      setIsEmailLoading(true)
+      setError('')
+      
+      await signInWithEmailAdvanced(email, password)
+      router.push('/')
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error)
+      
+      // Manejo de errores específicos de Firebase
+      let errorMessage = 'Error al iniciar sesión'
+      if (error instanceof Error) {
+        if (error.message.includes('user-not-found')) {
+          errorMessage = 'No existe una cuenta con este email'
+        } else if (error.message.includes('wrong-password')) {
+          errorMessage = 'Contraseña incorrecta'
+        } else if (error.message.includes('invalid-email')) {
+          errorMessage = 'Email no válido'
+        } else if (error.message.includes('too-many-requests')) {
+          errorMessage = 'Demasiados intentos. Intenta más tarde'
+        }
+      }
+      
+      setError(errorMessage)
+    } finally {
+      setIsEmailLoading(false)
+    }
   }
 
   return (
@@ -80,6 +124,13 @@ export default function LoginPage() {
           <CardDescription className="text-center">Ingresa tus credenciales para acceder</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Mensaje de registro exitoso */}
+          {showSuccessMessage && (
+            <div className="mb-4 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
+              ¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <fieldset disabled={isGithubLoading} className="space-y-4">
               <div className="space-y-2">
@@ -115,8 +166,23 @@ export default function LoginPage() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full">
-                Iniciar Sesión
+              
+              {/* Mensaje de error */}
+              {error && (
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                  {error}
+                </div>
+              )}
+              
+              <Button type="submit" className="w-full" disabled={isEmailLoading}>
+                {isEmailLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  'Iniciar Sesión'
+                )}
               </Button>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">

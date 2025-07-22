@@ -15,12 +15,27 @@ async function importUsuariosService() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { githubData } = body
+    const { githubData, emailPasswordData } = body
 
-    // Validar que tenemos los datos necesarios de GitHub
-    if (!githubData || !githubData.id || !githubData.email) {
+    // Validar que tenemos algún tipo de datos
+    if (!githubData && !emailPasswordData) {
       return NextResponse.json(
-        { error: 'GitHub data is required with id and email' },
+        { error: 'Either GitHub data or Email/Password data is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validar datos específicos según el tipo
+    if (githubData && (!githubData.id || !githubData.email)) {
+      return NextResponse.json(
+        { error: 'GitHub data requires id and email' },
+        { status: 400 }
+      )
+    }
+
+    if (emailPasswordData && (!emailPasswordData.id || !emailPasswordData.email)) {
+      return NextResponse.json(
+        { error: 'Email/Password data requires id (Firebase UID) and email' },
         { status: 400 }
       )
     }
@@ -32,8 +47,18 @@ export async function POST(request: NextRequest) {
         throw new Error('Could not load usuarios service')
       }
 
-      // Verificar o crear usuario
-      const user = await usuariosService.verifyOrCreateGitHubUser(githubData)
+      let user: any = null
+      if (githubData) {
+        // Proceso para GitHub
+        user = await usuariosService.verifyOrCreateGitHubUser(githubData)
+      } else if (emailPasswordData) {
+        // Proceso para Email/Password
+        user = await usuariosService.verifyOrCreateEmailPasswordUser(emailPasswordData)
+      }
+
+      if (!user) {
+        throw new Error('Failed to create or verify user')
+      }
 
       return NextResponse.json({
         success: true,
