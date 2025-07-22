@@ -39,6 +39,17 @@ export function EditarMateriaModal({
     e.preventDefault()
     if (!materia) return
 
+    // Validar formulario
+    const validationError = validateForm()
+    if (validationError) {
+      toast({
+        title: "Error de validación",
+        description: validationError,
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
     try {
       const requestBody = {
@@ -88,7 +99,51 @@ export function EditarMateriaModal({
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      
+      // Si el estado cambia a 'Pendiente', limpiar los campos relacionados
+      if (field === 'estado' && value === 'Pendiente') {
+        newData.nota = ''
+        newData.anioCursada = ''
+        newData.cuatrimestreCursada = ''
+      }
+      
+      return newData
+    })
+  }
+
+  const validateForm = (): string | null => {
+    const { estado, nota, anioCursada, cuatrimestreCursada } = formData
+    
+    // Si no es pendiente, requiere año y cuatrimestre
+    if (estado !== 'Pendiente') {
+      if (!anioCursada || !cuatrimestreCursada) {
+        return 'Para estados diferentes a Pendiente se requiere año y cuatrimestre de cursada'
+      }
+    }
+    
+    // Validar nota según el estado
+    if (nota) {
+      const notaNumero = parseFloat(nota)
+      
+      if (estado === 'En Final') {
+        if (notaNumero < 4 || notaNumero > 6) {
+          return 'Para materias En Final la nota debe estar entre 4 y 6'
+        }
+      } else if (estado === 'Aprobada') {
+        if (notaNumero < 4 || notaNumero > 10) {
+          return 'Para materias Aprobadas la nota debe estar entre 4 y 10'
+        }
+      }
+    } else {
+      // Nota es requerida para estados Aprobada y En Final
+      if (estado === 'Aprobada' || estado === 'En Final') {
+        return `Para materias ${estado} se requiere una nota`
+      }
+    }
+    
+    return null
   }
 
   if (!materia) return null
@@ -121,56 +176,65 @@ export function EditarMateriaModal({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="nota" className="text-right">
-                Nota
-              </Label>
-              <Input
-                id="nota"
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={formData.nota}
-                onChange={(e) => handleInputChange('nota', e.target.value)}
-                className="col-span-3"
-                placeholder="Ej: 7.5"
-              />
-            </div>
+            {/* Solo mostrar los campos adicionales si NO es Pendiente */}
+            {formData.estado !== 'Pendiente' && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="nota" className="text-right">
+                    Nota *
+                  </Label>
+                  <Input
+                    id="nota"
+                    type="number"
+                    min="4"
+                    max={formData.estado === 'En Final' ? "6" : "10"}
+                    step="0.1"
+                    value={formData.nota}
+                    onChange={(e) => handleInputChange('nota', e.target.value)}
+                    className="col-span-3"
+                    placeholder={
+                      formData.estado === 'En Final' 
+                        ? "Entre 4 y 6" 
+                        : "Entre 4 y 10"
+                    }
+                  />
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="anioCursada" className="text-right">
-                Año Cursada
-              </Label>
-              <Input
-                id="anioCursada"
-                type="number"
-                min="2020"
-                max="2030"
-                value={formData.anioCursada}
-                onChange={(e) => handleInputChange('anioCursada', e.target.value)}
-                className="col-span-3"
-                placeholder="Ej: 2024"
-              />
-            </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="anioCursada" className="text-right">
+                    Año Cursada *
+                  </Label>
+                  <Input
+                    id="anioCursada"
+                    type="number"
+                    min="2020"
+                    max="2030"
+                    value={formData.anioCursada}
+                    onChange={(e) => handleInputChange('anioCursada', e.target.value)}
+                    className="col-span-3"
+                    placeholder="Ej: 2024"
+                  />
+                </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="cuatrimestre" className="text-right">
-                Cuatrimestre
-              </Label>
-              <Select 
-                value={formData.cuatrimestreCursada} 
-                onValueChange={(value) => handleInputChange('cuatrimestreCursada', value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1er Cuatrimestre</SelectItem>
-                  <SelectItem value="2">2do Cuatrimestre</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="cuatrimestre" className="text-right">
+                    Cuatrimestre *
+                  </Label>
+                  <Select 
+                    value={formData.cuatrimestreCursada} 
+                    onValueChange={(value) => handleInputChange('cuatrimestreCursada', value)}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Seleccionar cuatrimestre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1er Cuatrimestre</SelectItem>
+                      <SelectItem value="2">2do Cuatrimestre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
