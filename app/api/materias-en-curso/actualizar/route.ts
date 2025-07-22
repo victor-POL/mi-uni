@@ -30,10 +30,10 @@ export async function PUT(request: NextRequest) {
       materiaId,
       anioCursada,
       cuatrimestreCursada,
-      notaPrimerParcial: notaPrimerParcial ? parseFloat(notaPrimerParcial) : undefined,
-      notaSegundoParcial: notaSegundoParcial ? parseFloat(notaSegundoParcial) : undefined,
-      notaRecuperatorioPrimerParcial: notaRecuperatorioPrimerParcial ? parseFloat(notaRecuperatorioPrimerParcial) : undefined,
-      notaRecuperatorioSegundoParcial: notaRecuperatorioSegundoParcial ? parseFloat(notaRecuperatorioSegundoParcial) : undefined
+      notaPrimerParcial: notaPrimerParcial ? parseInt(notaPrimerParcial) : undefined,
+      notaSegundoParcial: notaSegundoParcial ? parseInt(notaSegundoParcial) : undefined,
+      notaRecuperatorioPrimerParcial: notaRecuperatorioPrimerParcial ? parseInt(notaRecuperatorioPrimerParcial) : undefined,
+      notaRecuperatorioSegundoParcial: notaRecuperatorioSegundoParcial ? parseInt(notaRecuperatorioSegundoParcial) : undefined
     })
 
     return NextResponse.json({ success: true })
@@ -66,9 +66,7 @@ export async function DELETE(request: NextRequest) {
     await eliminarMateriaEnCurso(
       parseInt(usuarioId),
       parseInt(planEstudioId),
-      parseInt(materiaId),
-      parseInt(anioCursada),
-      parseInt(cuatrimestreCursada)
+      parseInt(materiaId)
     )
 
     return NextResponse.json({ success: true })

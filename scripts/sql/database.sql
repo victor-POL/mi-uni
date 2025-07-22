@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS miuniversidad;
+CREATE DATABASE miuniversidad;
 
 
-CREATE SCHEMA IF NOT EXISTS prod;
+CREATE SCHEMA prod;
 
 
 SET search_path = prod, public;
@@ -32,7 +32,7 @@ CREATE TABLE prod.materia (
   tipo             VARCHAR(20)  NOT NULL
                      CHECK (tipo IN ('cursable','electiva')),
   horas_semanales  INT          NOT NULL
-                     CHECK (horas_semanales > 0)
+                     CHECK (horas_semanales > 0 AND horas_semanales <= 168)
 );
 
 
@@ -45,7 +45,7 @@ CREATE TABLE prod.plan_materia (
                    ON DELETE CASCADE,
   anio_cursada    INT NOT NULL,
   cuatrimestre    INT NOT NULL
-                   CHECK (cuatrimestre IN (1,2)),
+                   CHECK (cuatrimestre IN (0,1,2)),
   PRIMARY KEY (plan_estudio_id, materia_id)
 );
 
@@ -117,16 +117,17 @@ CREATE TABLE prod.usuario_materia_estado (
   usuario_id         INT     NOT NULL,
   plan_estudio_id    INT     NOT NULL,
   materia_id         INT     NOT NULL,
-  nota               NUMERIC(5,2)
+  nota               INT
                        CHECK (nota >= 0 AND nota <= 10),
   anio_cursada       INT,
   cuatrimestre       INT
-                       CHECK (cuatrimestre IN (1,2)),
+                       CHECK (cuatrimestre IN (0,1,2)),
   estado             VARCHAR(20) NOT NULL
                        CHECK (estado IN (
                          'Aprobada',
                          'Pendiente',
-                         'En Final'
+                         'En Final',
+                         'Cursando'
                        )),
   fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (
@@ -150,16 +151,13 @@ CREATE TABLE prod.usuario_materia_cursada (
                                            ON DELETE CASCADE,
   plan_estudio_id                    INT   NOT NULL,
   materia_id                         INT   NOT NULL,
-  anio_cursada                       INT   NOT NULL,
-  cuatrimestre_cursada               INT   NOT NULL
-                                           CHECK (cuatrimestre_cursada IN (1,2)),
-  nota_primer_parcial                NUMERIC(5,2)
+  nota_primer_parcial                INT
                                            CHECK (nota_primer_parcial  BETWEEN 0 AND 10),
-  nota_segundo_parcial               NUMERIC(5,2)
+  nota_segundo_parcial               INT
                                            CHECK (nota_segundo_parcial BETWEEN 0 AND 10),
-  nota_recuperatorio_primer_parcial  NUMERIC(5,2)
+  nota_recuperatorio_primer_parcial  INT
                                            CHECK (nota_recuperatorio_primer_parcial BETWEEN 0 AND 10),
-  nota_recuperatorio_segundo_parcial NUMERIC(5,2)
+  nota_recuperatorio_segundo_parcial INT
                                            CHECK (nota_recuperatorio_segundo_parcial BETWEEN 0 AND 10),
   fecha_actualizacion                TIMESTAMPTZ NOT NULL DEFAULT now(),
 
@@ -167,9 +165,7 @@ CREATE TABLE prod.usuario_materia_cursada (
   PRIMARY KEY (
     usuario_id,
     plan_estudio_id,
-    materia_id,
-    anio_cursada,
-    cuatrimestre_cursada
+    materia_id
   ),
 
   -- 1) El usuario debe estar inscrito en ese plan

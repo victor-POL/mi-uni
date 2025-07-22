@@ -36,33 +36,16 @@ export async function GET(
       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2
     `, [parseInt(usuarioId), planEstudioId])
 
-    // Obtener también las materias en curso
-    const resultCursando = await query(`
-      SELECT 
-        umc.materia_id,
-        m.codigo_materia,
-        'En Curso' as estado
-      FROM prod.usuario_materia_cursada umc
-      JOIN prod.materia m ON umc.materia_id = m.id
-      WHERE umc.usuario_id = $1 AND umc.plan_estudio_id = $2
-    `, [parseInt(usuarioId), planEstudioId])
-
-    // Combinar ambos resultados
-    const estadosMap = new Map()
-    
-    // Agregar estados definitivos
+    // Crear mapa de estados por código de materia
+    // Crear mapa de estados por código de materia
+    const estadosPorMateria = new Map()
     result.rows.forEach((row: any) => {
-      estadosMap.set(row.codigo_materia, row.estado)
-    })
-    
-    // Agregar materias en curso (priorizar sobre otros estados)
-    resultCursando.rows.forEach((row: any) => {
-      estadosMap.set(row.codigo_materia, row.estado)
+      estadosPorMateria.set(row.codigo_materia, row.estado)
     })
 
     // Convertir a objeto para respuesta
     const estadosObj: Record<string, string> = {}
-    estadosMap.forEach((estado, codigoMateria) => {
+    estadosPorMateria.forEach((estado, codigoMateria) => {
       estadosObj[codigoMateria] = estado
     })
 
