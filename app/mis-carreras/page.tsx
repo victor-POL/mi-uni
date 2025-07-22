@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GraduationCap, BookOpen, Trophy, Clock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 import { resumenesCarreras, materiasEnCursoPorCarrera, historiaAcademicaPorCarrera } from '@/data/mis-carreras.data'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 
@@ -89,29 +90,48 @@ const DetalleSkeleton = () => (
 
 export default function MisCarrerasPage() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResumen | null>(null)
   const [isLoadingCarreras, setIsLoadingCarreras] = useState(true)
   const [isLoadingDetalle, setIsLoadingDetalle] = useState(false)
   const [carreras, setCarreras] = useState<CarreraResumen[]>([])
 
-  // Simular carga inicial de carreras
+  // Cargar carreras del usuario desde la BD
   useEffect(() => {
-    const fetchCarreras = async () => {
-      setIsLoadingCarreras(true)
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500))
+    if (user?.dbId) {
+      fetchCarreras()
+    }
+  }, [user?.dbId])
+
+  const fetchCarreras = async () => {
+    if (!user?.dbId) return
+    
+    setIsLoadingCarreras(true)
+    try {
+      const response = await fetch(`/api/user/carreras/resumen?usuarioId=${user.dbId}`)
+      if (!response.ok) {
+        throw new Error('Error cargando carreras')
+      }
+      
+      const carrerasData = await response.json()
+      setCarreras(carrerasData)
+    } catch (error) {
+      console.error('Error cargando carreras:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las carreras. Mostrando datos de ejemplo.",
+        variant: "destructive",
+      })
+      // Fallback a datos mock en caso de error
       setCarreras(resumenesCarreras)
+    } finally {
       setIsLoadingCarreras(false)
     }
-
-    fetchCarreras()
-  }, [])
+  }
 
   // Función para recargar carreras después de agregar una nueva
   const handleCarreraAgregada = () => {
-    // TODO: Aquí cargaremos las carreras reales desde la BD
-    console.log('Carrera agregada, recargando lista...')
-    // Por ahora mantenemos los datos mock
+    fetchCarreras()
   }
 
   // Simular carga de detalle cuando se selecciona una carrera
@@ -162,7 +182,7 @@ export default function MisCarrerasPage() {
                 <CarreraSkeleton />
                 <CarreraSkeleton />
               </>
-            ) : (
+            ) : carreras.length > 0 ? (
               // Mostrar carreras reales
               carreras.map((carrera) => (
                 <Card
@@ -204,6 +224,21 @@ export default function MisCarrerasPage() {
                   </CardContent>
                 </Card>
               ))
+            ) : (
+              // Mostrar mensaje cuando no hay carreras
+              <div className="col-span-full">
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes carreras agregadas</h3>
+                    <p className="text-gray-500 mb-6">Comienza agregando tu primera carrera para ver tu progreso académico</p>
+                    <AgregarCarreraModal 
+                      onCarreraAgregada={handleCarreraAgregada}
+                      usuarioId={user?.dbId ?? 1}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
 
