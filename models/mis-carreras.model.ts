@@ -10,6 +10,8 @@ export interface CarreraResumen {
   promedioGeneral: number
   añoIngreso: number
   añoEstimadoEgreso: number
+  planEstudioId: number
+  planEstudioAnio: number
 }
 
 export interface MateriaHistorialAcademica {

@@ -125,9 +125,7 @@ CREATE TABLE prod.usuario_materia_estado (
   estado             VARCHAR(20) NOT NULL
                        CHECK (estado IN (
                          'Aprobada',
-                         'Regularizada',
                          'Pendiente',
-                         'En Curso',
                          'En Final'
                        )),
   fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),

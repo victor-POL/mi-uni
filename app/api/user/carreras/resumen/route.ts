@@ -37,12 +37,11 @@ export async function GET(request: Request) {
           progreso: estadisticas.porcentajeProgreso,
           materiasAprobadas: estadisticas.materiasAprobadas,
           materiasTotal: estadisticas.totalMaterias,
-          creditosObtenidos: estadisticas.creditosObtenidos,
-          creditosTotal: estadisticas.creditosTotales,
           promedioGeneral: estadisticas.promedioGeneral || 0,
           añoIngreso: carrera.anio, // TODO: Agregar fecha real de ingreso del usuario
           añoEstimadoEgreso: carrera.anio + 5, // TODO: Calcular basado en progreso real
           planEstudioId: carrera.plan_estudio_id,
+          planEstudioAnio: carrera.anio,
           carreraId: carrera.carrera_id
         }
       })

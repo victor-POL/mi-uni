@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react'
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CarreraDetalle } from '@/components/CarreraDetalle'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { GraduationCap, BookOpen, Trophy, Clock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { resumenesCarreras, materiasEnCursoPorCarrera, historiaAcademicaPorCarrera } from '@/data/mis-carreras.data'
+import { resumenesCarreras } from '@/data/mis-carreras.data'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 
 // Componente para skeleton de carrera
@@ -247,157 +247,10 @@ export default function MisCarrerasPage() {
             <>
               {isLoadingDetalle && <DetalleSkeleton />}
               {!isLoadingDetalle && selectedCarrera && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <GraduationCap className="h-5 w-5" />
-                      {selectedCarrera.nombre}
-                    </CardTitle>
-                    <CardDescription>Información detallada de tu carrera</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                <Tabs defaultValue="resumen" className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="resumen">Resumen</TabsTrigger>
-                    <TabsTrigger value="materias">Materias en Curso</TabsTrigger>
-                    <TabsTrigger value="historial">Historial Académico</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="resumen" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-100 rounded-lg">
-                              <BookOpen className="h-6 w-6 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="text-2xl font-bold">{selectedCarrera.materiasAprobadas}</p>
-                              <p className="text-sm text-gray-600">Materias Aprobadas</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                              <Trophy className="h-6 w-6 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-2xl font-bold">{selectedCarrera.promedioGeneral}</p>
-                              <p className="text-sm text-gray-600">Promedio General</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                              <Clock className="h-6 w-6 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="text-2xl font-bold">{selectedCarrera.añoEstimadoEgreso}</p>
-                              <p className="text-sm text-gray-600">Año Est. Egreso</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Progreso Detallado</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span>Materias Completadas</span>
-                            <span>
-                              {selectedCarrera.materiasAprobadas}/{selectedCarrera.materiasTotal}
-                            </span>
-                          </div>
-                          <Progress
-                            value={(selectedCarrera.materiasAprobadas / selectedCarrera.materiasTotal) * 100}
-                            className="h-2"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="materias" className="space-y-4">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Materias en Curso</h3>
-                      {materiasEnCursoPorCarrera[selectedCarrera.id]?.map((materia) => (
-                        <Card key={materia.codigo}>
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                              <div>
-                                <h4 className="font-semibold text-lg">{materia.nombre}</h4>
-                                <p className="text-gray-600">
-                                  {materia.codigo}
-                                </p>
-                                <p className="text-sm text-gray-500">{materia.profesor}</p>
-                              </div>
-                              <Badge variant="outline">{materia.horario}</Badge>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                              <div className="space-y-1">
-                                <p className="text-sm text-gray-600">Parcial 1</p>
-                                <p className="text-lg font-semibold">{materia.parcial1 ?? '-'}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-sm text-gray-600">Parcial 2</p>
-                                <p className="text-lg font-semibold">{materia.parcial2 ?? '-'}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <p className="text-sm text-gray-600">Final</p>
-                                <p className="text-lg font-semibold">{materia.final ?? '-'}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="historial" className="space-y-4">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Historial Académico</h3>
-                      {
-                        historiaAcademicaPorCarrera[selectedCarrera.id]?.length ? (
-                          <div className="space-y-4">
-                            {historiaAcademicaPorCarrera[selectedCarrera.id].map((materia) => (
-                              <Card key={materia.codigo}>
-                                <CardContent className="p-6">
-                                  <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                      <h4 className="font-semibold text-lg">{materia.nombre}</h4>
-                                      <p className="text-gray-600">{materia.codigo}</p>
-                                    </div>
-                                    <Badge className={getEstadoBadgeColor(materia.estado)}>
-                                      {materia.estado}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    Nota: {materia.nota} | Año: {materia.anioCursada} | Cuatrimestre: {materia.cuatrimestreCursada}
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-500">No hay materias registradas en el historial académico.</p>
-                        )
-                      }
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+                <CarreraDetalle 
+                  carrera={selectedCarrera} 
+                  usuarioId={user?.dbId ?? 1} 
+                />
               )}
             </>
           )}
