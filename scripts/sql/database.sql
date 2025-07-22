@@ -119,8 +119,8 @@ CREATE TABLE prod.usuario_materia_estado (
   materia_id         INT     NOT NULL,
   nota               NUMERIC(5,2)
                        CHECK (nota >= 0 AND nota <= 10),
-  anio_cursada       INT     NOT NULL,
-  cuatrimestre       INT     NOT NULL
+  anio_cursada       INT,
+  cuatrimestre       INT
                        CHECK (cuatrimestre IN (1,2)),
   estado             VARCHAR(20) NOT NULL
                        CHECK (estado IN (
