@@ -232,10 +232,6 @@ export default function MisCarrerasPage() {
                     <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes carreras agregadas</h3>
                     <p className="text-gray-500 mb-6">Comienza agregando tu primera carrera para ver tu progreso académico</p>
-                    <AgregarCarreraModal 
-                      onCarreraAgregada={handleCarreraAgregada}
-                      usuarioId={user?.dbId ?? 1}
-                    />
                   </CardContent>
                 </Card>
               </div>
