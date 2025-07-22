@@ -145,6 +145,8 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
         return <CheckCircle2 className="h-4 w-4 text-green-600" />
       case 'En Final':
         return <Award className="h-4 w-4 text-purple-600" />
+      case 'En Curso':
+        return <BookOpen className="h-4 w-4 text-blue-600" />
       case 'Pendiente':
         return <XCircle className="h-4 w-4 text-red-600" />
       default:
@@ -158,6 +160,8 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
         return 'bg-green-100 text-green-800'
       case 'En Final':
         return 'bg-purple-100 text-purple-800'
+      case 'En Curso':
+        return 'bg-blue-100 text-blue-800'
       case 'Pendiente':
         return 'bg-red-100 text-red-800'
       default:
@@ -364,7 +368,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
             ) : historial ? (
               <>
                 {/* Estadísticas del historial */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   <Card>
                     <CardContent className="p-4">
                       <p className="text-sm text-gray-600">Total Materias</p>
@@ -381,6 +385,18 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
                     <CardContent className="p-4">
                       <p className="text-sm text-gray-600">En Final</p>
                       <p className="text-2xl font-bold text-purple-600">{historial.estadisticas.materiasEnFinal}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-gray-600">En Curso</p>
+                      <p className="text-2xl font-bold text-blue-600">{historial.estadisticas.materiasEnCurso || 0}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-gray-600">Pendientes</p>
+                      <p className="text-2xl font-bold text-red-600">{historial.estadisticas.materiasPendientes || 0}</p>
                     </CardContent>
                   </Card>
                   <Card>

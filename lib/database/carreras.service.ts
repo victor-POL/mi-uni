@@ -209,7 +209,7 @@ export async function obtenerEstadisticasProgreso(usuarioId: number, planEstudio
       [usuarioId, planEstudioId]
     )
     
-    const materiasEnCurso = parseInt(cursandoResult.rows[0]?.materias_en_curso || '0') || 0
+    const materiasEnCurso = parseInt((cursandoResult.rows[0] as any)?.materias_en_curso || '0') || 0
     
     return {
       totalMaterias: totalMaterias,
@@ -299,7 +299,8 @@ export async function obtenerMateriasEnCurso(usuarioId: number, planEstudioId: n
 // Obtener historial académico para un usuario y plan de estudio
 export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId: number): Promise<MateriaHistorial[]> {
   try {
-    const result = await query(
+    // Consultar materias con estado (aprobadas, pendientes, en final)
+    const resultEstado = await query(
       `SELECT 
          ume.materia_id as id,
          m.codigo_materia as codigo,
@@ -317,18 +318,77 @@ export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId
        JOIN prod.materia m ON ume.materia_id = m.id
        JOIN prod.plan_materia pm ON ume.plan_estudio_id = pm.plan_estudio_id 
                                  AND ume.materia_id = pm.materia_id
-       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2
-       ORDER BY 
-         CASE ume.estado
-           WHEN 'Aprobada' THEN 1
-           WHEN 'En Final' THEN 2
-           WHEN 'Pendiente' THEN 3
-         END,
-         pm.anio_cursada, pm.cuatrimestre, m.nombre_materia`,
+       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2`,
       [usuarioId, planEstudioId]
     )
 
-    return result.rows.map((row: any) => ({
+    // Consultar materias en curso
+    const resultCursando = await query(
+      `SELECT 
+         umc.materia_id as id,
+         m.codigo_materia as codigo,
+         m.nombre_materia as nombre,
+         pm.anio_cursada as anio,
+         pm.cuatrimestre,
+         NULL as nota,
+         umc.anio_cursada as anio_cursada,
+         umc.cuatrimestre_cursada as cuatrimestre_cursada,
+         'En Curso' as estado,
+         umc.fecha_actualizacion,
+         m.horas_semanales,
+         m.tipo
+       FROM prod.usuario_materia_cursada umc
+       JOIN prod.materia m ON umc.materia_id = m.id
+       JOIN prod.plan_materia pm ON umc.plan_estudio_id = pm.plan_estudio_id 
+                                 AND umc.materia_id = pm.materia_id
+       WHERE umc.usuario_id = $1 AND umc.plan_estudio_id = $2`,
+      [usuarioId, planEstudioId]
+    )
+
+    // Combinar ambos resultados
+    const todasLasMaterias = [
+      ...resultEstado.rows,
+      ...resultCursando.rows
+    ]
+
+    // Eliminar duplicados (en caso de que una materia esté en ambas tablas)
+    const materiasUnicas = new Map()
+    todasLasMaterias.forEach((materia: any) => {
+      const key = materia.id
+      if (!materiasUnicas.has(key) || materia.estado === 'En Curso') {
+        // Priorizar "En Curso" sobre otros estados porque significa que actualmente se está cursando
+        materiasUnicas.set(key, materia)
+      }
+    })
+
+    // Convertir a array y ordenar
+    const materiasArray = Array.from(materiasUnicas.values()).sort((a: any, b: any) => {
+      // Orden de prioridad de estados
+      const ordenEstado: Record<string, number> = {
+        'Aprobada': 1,
+        'En Final': 2,
+        'En Curso': 3,
+        'Pendiente': 4
+      }
+      
+      if (ordenEstado[a.estado] !== ordenEstado[b.estado]) {
+        return ordenEstado[a.estado] - ordenEstado[b.estado]
+      }
+      
+      // Si el estado es igual, ordenar por año y cuatrimestre del plan
+      if (a.anio !== b.anio) {
+        return a.anio - b.anio
+      }
+      
+      if (a.cuatrimestre !== b.cuatrimestre) {
+        return a.cuatrimestre - b.cuatrimestre
+      }
+      
+      // Por último, ordenar alfabéticamente por nombre
+      return a.nombre.localeCompare(b.nombre)
+    })
+
+    return materiasArray.map((row: any) => ({
       id: row.id,
       codigo: row.codigo,
       nombre: row.nombre,
@@ -337,7 +397,7 @@ export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId
       nota: row.nota ? parseFloat(row.nota) : undefined,
       anioCursada: row.anio_cursada,
       cuatrimestreCursada: row.cuatrimestre_cursada,
-      estado: row.estado as 'Aprobada' | 'Pendiente' | 'En Final',
+      estado: row.estado as 'Aprobada' | 'Pendiente' | 'En Final' | 'En Curso',
       fechaActualizacion: new Date(row.fecha_actualizacion),
       horasSemanales: row.horas_semanales,
       tipo: row.tipo as 'cursable' | 'electiva'
@@ -391,9 +451,9 @@ export async function obtenerEstadisticasMateriasEnCurso(usuarioId: number, plan
 // Obtener estadísticas del historial académico
 export async function obtenerEstadisticasHistorial(usuarioId: number, planEstudioId: number): Promise<EstadisticasHistorial> {
   try {
-    const result = await query(
+    // Obtener estadísticas de materias con estado
+    const resultEstado = await query(
       `SELECT 
-         (SELECT COUNT(*) FROM prod.plan_materia WHERE plan_estudio_id = $2) as total_materias_plan,
          COUNT(CASE WHEN ume.estado = 'Aprobada' THEN 1 END) as materias_aprobadas,
          COUNT(CASE WHEN ume.estado = 'Pendiente' THEN 1 END) as materias_pendientes,
          COUNT(CASE WHEN ume.estado = 'En Final' THEN 1 END) as materias_en_final,
@@ -402,14 +462,34 @@ export async function obtenerEstadisticasHistorial(usuarioId: number, planEstudi
        WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2`,
       [usuarioId, planEstudioId]
     )
+
+    // Obtener cantidad de materias en curso
+    const resultCursando = await query(
+      `SELECT COUNT(*) as materias_en_curso
+       FROM prod.usuario_materia_cursada umc
+       WHERE umc.usuario_id = $1 AND umc.plan_estudio_id = $2`,
+      [usuarioId, planEstudioId]
+    )
+
+    // Obtener total de materias en el plan
+    const resultTotal = await query(
+      `SELECT COUNT(*) as total_materias_plan
+       FROM prod.plan_materia 
+       WHERE plan_estudio_id = $1`,
+      [planEstudioId]
+    )
     
-    const stats = result.rows[0] as any
+    const statsEstado = resultEstado.rows[0] as any
+    const statsCursando = resultCursando.rows[0] as any
+    const statsTotal = resultTotal.rows[0] as any
+
     return {
-      totalMaterias: parseInt(stats.total_materias_plan) || 0,
-      materiasAprobadas: parseInt(stats.materias_aprobadas) || 0,
-      materiasPendientes: parseInt(stats.materias_pendientes) || 0,
-      materiasEnFinal: parseInt(stats.materias_en_final) || 0,
-      promedioGeneral: stats.promedio_general ? parseFloat(stats.promedio_general) : undefined
+      totalMaterias: parseInt(statsTotal.total_materias_plan) || 0,
+      materiasAprobadas: parseInt(statsEstado.materias_aprobadas) || 0,
+      materiasPendientes: parseInt(statsEstado.materias_pendientes) || 0,
+      materiasEnFinal: parseInt(statsEstado.materias_en_final) || 0,
+      materiasEnCurso: parseInt(statsCursando.materias_en_curso) || 0,
+      promedioGeneral: statsEstado.promedio_general ? parseFloat(statsEstado.promedio_general) : undefined
     }
   } catch (error) {
     console.error('Error obteniendo estadísticas del historial:', error)

@@ -26,7 +26,7 @@ export interface MateriaHistorial {
   nota?: number
   anioCursada?: number
   cuatrimestreCursada?: number
-  estado: 'Aprobada' | 'Pendiente' | 'En Final'
+  estado: 'Aprobada' | 'Pendiente' | 'En Final' | 'En Curso'
   fechaActualizacion: Date
   horasSemanales: number
   tipo: 'cursable' | 'electiva'
@@ -64,5 +64,6 @@ export interface EstadisticasHistorial {
   materiasAprobadas: number
   materiasEnFinal: number
   materiasPendientes: number
+  materiasEnCurso: number
   promedioGeneral?: number
 }
