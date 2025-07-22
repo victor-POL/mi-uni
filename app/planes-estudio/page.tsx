@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Clock, Filter, Search, X } from 'lucide-react'
+import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { planesDeEstudio } from '@/data/planes-estudio.data'
 import { getNombreCuatrimestre } from '@/utils/utils'
@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAuth } from '@/contexts/AuthContext'
 import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
@@ -25,17 +27,22 @@ export default function PlanesEstudioPage() {
   const router = useRouter()
   const planIdFromUrl = searchParams.get('plan')
   
+  // Hook de autenticación
+  const { user, loading: authLoading, isUserInitialized } = useAuth()
+  
   // Hook para obtener planes disponibles (solo summary)
   const { 
     planes: planesDisponibles, 
     loading: isLoadingPlanes,
-    fetchPlanById
+    fetchPlanById,
+    fetchEstadosMaterias
   } = usePlanesSummary()
   
   // Estados para el plan seleccionado
   const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
+  const [estadosMaterias, setEstadosMaterias] = useState<Record<string, string> | null>(null)
   
   // Estado para controlar si el plan ya fue cargado manualmente
   const [planLoadedManually, setPlanLoadedManually] = useState<boolean>(false)
@@ -60,6 +67,9 @@ export default function PlanesEstudioPage() {
   
   // Local UI state for showing/hiding filters section
   const [showFilters, setShowFilters] = useState<boolean>(false)
+
+  // Helper para verificar si el usuario está logueado
+  const isLoggedIn = user !== null && isUserInitialized
 
   // Function to update URL with current filters
   const updateUrlWithFilters = (updates: Record<string, string | null>) => {
@@ -105,6 +115,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleFilterStatusChange = (value: string) => {
+    if (!isLoggedIn) return // No permitir cambios si no está logueado
     setFilterStatus(value)
     updateUrlWithFilters({ status: value })
   }
@@ -115,6 +126,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleShowMateriaStatusChange = (value: boolean) => {
+    if (!isLoggedIn) return // No permitir cambios si no está logueado
     setShowMateriaStatus(value)
     updateUrlWithFilters({ showStatus: value.toString() })
   }
@@ -130,12 +142,30 @@ export default function PlanesEstudioPage() {
       setIsLoadingPlanDetails(true)
       const planData = await fetchPlanById(parseInt(planId))
       setPlanConsultado(planData)
+      
+      // Si el usuario está logueado, también cargar los estados de las materias
+      if (isLoggedIn && user?.dbId && user.dbId > 0) {
+        try {
+          console.log('🔍 Cargando estados de materias para usuario:', user.dbId, 'plan:', planId)
+          const estados = await fetchEstadosMaterias(parseInt(planId), user.dbId)
+          console.log('✅ Estados cargados:', estados)
+          setEstadosMaterias(estados)
+        } catch (error) {
+          console.error('❌ Error cargando estados de materias:', error)
+          setEstadosMaterias(null)
+        }
+      } else {
+        console.log('⚠️ Usuario no logueado o sin dbId, no cargando estados')
+        setEstadosMaterias(null)
+      }
+      
       return planData
     } catch (error) {
       console.error('Error fetching plan details:', error)
       // Fallback a datos estáticos si hay error
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === planId)
       setPlanConsultado(plan || null)
+      setEstadosMaterias(null)
       return plan || null
     } finally {
       setIsLoadingPlanDetails(false)
@@ -166,10 +196,10 @@ export default function PlanesEstudioPage() {
     const showCorrelativesParam = searchParams.get('showCorrelatives')
     
     // Update states based on URL parameters
-    if (showStatusParam !== null) {
+    if (showStatusParam !== null && isLoggedIn) {
       setShowMateriaStatus(showStatusParam === 'true')
     } else {
-      setShowMateriaStatus(true) // Default value
+      setShowMateriaStatus(isLoggedIn) // Solo mostrar si está logueado
     }
     
     if (showCorrelativesParam !== null) {
@@ -182,9 +212,14 @@ export default function PlanesEstudioPage() {
     setFilterYear(searchParams.get('year') || '0')
     setFilterCuatrimestre(searchParams.get('semester') || '0')
     setSearchTerm(searchParams.get('search') || '')
-    setFilterStatus(searchParams.get('status') || '0')
+    // Solo sincronizar filtro de estado si está logueado
+    if (isLoggedIn) {
+      setFilterStatus(searchParams.get('status') || '0')
+    } else {
+      setFilterStatus('0') // Reset si no está logueado
+    }
     setFilterHours(searchParams.get('hours') || '')
-  }, [searchParams])
+  }, [searchParams, isLoggedIn])
 
   const handleConsultarFromUrl = async (planId: string) => {
     setIsLoadingPlanDetails(true)
@@ -353,8 +388,8 @@ export default function PlanesEstudioPage() {
       )
     }
 
-    // Filter by status
-    if (filterStatus !== '0') {
+    // Filter by status (solo si está logueado)
+    if (filterStatus !== '0' && isLoggedIn) {
       currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
     }
 
@@ -384,10 +419,10 @@ export default function PlanesEstudioPage() {
     return filterYear !== '0' || 
            filterCuatrimestre !== '0' || 
            searchTerm !== '' || 
-           filterStatus !== '0' || 
+           (filterStatus !== '0' && isLoggedIn) || // Solo considerar activo si está logueado
            filterHours !== '' ||
            correlativeMateriasHabilitadas !== null
-  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeMateriasHabilitadas])
+  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeMateriasHabilitadas, isLoggedIn])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -398,18 +433,20 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  const getStatusBadgeVariant = (status: EstadoMateriaPlanEstudio) => {
+  const getStatusBadgeColor = (status: EstadoMateriaPlanEstudio) => {
     switch (status) {
       case 'Aprobada':
-        return 'default' // Green-ish by default
-      case 'Regularizada':
-        return 'secondary' // Gray-ish
-      case 'En Curso':
-        return 'outline' // Bordered
+        return 'bg-green-100 text-green-800'
       case 'En Final':
-        return 'destructive' // Red-ish
+        return 'bg-purple-100 text-purple-800'
+      case 'En Curso':
+        return 'bg-blue-100 text-blue-800'
+      case 'Pendiente':
+        return 'bg-red-100 text-red-800'
+      case 'Regularizada':
+        return 'bg-gray-100 text-gray-800'
       default:
-        return 'default' // Default for pending, can be changed
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -593,9 +630,13 @@ export default function PlanesEstudioPage() {
                   <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                     Estado
                   </Label>
-                  <Select value={filterStatus} onValueChange={handleFilterStatusChange}>
+                  <Select 
+                    value={filterStatus} 
+                    onValueChange={handleFilterStatusChange}
+                    disabled={!isLoggedIn}
+                  >
                     <SelectTrigger id="filter-status" className="bg-white border-gray-300">
-                      <SelectValue placeholder="Todos los estados" />
+                      <SelectValue placeholder={!isLoggedIn ? "Requiere autenticación" : "Todos los estados"} />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="0">Todos los estados</SelectItem>
@@ -606,6 +647,14 @@ export default function PlanesEstudioPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {!isLoggedIn && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <User className="h-3 w-3 text-amber-600" />
+                      <span className="text-xs text-amber-600">
+                        Inicia sesión para filtrar por estado
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Filter by Hours */}
@@ -625,10 +674,23 @@ export default function PlanesEstudioPage() {
 
                 {/* Toggle Show Materia Status */}
                 <div className="flex items-center space-x-2 mt-2">
-                  <Switch id="show-status" checked={showMateriaStatus} onCheckedChange={handleShowMateriaStatusChange} />
+                  <Switch 
+                    id="show-status" 
+                    checked={showMateriaStatus && isLoggedIn} 
+                    onCheckedChange={handleShowMateriaStatusChange}
+                    disabled={!isLoggedIn}
+                  />
                   <Label htmlFor="show-status" className="text-gray-700">
                     Mostrar Estado de Materia
                   </Label>
+                  {!isLoggedIn && (
+                    <div className="flex items-center gap-1">
+                      <User className="h-3 w-3 text-amber-600" />
+                      <span className="text-xs text-amber-600">
+                        Requiere autenticación
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Toggle Show Correlatives */}
@@ -840,45 +902,58 @@ export default function PlanesEstudioPage() {
                                 </AccordionTrigger>
                                 <AccordionContent className="pl-4">
                                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
-                                      <Card
-                                        key={materia.codigoMateria}
-                                        id={`materia-${materia.codigoMateria}`}
-                                        className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
-                                          materiaResaltada === materia.codigoMateria
-                                            ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
-                                            : ''
-                                        }`}
-                                      >
-                                        <CardHeader className="pb-3">
-                                          <div className="flex justify-between items-start">
-                                            <div>
-                                              <CardTitle className="text-base text-gray-900">
-                                                {materia.nombreMateria}
-                                              </CardTitle>
-                                              <CardDescription className="font-mono text-sm text-gray-600">
-                                                {materia.codigoMateria}
-                                              </CardDescription>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                              <Badge
-                                                variant="secondary"
-                                                className="flex items-center gap-1 bg-gray-100 text-gray-800"
-                                              >
-                                                <Clock className="h-3 w-3" />
-                                                {materia.horasSemanales}h
-                                              </Badge>
-                                              {showMateriaStatus && (
+                                    {materiasAgrupadas[anio][cuatrimestre].map((materia) => {
+                                      // Obtener el estado real de la materia si está disponible
+                                      const estadoReal = estadosMaterias?.[materia.codigoMateria] || materia.estado
+                                      
+                                      // Debug para ver qué estado se está usando
+                                      if (materia.codigoMateria === '03621' || materia.codigoMateria === '03624') {
+                                        console.log(`🎯 Materia ${materia.codigoMateria}:`, {
+                                          estadoOriginal: materia.estado,
+                                          estadoEnMap: estadosMaterias?.[materia.codigoMateria],
+                                          estadoFinal: estadoReal,
+                                          tieneEstadosMap: !!estadosMaterias
+                                        })
+                                      }
+                                      
+                                      return (
+                                        <Card
+                                          key={materia.codigoMateria}
+                                          id={`materia-${materia.codigoMateria}`}
+                                          className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
+                                            materiaResaltada === materia.codigoMateria
+                                              ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
+                                              : ''
+                                          }`}
+                                        >
+                                          <CardHeader className="pb-3">
+                                            <div className="flex justify-between items-start">
+                                              <div>
+                                                <CardTitle className="text-base text-gray-900">
+                                                  {materia.nombreMateria}
+                                                </CardTitle>
+                                                <CardDescription className="font-mono text-sm text-gray-600">
+                                                  {materia.codigoMateria}
+                                                </CardDescription>
+                                              </div>
+                                              <div className="flex flex-col items-end gap-1">
                                                 <Badge
-                                                  variant={getStatusBadgeVariant(materia.estado)}
-                                                  className="text-xs"
+                                                  variant="secondary"
+                                                  className="flex items-center gap-1 bg-gray-100 text-gray-800"
                                                 >
-                                                  {materia.estado}
+                                                  <Clock className="h-3 w-3" />
+                                                  {materia.horasSemanales}h
                                                 </Badge>
-                                              )}
+                                                {showMateriaStatus && isLoggedIn && (
+                                                  <Badge
+                                                    className={`text-xs ${getStatusBadgeColor(estadoReal as EstadoMateriaPlanEstudio)}`}
+                                                  >
+                                                    {estadoReal}
+                                                  </Badge>
+                                                )}
+                                              </div>
                                             </div>
-                                          </div>
-                                        </CardHeader>
+                                          </CardHeader>
                                         <CardContent className="pt-0">
                                           {/* Correlativas */}
                                           {showCorrelatives && materia.listaCorrelativas.length > 0 && (
@@ -919,7 +994,8 @@ export default function PlanesEstudioPage() {
                                           </Link>
                                         </CardContent>
                                       </Card>
-                                    ))}
+                                      )
+                                    })}
                                   </div>
                                 </AccordionContent>
                               </AccordionItem>

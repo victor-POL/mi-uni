@@ -97,6 +97,23 @@ export function usePlanesEstudio(options: UsePlanesEstudioOptions = {}) {
         console.error('Error fetching plan by ID:', error)
         throw error
       }
+    },
+    // Helper para obtener estados de materias de un usuario
+    fetchEstadosMaterias: async (planId: number, usuarioId: number) => {
+      try {
+        const response = await fetch(`/api/planes-estudio/${planId}/estados?usuarioId=${usuarioId}`)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const result = await response.json()
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to fetch materia states')
+        }
+        return result.data as Record<string, string>
+      } catch (error) {
+        console.error('Error fetching materia states:', error)
+        throw error
+      }
     }
   }
 }
