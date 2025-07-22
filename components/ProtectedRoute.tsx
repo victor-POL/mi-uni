@@ -14,50 +14,36 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   fallback = <div>Cargando...</div> 
 }) => {
-  const { pageUser, isUserInitialized } = useAuth()
+  const { user, isUserInitialized } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isUserInitialized && !pageUser) {
+    if (isUserInitialized && !user) {
       router.push('/login')
     }
-  }, [isUserInitialized, pageUser, router])
+  }, [isUserInitialized, user, router])
 
   if (!isUserInitialized) {
     return <>{fallback}</>
   }
 
-  if (!pageUser) {
+  if (!user) {
     return null
   }
 
   return <>{children}</>
 }
 
-// Hook para verificar si el usuario está autenticado
-export const useRequireAuth = () => {
-  const { pageUser, isUserInitialized } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (isUserInitialized && !pageUser) {
-      router.replace('/login')
-    }
-  }, [isUserInitialized, pageUser, router])
-
-  return { pageUser, loading: !isUserInitialized }
-}
-
 // Hook para redirigir usuarios autenticados
 export const useRedirectIfAuthenticated = (redirectTo: string = '/') => {
-  const { pageUser, isUserInitialized } = useAuth()
+  const { user, isUserInitialized } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (isUserInitialized && pageUser) {
+    if (isUserInitialized && user) {
       router.replace(redirectTo)
     }
-  }, [isUserInitialized, pageUser, router, redirectTo])
+  }, [isUserInitialized, user, router, redirectTo])
 
-  return { pageUser, loading: !isUserInitialized }
+  return { user, loading: !isUserInitialized }
 }

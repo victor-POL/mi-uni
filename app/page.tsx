@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { publicOperations, privateOperations } from '@/data/operations.data'
 
 export default function HomePage() {
-  const { pageUser, isUserInitialized } = useAuth()
+  const { user, isUserInitialized } = useAuth()
 
   return (
     <AppLayout title="Mi Universidad" showBackButton={false}>
@@ -50,7 +50,7 @@ export default function HomePage() {
         </div>
 
         {/* Authentication Section */}
-        {isUserInitialized && !pageUser && (
+        {isUserInitialized && !user && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">Inicia sesión para acceder a más funciones</h2>
             <p className="text-gray-600">
@@ -122,7 +122,7 @@ export default function HomePage() {
             )
           }
 
-          if (pageUser) {
+          if (user) {
             // Operaciones privadas para usuarios autenticados
             return (
               <div className="space-y-6">

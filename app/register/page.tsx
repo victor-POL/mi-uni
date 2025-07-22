@@ -23,10 +23,10 @@ export default function RegisterPage() {
   })
 
   // Redirigir si ya está autenticado
-  const { pageUser, loading } = useRedirectIfAuthenticated()
+  const { user, loading } = useRedirectIfAuthenticated()
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
-  if (loading || pageUser) {
+  if (loading || user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="text-center">

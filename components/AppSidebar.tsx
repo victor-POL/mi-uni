@@ -23,7 +23,7 @@ import {
 
 export const AppSidebar: React.FC = () => {
   const pathname = usePathname()
-  const { pageUser, isUserInitialized, signOut } = useAuth()
+  const { user, isUserInitialized, signOut } = useAuth()
 
   const publicItems = [
     {
@@ -69,14 +69,14 @@ export const AppSidebar: React.FC = () => {
       )
     }
 
-    if (pageUser) {
+    if (user) {
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-3 p-2">
-            <UserAvatar pageUser={pageUser} size={32} />
+            <UserAvatar user={user} size={32} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{pageUser.displayName || pageUser.email}</p>
-              <p className="text-xs text-gray-500 truncate">{pageUser.email}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{user.firebaseDisplayName || user.nombre || user.email}</p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
           </div>
           <Button
@@ -172,7 +172,7 @@ export const AppSidebar: React.FC = () => {
             )
           }
           
-          if (pageUser) {
+          if (user) {
             // Operaciones privadas para usuarios autenticados
             return (
               <>

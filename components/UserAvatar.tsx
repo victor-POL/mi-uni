@@ -5,9 +5,11 @@ import type React from "react"
 import { User as UserIcon } from "lucide-react"
 
 interface UserAvatarProps {
-  pageUser: {
-    photoURL?: string | null
-    displayName?: string | null
+  user: {
+    firebasePhotoURL?: string | null
+    firebaseDisplayName?: string | null
+    nombre?: string | null
+    apellido?: string | null
     email?: string | null
   } | null
   size?: number
@@ -16,7 +18,7 @@ interface UserAvatarProps {
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({ 
-  pageUser, 
+  user, 
   size = 32, 
   className = "",
   showPlaceholder = true 
@@ -24,11 +26,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   const baseClasses = `rounded-full ${className}`
   
   // Si hay usuario y tiene foto
-  if (pageUser?.photoURL) {
+  if (user?.firebasePhotoURL) {
     return (
       <Image 
-        src={pageUser.photoURL} 
-        alt={pageUser.displayName || pageUser.email || "Avatar"} 
+        src={user.firebasePhotoURL} 
+        alt={user.firebaseDisplayName || user.nombre || user.email || "Avatar"} 
         width={size}
         height={size}
         className={`${baseClasses} object-cover`}
@@ -37,10 +39,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   }
   
   // Si hay usuario pero no tiene foto, mostrar iniciales
-  if (pageUser && !pageUser.photoURL) {
-    const initials = pageUser.displayName 
-      ? pageUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
-      : pageUser.email?.charAt(0).toUpperCase() || '?'
+  if (user && !user.firebasePhotoURL) {
+    const displayName = user.firebaseDisplayName || `${user.nombre || ''} ${user.apellido || ''}`.trim()
+    const initials = displayName 
+      ? displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+      : user.email?.charAt(0).toUpperCase() || '?'
     
     return (
       <div 

@@ -18,7 +18,7 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButton = true, backHref }) => {
   const router = useRouter()
   const pathname = usePathname()
-  const { pageUser, isUserInitialized } = useAuth()
+  const { user, isUserInitialized } = useAuth()
   const { state, isMobile, openMobile } = useSidebar()
 
   const handleBack = () => {
@@ -40,25 +40,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButto
             <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
             <div className="h-3 bg-gray-200 rounded w-16"></div>
           </div>
-          <UserAvatar pageUser={null} showPlaceholder={true} size={32} />
+          <UserAvatar user={null} showPlaceholder={true} size={32} />
         </div>
       )
     }
 
-    if (pageUser) {
+    if (user) {
       // Si la sidebar está visible, solo mostrar el avatar
       if (isSidebarVisible) {
-        return <UserAvatar pageUser={pageUser} size={32} />
+        return <UserAvatar user={user} size={32} />
       }
       
       // Si la sidebar no está visible, mostrar información completa
       return (
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">{pageUser.displayName || pageUser.email}</p>
-            <p className="text-xs text-gray-500">{pageUser.email}</p>
+            <p className="text-sm font-medium text-gray-900">{user.firebaseDisplayName || user.nombre || user.email}</p>
+            <p className="text-xs text-gray-500">{user.email}</p>
           </div>
-          <UserAvatar pageUser={pageUser} size={32} />
+          <UserAvatar user={user} size={32} />
         </div>
       )
     }
