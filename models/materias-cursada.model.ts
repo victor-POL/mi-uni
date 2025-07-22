@@ -54,6 +54,7 @@ export interface ActualizarNotasMateriaEnCurso {
 
 export interface EstadisticasMateriasEnCurso {
   totalMaterias: number
+  materiasAnual: number
   materiasPrimero: number
   materiasSegundo: number
   promedioNotasParciales?: number

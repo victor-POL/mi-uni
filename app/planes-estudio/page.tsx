@@ -373,9 +373,13 @@ export default function PlanesEstudioPage() {
 
     // Filter by cuatrimestre
     if (filterCuatrimestre !== '0') {
-      currentMaterias = currentMaterias.filter(
-        (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
-      )
+      if (filterCuatrimestre === 'anual') {
+        currentMaterias = currentMaterias.filter((materia) => materia.cuatrimestreCursada === 0)
+      } else {
+        currentMaterias = currentMaterias.filter(
+          (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
+        )
+      }
     }
 
     // Filter by search term (name or code)
@@ -592,6 +596,7 @@ export default function PlanesEstudioPage() {
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-300">
                       <SelectItem value="0">Todos los cuatrimestres</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
                       <SelectItem value="1">Primer Cuatrimestre</SelectItem>
                       <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
                     </SelectContent>
@@ -792,7 +797,7 @@ export default function PlanesEstudioPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="pl-4 space-y-4">
-                    {[1, 2].map((cuatrimestre) => (
+                    {[0, 1, 2].map((cuatrimestre) => (
                       <div key={cuatrimestre} className="space-y-4">
                         <div className="flex items-center gap-2 pl-4">
                           <div className="h-6 w-1 bg-gray-200 rounded animate-pulse"></div>

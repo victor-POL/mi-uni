@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Clock, Edit, Plus, GraduationCap, Trash2 } from 'lucide-react'
+import { BookOpen, Clock, Edit, Plus, GraduationCap, Trash2, Calendar } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
@@ -140,7 +140,7 @@ export default function MateriasEnCursoPage() {
 
           {/* Estadísticas */}
           {estadisticas && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2">
@@ -148,6 +148,16 @@ export default function MateriasEnCursoPage() {
                     <p className="text-sm text-gray-600">Total Materias</p>
                   </div>
                   <p className="text-2xl font-bold text-blue-600">{estadisticas.totalMaterias}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-purple-600" />
+                    <p className="text-sm text-gray-600">Anuales</p>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600">{estadisticas.materiasAnual}</p>
                 </CardContent>
               </Card>
               

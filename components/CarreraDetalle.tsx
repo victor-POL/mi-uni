@@ -174,6 +174,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
   }
 
   const formatearCuatrimestre = (cuatrimestre: number) => {
+    if (cuatrimestre === 0) return 'Anual'
     return cuatrimestre === 1 ? '1er Cuatrimestre' : '2do Cuatrimestre'
   }
 
@@ -281,11 +282,17 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
             ) : materiasEnCurso ? (
               <>
                 {/* Estadísticas de materias en curso */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <Card>
                     <CardContent className="p-4">
                       <p className="text-sm text-gray-600">Total Cursando</p>
                       <p className="text-2xl font-bold text-blue-600">{materiasEnCurso.estadisticas.totalMaterias}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-gray-600">Materias Anuales</p>
+                      <p className="text-2xl font-bold text-purple-600">{materiasEnCurso.estadisticas.materiasAnual}</p>
                     </CardContent>
                   </Card>
                   <Card>

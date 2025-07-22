@@ -228,6 +228,7 @@ export function EditarMateriaModal({
                       <SelectValue placeholder="Seleccionar cuatrimestre" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="0">Anual</SelectItem>
                       <SelectItem value="1">1er Cuatrimestre</SelectItem>
                       <SelectItem value="2">2do Cuatrimestre</SelectItem>
                     </SelectContent>
