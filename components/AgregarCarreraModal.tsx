@@ -8,7 +8,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Calendar, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import type { Carrera, PlanEstudio } from '@/lib/database/carreras.service'
+
+interface Carrera {
+  id: number
+  nombre: string
+  descripcion?: string
+}
+
+interface PlanEstudio {
+  id: number
+  anio: number
+  carrera_id: number
+}
 
 interface AgregarCarreraModalProps {
   onCarreraAgregada: () => void
@@ -184,31 +195,41 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
           {selectedCarrera && (
             <div className="space-y-2">
               <label htmlFor="plan-select" className="text-sm font-medium">Plan de Estudio</label>
-              {isLoadingPlanes ? (
-                <div className="flex items-center justify-center py-4">
-                  <LoadingSpinner size="sm" text="Cargando planes..." />
-                </div>
-              ) : planes.length > 0 ? (
-                <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-                  <SelectTrigger id="plan-select">
-                    <SelectValue placeholder="Selecciona un plan de estudio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {planes.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Plan {plan.anio}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="text-center py-4 text-gray-500">
-                  No hay planes de estudio disponibles para esta carrera
-                </div>
-              )}
+              {(() => {
+                if (isLoadingPlanes) {
+                  return (
+                    <div className="flex items-center justify-center py-4">
+                      <LoadingSpinner size="sm" text="Cargando planes..." />
+                    </div>
+                  )
+                }
+                
+                if (planes.length > 0) {
+                  return (
+                    <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                      <SelectTrigger id="plan-select">
+                        <SelectValue placeholder="Selecciona un plan de estudio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {planes.map((plan) => (
+                          <SelectItem key={plan.id} value={plan.id.toString()}>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Plan {plan.anio}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                }
+                
+                return (
+                  <div className="text-center py-4 text-gray-500">
+                    No hay planes de estudio disponibles para esta carrera
+                  </div>
+                )
+              })()}
             </div>
           )}
 

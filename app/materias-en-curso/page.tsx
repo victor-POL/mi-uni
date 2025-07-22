@@ -1,452 +1,313 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { BookOpen, Clock, Edit, Check, AlertCircle, Plus, GraduationCap } from 'lucide-react'
+import { BookOpen, Clock, Edit, Plus, GraduationCap, Trash2 } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import type {
-  CondicionCursadaMateriaEnCurso,
-  MateriaEnCurso,
-  ResultadoCursadaMateriaEnCurso,
-} from '@/models/materias.model'
-import type { PlanDeEstudioMateriasEnCurso } from '@/models/plan-estudio.model'
-import { getNombreCuatrimestre } from '@/utils/utils'
-import { planesDeEstudioMateriasEnCurso } from '@/data/materias-en-curso.data'
-
-interface FormResultadoCursada {
-  codigoMateria: string
-  resultadoCursada: ResultadoCursadaMateriaEnCurso
-  nota: number
-}
-
-interface FormNuevaMateriaEnCurso {
-  codigoMateria: string
-  nombreMateria: string
-  anioCursando: number
-  cuatrimestreCursando: number
-}
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
+import type { MateriaCursadaPorCarrera, EstadisticasMateriasEnCurso, MateriaCursada } from '@/models/materias-cursada.model'
+import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
+import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
 
 export default function MateriasEnCursoPage() {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
-  const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioMateriasEnCurso | null>(null)
-  const [materiasEnCurso, setMateriasEnCurso] = useState<MateriaEnCurso[]>([])
-  const [dialogEditarAbierto, setDialogEditarAbierto] = useState(false)
-  const [dialogAgregarAbierto, setDialogAgregarAbierto] = useState(false)
-  const [materiaEditando, setMateriaEditando] = useState<MateriaEnCurso | null>(null)
-  const [formDataResultado, setFormDataResultado] = useState<Partial<FormResultadoCursada>>({})
-  const [formDataNuevaMateria, setFormDataNuevaMateria] = useState<Partial<FormNuevaMateriaEnCurso>>({})
+  const { user } = useAuth()
+  const { toast } = useToast()
+  
+  const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
+  const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false)
+  const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
+  const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
-  const handleConsultar = () => {
-    if (selectedPlanId) {
-      const plan = planesDeEstudioMateriasEnCurso.find((p) => p.idPlan.toString() === selectedPlanId)
-      setPlanConsultado(plan || null)
-      if (plan) {
-        setMateriasEnCurso(plan.materiasEnCurso)
-      }
+  const cargarMateriasEnCurso = async () => {
+    if (!user?.dbId) return
+    
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/materias-en-curso?usuarioId=${user.dbId}`)
+      
+      if (!response.ok) throw new Error('Error cargando materias en curso')
+      
+      const data = await response.json()
+      setMateriasPorCarrera(data.materiasPorCarrera)
+      setEstadisticas(data.estadisticas)
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las materias en curso",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleEditarMateria = (codigoMateria: string) => {
-    const materia = materiasEnCurso.find((m) => m.codigoMateria === codigoMateria)
-    if (materia) {
-      setMateriaEditando(materia)
-      setFormDataResultado(materia)
-      setDialogEditarAbierto(true)
+  useEffect(() => {
+    cargarMateriasEnCurso()
+  }, [user?.dbId])
+
+  const handleEditarNotas = (materia: MateriaCursada) => {
+    setMateriaEditando(materia)
+    setModalEditarAbierto(true)
+  }
+
+  const handleEliminarMateria = async (materia: MateriaCursada) => {
+    if (!user?.dbId) return
+    
+    const confirmacion = window.confirm('¿Estás seguro de que deseas eliminar esta materia en curso?')
+    if (!confirmacion) return
+    
+    try {
+      const params = new URLSearchParams({
+        usuarioId: user.dbId.toString(),
+        planEstudioId: materia.planEstudioId.toString(),
+        materiaId: materia.materiaId.toString(),
+        anioCursada: materia.anioCursada.toString(),
+        cuatrimestreCursada: materia.cuatrimestreCursada.toString()
+      })
+      
+      const response = await fetch(`/api/materias-en-curso/actualizar?${params}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) throw new Error('Error eliminando materia')
+      
+      toast({
+        title: "Éxito",
+        description: "Materia eliminada correctamente",
+      })
+      
+      cargarMateriasEnCurso()
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la materia",
+        variant: "destructive",
+      })
     }
   }
 
-  const handleGuardarMateria = () => {
-    if (
-      materiaEditando &&
-      formDataResultado.codigoMateria &&
-      formDataResultado.resultadoCursada &&
-      formDataResultado.nota
-    ) {
-      setDialogEditarAbierto(false)
-      setMateriaEditando(null)
-      setFormDataResultado({})
-    }
+  const formatearNota = (nota?: number) => {
+    return nota !== undefined ? nota.toFixed(1) : '-'
   }
 
-  const handleAgregarMateria = () => {
-    if (
-      formDataNuevaMateria.codigoMateria &&
-      formDataNuevaMateria.anioCursando &&
-      formDataNuevaMateria.cuatrimestreCursando &&
-      formDataNuevaMateria.nombreMateria
-    ) {
-      setDialogAgregarAbierto(false)
-      setFormDataNuevaMateria({})
-    }
+  const calcularPromedioMaterias = (materia: any) => {
+    const notas = [
+      materia.notaPrimerParcial,
+      materia.notaSegundoParcial,
+      materia.notaRecuperatorioPrimerParcial,
+      materia.notaRecuperatorioSegundoParcial
+    ].filter(nota => nota !== undefined)
+    
+    if (notas.length === 0) return undefined
+    return notas.reduce((sum, nota) => sum + nota, 0) / notas.length
   }
 
-  const getMateriasDisponiblesParaAgregar = () => {
-    if (!planConsultado) return []
-    const codigosMateriasEnCurso = materiasEnCurso.map((m) => m.codigoMateria)
-    return planConsultado.materiasDisponibles.filter((m) => !codigosMateriasEnCurso.includes(m.codigoMateria))
-  }
-
-  const getCondicionCursadaBadge = (estado: CondicionCursadaMateriaEnCurso) => {
-    const colors = {
-      'Para promocion/regularizar': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      'Para regularizar': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    }
-
+  if (loading) {
     return (
-      <Badge className={colors[estado]}>
-        {estado === 'Para promocion/regularizar' && <Check className="h-4 w-4 mr-1" />}
-        {estado === 'Para regularizar' && <AlertCircle className="h-4 w-4 mr-1" />}
-        {estado}
-      </Badge>
+      <ProtectedRoute>
+        <AppLayout>
+          <div className="container mx-auto p-6">
+            <div className="text-center">Cargando materias en curso...</div>
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
     )
   }
 
-  const getNotaMinimaPorResultadoCursada = (resultado: ResultadoCursadaMateriaEnCurso): number => {
-    switch (resultado) {
-      case 'Promocionada':
-        return 7
-      case 'Regularizada':
-        return 4
-      case 'Desaprobada':
-        return 1
-      default:
-        return 0
-    }
-  }
-
-  const getNotaMaximaPorResultadoCursada = (resultado: ResultadoCursadaMateriaEnCurso): number => {
-    switch (resultado) {
-      case 'Promocionada':
-        return 10
-      case 'Regularizada':
-        return 6
-      case 'Desaprobada':
-        return 3
-      default:
-        return 0
-    }
-  }
-
-  const mostrarInputNota = (resultado: ResultadoCursadaMateriaEnCurso): boolean => {
-    return resultado === 'Promocionada' || resultado === 'Regularizada'
-  }
-
-  const agruparMateriasPorPeriodo = () => {
-    const agrupadas: { [key: string]: MateriaEnCurso[] } = {}
-
-    materiasEnCurso.forEach((materia) => {
-      const clave = `${materia.anioCursando}-${getNombreCuatrimestre(materia.cuatrimestreCursando)}`
-      if (!agrupadas[clave]) {
-        agrupadas[clave] = []
-      }
-      agrupadas[clave].push(materia)
-    })
-
-    return agrupadas
-  }
-
-  const materiasAgrupadas = agruparMateriasPorPeriodo()
-
   return (
     <ProtectedRoute>
-      <AppLayout title="Materias En Curso">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Selector de Plan */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Gestión de Materias En Curso</CardTitle>
-              <CardDescription>Administra las materias que estás cursando actualmente</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 items-end">
-                <div className="flex-1 max-w-md">
-                  <label
-                    htmlFor="plan-select"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Plan de Estudio
-                  </label>
-                  <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu plan de estudio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {planesDeEstudioMateriasEnCurso.map((plan) => (
-                        <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
-                          {plan.nombreCarrera} ({plan.anio})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleConsultar} disabled={!selectedPlanId} className="px-8">
-                  Consultar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <AppLayout>
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Materias en Curso</h1>
+              <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
+            </div>
+            <Button onClick={() => setModalAgregarAbierto(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Agregar Materia
+            </Button>
+          </div>
 
-          {/* Botón Agregar Materia */}
-          {planConsultado && (
-            <div className="mb-6">
-              <Button onClick={() => setDialogAgregarAbierto(true)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Agregar Materia
-              </Button>
+          {/* Estadísticas */}
+          {estadisticas && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    <p className="text-sm text-gray-600">Total Materias</p>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-600">{estadisticas.totalMaterias}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-5 w-5 text-green-600" />
+                    <p className="text-sm text-gray-600">1er Cuatrimestre</p>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">{estadisticas.materiasPrimero}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-5 w-5 text-orange-600" />
+                    <p className="text-sm text-gray-600">2do Cuatrimestre</p>
+                  </div>
+                  <p className="text-2xl font-bold text-orange-600">{estadisticas.materiasSegundo}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2">
+                    <GraduationCap className="h-5 w-5 text-purple-600" />
+                    <p className="text-sm text-gray-600">Promedio Parciales</p>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {formatearNota(estadisticas.promedioNotasParciales)}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* Materias Agrupadas por Período */}
-          {planConsultado && Object.keys(materiasAgrupadas).length > 0 && (
-            <div className="space-y-6">
-              {Object.keys(materiasAgrupadas)
-                .sort()
-                .reverse()
-                .map((periodo) => {
-                  const [anio, cuatrimestre] = periodo.split('-')
-                  return (
-                    <div key={periodo} className="space-y-4">
-                      {/* Título del Período */}
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {anio} - {cuatrimestre}
-                        </h2>
-                      </div>
-
-                      {/* Materias del Período */}
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {materiasAgrupadas[periodo].map((materia) => (
-                          <Card key={materia.codigoMateria} className="relative">
-                            <CardHeader className="pb-3">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="text-base">{materia.nombreMateria}</CardTitle>
-                                  <CardDescription className="font-mono text-sm">
-                                    {materia.codigoMateria}
-                                  </CardDescription>
-                                </div>
-                                <Badge variant="secondary" className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {materia.horasSemanales}h
-                                </Badge>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                {getCondicionCursadaBadge(materia.condicionCursada)}
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleEditarMateria(materia.codigoMateria)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              {/* Botón Ver Detalles */}
-                              <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
-                                  <BookOpen className="h-3 w-3 mr-1" />
-                                  Ver Detalles
-                                </Button>
-                              </Link>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-            </div>
-          )}
-
-          {/* Estado inicial */}
-          {!planConsultado && (
+          {/* Materias por Carrera */}
+          {materiasPorCarrera.length === 0 ? (
             <Card>
-              <CardContent className="text-center py-12">
-                <GraduationCap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Selecciona tu Plan de Estudio
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Elige tu plan de estudio para gestionar las materias que estás cursando.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {planConsultado && Object.keys(materiasAgrupadas).length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay materias en curso</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Agrega las materias que estás cursando actualmente.
-                </p>
-                <Button onClick={() => setDialogAgregarAbierto(true)} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
+              <CardContent className="p-8 text-center">
+                <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay materias en curso</h3>
+                <p className="text-gray-600 mb-4">Comienza agregando las materias que estás cursando actualmente</p>
+                <Button onClick={() => setModalAgregarAbierto(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
                   Agregar Primera Materia
                 </Button>
               </CardContent>
             </Card>
+          ) : (
+            materiasPorCarrera.map((carrera) => (
+              <Card key={`${carrera.carreraId}-${carrera.planEstudioId}`}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    {carrera.carreraNombre} - Plan {carrera.planAnio}
+                  </CardTitle>
+                  <CardDescription>
+                    {carrera.materias.length} materia{carrera.materias.length !== 1 ? 's' : ''} en curso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {carrera.materias.map((materia) => (
+                      <div 
+                        key={`${materia.materiaId}-${materia.anioCursada}-${materia.cuatrimestreCursada}`}
+                        className="border rounded-lg p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium">{materia.codigoMateria} - {materia.nombreMateria}</h3>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              Cursando en {materia.anioCursada} - {materia.cuatrimestreCursada}° Cuatrimestre
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Plan: {materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatrimestre - {materia.horasSemanales}hs semanales
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditarNotas(materia)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEliminarMateria(materia)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Notas */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">1er Parcial</p>
+                            <p className="font-medium">{formatearNota(materia.notaPrimerParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">2do Parcial</p>
+                            <p className="font-medium">{formatearNota(materia.notaSegundoParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Recup. 1er</p>
+                            <p className="font-medium">{formatearNota(materia.notaRecuperatorioPrimerParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Recup. 2do</p>
+                            <p className="font-medium">{formatearNota(materia.notaRecuperatorioSegundoParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Promedio</p>
+                            <p className="font-medium">{formatearNota(calcularPromedioMaterias(materia))}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </div>
 
-        {/* Dialog para editar materia */}
-        <Dialog open={dialogEditarAbierto} onOpenChange={setDialogEditarAbierto}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Editar Materia</DialogTitle>
-              <DialogDescription>
-                {`${materiaEditando?.codigoMateria} - ${materiaEditando?.nombreMateria}`}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Resultado Cursada</Label>
-                <Select
-                  value={formDataResultado.resultadoCursada || ''}
-                  onValueChange={(value: ResultadoCursadaMateriaEnCurso) =>
-                    setFormDataResultado({ ...formDataResultado, resultadoCursada: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {materiaEditando?.condicionCursada === 'Para promocion/regularizar' && (
-                      <SelectItem value="Promocionada">Promocionada</SelectItem>
-                    )}
-                    <SelectItem value="Regularizada">Regularizada</SelectItem>
-                    <SelectItem value="Desaprobada">Desaprobada</SelectItem>
-                    <SelectItem value="Ausente">Ausente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {formDataResultado.resultadoCursada && mostrarInputNota(formDataResultado.resultadoCursada) && (
-                <div>
-                  <Label>Nota</Label>
-                  <Input
-                    type="number"
-                    min={getNotaMinimaPorResultadoCursada(formDataResultado.resultadoCursada)}
-                    max={getNotaMaximaPorResultadoCursada(formDataResultado.resultadoCursada)}
-                    value={formDataResultado.nota || ''}
-                    onChange={(e) =>
-                      setFormDataResultado({ ...formDataResultado, nota: Number.parseInt(e.target.value) })
-                    }
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {`Nota de ${getNotaMinimaPorResultadoCursada(formDataResultado.resultadoCursada)} a ${getNotaMaximaPorResultadoCursada(formDataResultado.resultadoCursada)}`}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleGuardarMateria} className="flex-1">
-                  Guardar
-                </Button>
-                <Button variant="outline" onClick={() => setDialogEditarAbierto(false)} className="flex-1">
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog para agregar materia */}
-        <Dialog open={dialogAgregarAbierto} onOpenChange={setDialogAgregarAbierto}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Agregar Materia</DialogTitle>
-              <DialogDescription>Agrega una nueva materia que estés cursando</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Seleccionar Materia del Plan</Label>
-                <Select
-                  value={formDataNuevaMateria.codigoMateria?.toString() || ''}
-                  onValueChange={(value) => {
-                    const materia = planConsultado?.materiasDisponibles.find(
-                      (m) => m.codigoMateria.toString() === value
-                    )
-                    if (materia) {
-                      setFormDataNuevaMateria({
-                        ...formDataNuevaMateria,
-                        codigoMateria: materia.codigoMateria,
-                        nombreMateria: materia.nombreMateria,
-                      })
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una materia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getMateriasDisponiblesParaAgregar().map((materia) => (
-                      <SelectItem key={materia.codigoMateria} value={materia.codigoMateria.toString()}>
-                        {materia.codigoMateria} - {materia.nombreMateria}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Año</Label>
-                  <Input
-                    type="number"
-                    min="2020"
-                    max="2030"
-                    value={formDataNuevaMateria.anioCursando || ''}
-                    onChange={(e) =>
-                      setFormDataNuevaMateria({
-                        ...formDataNuevaMateria,
-                        anioCursando: Number.parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Cuatrimestre</Label>
-                  <Select
-                    value={formDataNuevaMateria.cuatrimestreCursando?.toString() || ''}
-                    onValueChange={(value) =>
-                      setFormDataNuevaMateria({ ...formDataNuevaMateria, cuatrimestreCursando: Number.parseInt(value) })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1° Cuatrimestre</SelectItem>
-                      <SelectItem value="2">2° Cuatrimestre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={handleAgregarMateria} className="flex-1">
-                  Agregar
-                </Button>
-                <Button variant="outline" onClick={() => setDialogAgregarAbierto(false)} className="flex-1">
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Modales */}
+        <AgregarMateriaEnCursoModal
+          isOpen={modalAgregarAbierto}
+          onClose={() => setModalAgregarAbierto(false)}
+          usuarioId={user?.dbId || 0}
+          onSuccess={() => {
+            cargarMateriasEnCurso()
+            toast({
+              title: "Éxito",
+              description: "Materia agregada correctamente",
+            })
+          }}
+        />
+        
+        <EditarNotasMateriaModal
+          isOpen={modalEditarAbierto}
+          onClose={() => {
+            setModalEditarAbierto(false)
+            setMateriaEditando(null)
+          }}
+          materia={materiaEditando}
+          onSuccess={() => {
+            cargarMateriasEnCurso()
+            toast({
+              title: "Éxito",
+              description: "Notas actualizadas correctamente",
+            })
+          }}
+        />
       </AppLayout>
     </ProtectedRoute>
   )
