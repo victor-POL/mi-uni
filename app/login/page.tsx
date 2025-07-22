@@ -2,7 +2,7 @@
 
 import type React from 'react'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { signInWithEmailAdvanced, signInWithGitHubAdvanced } from '@/lib/firebase/auth'
 import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showPassword, setShowPassword] = useState(false)
@@ -23,24 +23,9 @@ export default function LoginPage() {
   const [isEmailLoading, setIsEmailLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Redirigir si ya está autenticado
-  const { user, loading } = useRedirectIfAuthenticated()
-
   // Verificar si hay mensaje de registro exitoso
   const message = searchParams.get('message')
   const showSuccessMessage = message === 'registro-exitoso'
-
-  // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
-  if (loading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{loading ? 'Verificando autenticación...' : 'Redirigiendo...'}</p>
-        </div>
-      </div>
-    )
-  }
 
   const handleGithubLogin = async () => {
     try {
@@ -240,5 +225,35 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  // Redirigir si ya está autenticado
+  const { user, loading } = useRedirectIfAuthenticated()
+
+  // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
+  if (loading || user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{loading ? 'Verificando autenticación...' : 'Redirigiendo...'}</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

@@ -9,13 +9,16 @@ import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { useAnioAcademico } from '@/hooks/use-anio-academico'
 import type { MateriaCursadaPorCarrera, EstadisticasMateriasEnCurso, MateriaCursada } from '@/models/materias-cursada.model'
 import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
 import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
+import { AnioAcademicoSelector } from '@/components/AnioAcademicoSelector'
 
 export default function MateriasEnCursoPage() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const { anioAcademico, esNuevo } = useAnioAcademico(user?.dbId || 0)
   
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
@@ -67,9 +70,7 @@ export default function MateriasEnCursoPage() {
       const params = new URLSearchParams({
         usuarioId: user.dbId.toString(),
         planEstudioId: materia.planEstudioId.toString(),
-        materiaId: materia.materiaId.toString(),
-        anioCursada: materia.anioCursada.toString(),
-        cuatrimestreCursada: materia.cuatrimestreCursada.toString()
+        materiaId: materia.materiaId.toString()
       })
       
       const response = await fetch(`/api/materias-en-curso/actualizar?${params}`, {
@@ -132,68 +133,87 @@ export default function MateriasEnCursoPage() {
               <h1 className="text-3xl font-bold">Materias en Curso</h1>
               <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
             </div>
-            <Button onClick={() => setModalAgregarAbierto(true)} className="flex items-center gap-2">
+            <Button 
+              onClick={() => setModalAgregarAbierto(true)} 
+              className="flex items-center gap-2"
+              disabled={!anioAcademico || esNuevo}
+              title={!anioAcademico || esNuevo ? "Debe establecer un año académico primero" : ""}
+            >
               <Plus className="h-4 w-4" />
               Agregar Materia
             </Button>
           </div>
 
-          {/* Estadísticas */}
-          {estadisticas && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                    <p className="text-sm text-gray-600">Total Materias</p>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-600">{estadisticas.totalMaterias}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5 text-purple-600" />
-                    <p className="text-sm text-gray-600">Anuales</p>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-600">{estadisticas.materiasAnual}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-green-600" />
-                    <p className="text-sm text-gray-600">1er Cuatrimestre</p>
-                  </div>
-                  <p className="text-2xl font-bold text-green-600">{estadisticas.materiasPrimero}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5 text-orange-600" />
-                    <p className="text-sm text-gray-600">2do Cuatrimestre</p>
-                  </div>
-                  <p className="text-2xl font-bold text-orange-600">{estadisticas.materiasSegundo}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <GraduationCap className="h-5 w-5 text-purple-600" />
-                    <p className="text-sm text-gray-600">Promedio Parciales</p>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {formatearNota(estadisticas.promedioNotasParciales)}
-                  </p>
-                </CardContent>
-              </Card>
+          {/* Año Académico y Estadísticas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            <div className="lg:col-span-1">
+              <AnioAcademicoSelector 
+                usuarioId={user?.dbId || 0} 
+                onAnioChanged={cargarMateriasEnCurso}
+              />
             </div>
-          )}
+            
+            {/* Mensaje cuando no hay año académico establecido */}
+            {(!anioAcademico || esNuevo) && (
+              <div className="lg:col-span-2">
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
+                      <p className="text-amber-800 font-medium">
+                        Establece tu año académico para comenzar a gestionar tus materias en curso
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {estadisticas && anioAcademico && !esNuevo && (
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Estadísticas del Curso</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1 mb-1">
+                          <BookOpen className="h-4 w-4 text-blue-600" />
+                          <p className="text-sm text-gray-600">Total</p>
+                        </div>
+                        <p className="text-xl font-bold text-blue-600">{estadisticas.totalMaterias}</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1 mb-1">
+                          <Calendar className="h-4 w-4 text-purple-600" />
+                          <p className="text-sm text-gray-600">Anuales</p>
+                        </div>
+                        <p className="text-xl font-bold text-purple-600">{estadisticas.materiasAnual}</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1 mb-1">
+                          <Clock className="h-4 w-4 text-green-600" />
+                          <p className="text-sm text-gray-600">1er Cuatr.</p>
+                        </div>
+                        <p className="text-xl font-bold text-green-600">{estadisticas.materiasPrimero}</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-1 mb-1">
+                          <Clock className="h-4 w-4 text-orange-600" />
+                          <p className="text-sm text-gray-600">2do Cuatr.</p>
+                        </div>
+                        <p className="text-xl font-bold text-orange-600">{estadisticas.materiasSegundo}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
 
           {/* Materias por Carrera */}
           {materiasPorCarrera.length === 0 ? (
@@ -220,7 +240,7 @@ export default function MateriasEnCursoPage() {
                   <div className="space-y-4">
                     {carrera.materias.map((materia) => (
                       <div 
-                        key={`${materia.materiaId}-${materia.anioCursada}-${materia.cuatrimestreCursada}`}
+                        key={`${materia.planEstudioId}-${materia.materiaId}`}
                         className="border rounded-lg p-4 hover:bg-gray-50"
                       >
                         <div className="flex justify-between items-start mb-3">
@@ -229,7 +249,7 @@ export default function MateriasEnCursoPage() {
                               <h3 className="font-medium">{materia.codigoMateria} - {materia.nombreMateria}</h3>
                             </div>
                             <p className="text-sm text-gray-600">
-                              Cursando en {materia.anioCursada} - {materia.cuatrimestreCursada}° Cuatrimestre
+                              En curso - Año académico {anioAcademico}
                             </p>
                             <p className="text-xs text-gray-500">
                               Plan: {materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatrimestre - {materia.horasSemanales}hs semanales

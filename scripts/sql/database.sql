@@ -117,9 +117,10 @@ CREATE TABLE prod.usuario_materia_estado (
   usuario_id         INT     NOT NULL,
   plan_estudio_id    INT     NOT NULL,
   materia_id         INT     NOT NULL,
+  anio_academico     INT     NOT NULL
+                       CHECK (anio_academico >= 2000 AND anio_academico <= 2100),
   nota               INT
                        CHECK (nota >= 0 AND nota <= 10),
-  anio_cursada       INT,
   cuatrimestre       INT
                        CHECK (cuatrimestre IN (0,1,2)),
   estado             VARCHAR(20) NOT NULL
@@ -133,7 +134,8 @@ CREATE TABLE prod.usuario_materia_estado (
   PRIMARY KEY (
     usuario_id,
     plan_estudio_id,
-    materia_id
+    materia_id,
+    anio_academico
   ),
   -- FK compuesta: el usuario debe estar inscrito en ese plan
   FOREIGN KEY (usuario_id, plan_estudio_id)
@@ -143,6 +145,17 @@ CREATE TABLE prod.usuario_materia_estado (
   FOREIGN KEY (plan_estudio_id, materia_id)
     REFERENCES prod.plan_materia(plan_estudio_id, materia_id)
     ON DELETE RESTRICT
+);
+
+-- Tabla para manejar el año académico actual de cada usuario
+CREATE TABLE prod.usuario_anio_academico (
+  usuario_id      INT     NOT NULL
+                       REFERENCES prod.usuario(id)
+                       ON DELETE CASCADE,
+  anio_academico  INT     NOT NULL
+                       CHECK (anio_academico >= 2000 AND anio_academico <= 2100),
+  fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (usuario_id)  -- Solo UN año académico por usuario
 );
 
 CREATE TABLE prod.usuario_materia_cursada (
@@ -176,5 +189,13 @@ CREATE TABLE prod.usuario_materia_cursada (
   -- 2) La materia debe pertenecer a ese plan de estudio
   FOREIGN KEY (plan_estudio_id, materia_id)
     REFERENCES prod.plan_materia(plan_estudio_id, materia_id)
-    ON DELETE RESTRICT
+    ON DELETE RESTRICT,
+
+  -- 3) El usuario debe tener un año académico establecido
+  FOREIGN KEY (usuario_id) 
+    REFERENCES prod.usuario_anio_academico(usuario_id)
+    ON DELETE CASCADE
 );
+
+
+

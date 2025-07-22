@@ -34,20 +34,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { usuarioId, planEstudioId, materiaId, anioCursada, cuatrimestreCursada } = body
+    const { usuarioId, planEstudioId, materiaId } = body
 
-    if (!usuarioId || !planEstudioId || !materiaId || !anioCursada || !cuatrimestreCursada) {
+    if (!usuarioId || !planEstudioId || !materiaId) {
       return NextResponse.json(
-        { error: 'Todos los campos son requeridos' },
+        { error: 'Usuario, plan de estudio y materia son requeridos' },
         { status: 400 }
       )
     }
 
     await agregarMateriaEnCurso(usuarioId, {
       planEstudioId,
-      materiaId,
-      anioCursada,
-      cuatrimestreCursada
+      materiaId
     })
 
     return NextResponse.json({ success: true })

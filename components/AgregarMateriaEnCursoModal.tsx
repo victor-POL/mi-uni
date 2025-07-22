@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
@@ -46,9 +45,7 @@ export function AgregarMateriaEnCursoModal({
   
   const [formData, setFormData] = useState({
     planEstudioId: '',
-    materiaId: '',
-    anioCursada: new Date().getFullYear().toString(),
-    cuatrimestreCursada: '1'
+    materiaId: ''
   })
 
   // Cargar planes del usuario al abrir el modal
@@ -112,7 +109,7 @@ export function AgregarMateriaEnCursoModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.planEstudioId || !formData.materiaId || !formData.anioCursada || !formData.cuatrimestreCursada) {
+    if (!formData.planEstudioId || !formData.materiaId) {
       toast({
         title: "Error",
         description: "Todos los campos son requeridos",
@@ -131,9 +128,7 @@ export function AgregarMateriaEnCursoModal({
         body: JSON.stringify({
           usuarioId,
           planEstudioId: parseInt(formData.planEstudioId),
-          materiaId: parseInt(formData.materiaId),
-          anioCursada: parseInt(formData.anioCursada),
-          cuatrimestreCursada: parseInt(formData.cuatrimestreCursada)
+          materiaId: parseInt(formData.materiaId)
         }),
       })
 
@@ -165,9 +160,7 @@ export function AgregarMateriaEnCursoModal({
   const resetForm = () => {
     setFormData({
       planEstudioId: '',
-      materiaId: '',
-      anioCursada: new Date().getFullYear().toString(),
-      cuatrimestreCursada: '1'
+      materiaId: ''
     })
     setMateriasDisponibles([])
   }
@@ -236,43 +229,6 @@ export function AgregarMateriaEnCursoModal({
                       {materia.codigo} - {materia.nombre} ({materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatr.)
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Año de Cursada */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="anioCursada" className="text-right">
-                Año Cursada *
-              </Label>
-              <Input
-                id="anioCursada"
-                type="number"
-                min="2020"
-                max="2030"
-                value={formData.anioCursada}
-                onChange={(e) => setFormData(prev => ({ ...prev, anioCursada: e.target.value }))}
-                className="col-span-3"
-                placeholder="Ej: 2024"
-              />
-            </div>
-
-            {/* Cuatrimestre de Cursada */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="cuatrimestre" className="text-right">
-                Cuatrimestre *
-              </Label>
-              <Select 
-                value={formData.cuatrimestreCursada} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, cuatrimestreCursada: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Anual</SelectItem>
-                  <SelectItem value="1">1er Cuatrimestre</SelectItem>
-                  <SelectItem value="2">2do Cuatrimestre</SelectItem>
                 </SelectContent>
               </Select>
             </div>

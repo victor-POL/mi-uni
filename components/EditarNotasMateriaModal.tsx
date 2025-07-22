@@ -79,6 +79,7 @@ export function EditarNotasMateriaModal({
           usuarioId: materia.usuarioId,
           planEstudioId: materia.planEstudioId,
           materiaId: materia.materiaId,
+          anioAcademico: materia.anioAcademico,
           anioCursada: materia.anioCursada,
           cuatrimestreCursada: materia.cuatrimestreCursada,
           notaPrimerParcial: formData.notaPrimerParcial ? parseFloat(formData.notaPrimerParcial) : null,

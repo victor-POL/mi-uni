@@ -4,8 +4,6 @@ export interface MateriaCursada {
   usuarioId: number
   planEstudioId: number
   materiaId: number
-  anioCursada: number
-  cuatrimestreCursada: number
   notaPrimerParcial?: number
   notaSegundoParcial?: number
   notaRecuperatorioPrimerParcial?: number
@@ -36,16 +34,12 @@ export interface MateriaCursadaPorCarrera {
 export interface NuevaMateriaEnCurso {
   planEstudioId: number
   materiaId: number
-  anioCursada: number
-  cuatrimestreCursada: number
 }
 
 export interface ActualizarNotasMateriaEnCurso {
   usuarioId: number
   planEstudioId: number
   materiaId: number
-  anioCursada: number
-  cuatrimestreCursada: number
   notaPrimerParcial?: number
   notaSegundoParcial?: number
   notaRecuperatorioPrimerParcial?: number
@@ -59,4 +53,10 @@ export interface EstadisticasMateriasEnCurso {
   materiasSegundo: number
   promedioNotasParciales?: number
   materiasConParciales: number
+}
+
+export interface UsuarioAnioAcademico {
+  usuarioId: number
+  anioAcademico: number
+  fechaActualizacion: Date
 }

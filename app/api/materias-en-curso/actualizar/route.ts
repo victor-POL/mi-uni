@@ -53,10 +53,8 @@ export async function DELETE(request: NextRequest) {
     const usuarioId = searchParams.get('usuarioId')
     const planEstudioId = searchParams.get('planEstudioId')
     const materiaId = searchParams.get('materiaId')
-    const anioCursada = searchParams.get('anioCursada')
-    const cuatrimestreCursada = searchParams.get('cuatrimestreCursada')
 
-    if (!usuarioId || !planEstudioId || !materiaId || !anioCursada || !cuatrimestreCursada) {
+    if (!usuarioId || !planEstudioId || !materiaId) {
       return NextResponse.json(
         { error: 'Todos los parámetros son requeridos' },
         { status: 400 }

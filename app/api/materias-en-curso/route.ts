@@ -13,15 +13,24 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const [materiasPorCarrera, estadisticas] = await Promise.all([
-      obtenerMateriasEnCursoPorCarrera(parseInt(usuarioId)),
-      obtenerEstadisticasMateriasEnCurso(parseInt(usuarioId))
-    ])
+    try {
+      const [materiasPorCarrera, estadisticas] = await Promise.all([
+        obtenerMateriasEnCursoPorCarrera(parseInt(usuarioId)),
+        obtenerEstadisticasMateriasEnCurso(parseInt(usuarioId))
+      ])
 
-    return NextResponse.json({
-      materiasPorCarrera,
-      estadisticas
-    })
+      return NextResponse.json({
+        materiasPorCarrera: materiasPorCarrera || [],
+        estadisticas: estadisticas || null
+      })
+    } catch (serviceError) {
+      console.error('Error en servicios de materias en curso:', serviceError)
+      // Si hay error en los servicios, devolver datos vacíos en lugar de fallar
+      return NextResponse.json({
+        materiasPorCarrera: [],
+        estadisticas: null
+      })
+    }
   } catch (error) {
     console.error('Error en API de materias en curso:', error)
     return NextResponse.json(
