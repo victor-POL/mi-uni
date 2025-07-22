@@ -3,7 +3,7 @@
 import type React from "react"
 import { AppHeader } from "@/components/AppHeader"
 import { AppSidebar } from "@/components/AppSidebar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarInset } from "@/components/ui/sidebar"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -14,16 +14,14 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children, title, showBackButton = true, backHref }) => {
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <AppHeader title={title} showBackButton={showBackButton} backHref={backHref} />
-          <main className="flex-1 p-6 bg-gray-50">
-            <div className="max-w-7xl mx-auto">{children}</div>
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <div className="flex min-h-screen w-full">
+      <AppSidebar />
+      <SidebarInset className="flex-1">
+        <AppHeader title={title} showBackButton={showBackButton} backHref={backHref} />
+        <main className="flex-1 p-6 bg-gray-50">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
+      </SidebarInset>
+    </div>
   )
 }

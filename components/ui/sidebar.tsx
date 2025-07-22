@@ -69,9 +69,40 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
+    const [isHydrated, setIsHydrated] = React.useState(false)
+
+    // Function to read persisted sidebar state
+    const getPersistedState = React.useCallback(() => {
+      if (typeof window === 'undefined') return defaultOpen
+      
+      // Try localStorage first (more reliable for client-side state)
+      try {
+        const stored = localStorage.getItem(SIDEBAR_COOKIE_NAME)
+        if (stored !== null) {
+          return stored === 'true'
+        }
+      } catch {
+        // Fallback to cookies if localStorage is not available
+        console.warn('localStorage not available, falling back to cookies')
+      }
+      
+      // Fallback to cookies
+      const cookies = document.cookie.split(';')
+      const sidebarCookie = cookies.find(cookie => 
+        cookie.trim().startsWith(`${SIDEBAR_COOKIE_NAME}=`)
+      )
+      
+      if (sidebarCookie) {
+        const value = sidebarCookie.split('=')[1]
+        return value === 'true'
+      }
+      
+      return defaultOpen
+    }, [defaultOpen])
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
+    // Initialize with defaultOpen to avoid hydration mismatch, then sync with persisted state on mount
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
     const setOpen = React.useCallback(
@@ -83,6 +114,13 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
 
+        // Persist the sidebar state in both localStorage and cookies
+        try {
+          localStorage.setItem(SIDEBAR_COOKIE_NAME, String(openState))
+        } catch {
+          console.warn('Failed to save to localStorage')
+        }
+        
         // This sets the cookie to keep the sidebar state.
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
@@ -95,6 +133,16 @@ const SidebarProvider = React.forwardRef<
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
     }, [isMobile, setOpen, setOpenMobile])
+
+    // Sync with persisted state on mount and when navigating
+    React.useEffect(() => {
+      // Only sync after hydration is complete
+      setIsHydrated(true)
+      const persistedState = getPersistedState()
+      if (persistedState !== _open && !openProp) {
+        _setOpen(persistedState)
+      }
+    }, [getPersistedState, openProp]) // Removed _open from dependencies to avoid unnecessary re-renders
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
