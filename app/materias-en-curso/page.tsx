@@ -113,7 +113,7 @@ export default function MateriasEnCursoPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <AppLayout>
+        <AppLayout title='Materias en Curso'>
           <div className="container mx-auto p-6">
             <div className="text-center">Cargando materias en curso...</div>
           </div>
@@ -124,7 +124,7 @@ export default function MateriasEnCursoPage() {
 
   return (
     <ProtectedRoute>
-      <AppLayout>
+      <AppLayout title='Materias en Curso'>
         <div className="container mx-auto p-6 space-y-6">
           {/* Header */}
           <div className="flex justify-between items-center">
