@@ -146,3 +146,41 @@ CREATE TABLE prod.usuario_materia_estado (
     ON DELETE RESTRICT
 );
 
+CREATE TABLE prod.usuario_materia_cursada (
+  usuario_id                         INT   NOT NULL
+                                           REFERENCES prod.usuario(id)
+                                           ON DELETE CASCADE,
+  plan_estudio_id                    INT   NOT NULL,
+  materia_id                         INT   NOT NULL,
+  anio_cursada                       INT   NOT NULL,
+  cuatrimestre_cursada               INT   NOT NULL
+                                           CHECK (cuatrimestre_cursada IN (1,2)),
+  nota_primer_parcial                NUMERIC(5,2)
+                                           CHECK (nota_primer_parcial  BETWEEN 0 AND 10),
+  nota_segundo_parcial               NUMERIC(5,2)
+                                           CHECK (nota_segundo_parcial BETWEEN 0 AND 10),
+  nota_recuperatorio_primer_parcial  NUMERIC(5,2)
+                                           CHECK (nota_recuperatorio_primer_parcial BETWEEN 0 AND 10),
+  nota_recuperatorio_segundo_parcial NUMERIC(5,2)
+                                           CHECK (nota_recuperatorio_segundo_parcial BETWEEN 0 AND 10),
+  fecha_actualizacion                TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  -- Claves primarias y foráneas compuestas
+  PRIMARY KEY (
+    usuario_id,
+    plan_estudio_id,
+    materia_id,
+    anio_cursada,
+    cuatrimestre_cursada
+  ),
+
+  -- 1) El usuario debe estar inscrito en ese plan
+  FOREIGN KEY (usuario_id, plan_estudio_id)
+    REFERENCES prod.usuario_plan_estudio(usuario_id, plan_estudio_id)
+    ON DELETE CASCADE,
+
+  -- 2) La materia debe pertenecer a ese plan de estudio
+  FOREIGN KEY (plan_estudio_id, materia_id)
+    REFERENCES prod.plan_materia(plan_estudio_id, materia_id)
+    ON DELETE RESTRICT
+);
