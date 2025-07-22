@@ -4,6 +4,7 @@ import type React from 'react'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { LoadingPage } from '@/components/ui/loading-spinner'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -12,7 +13,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  fallback = <div>Cargando...</div> 
+  fallback = <LoadingPage text="Verificando autenticación..." variant="dots" />
 }) => {
   const { user, isUserInitialized } = useAuth()
   const router = useRouter()
