@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { GraduationCap, BookOpen, Trophy, Clock, Plus } from 'lucide-react'
+import { GraduationCap, BookOpen, Trophy, Clock } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { resumenesCarreras, materiasEnCursoPorCarrera, historiaAcademicaPorCarrera } from '@/data/mis-carreras.data'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 
@@ -87,6 +88,7 @@ const DetalleSkeleton = () => (
 )
 
 export default function MisCarrerasPage() {
+  const { user } = useAuth()
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResumen | null>(null)
   const [isLoadingCarreras, setIsLoadingCarreras] = useState(true)
   const [isLoadingDetalle, setIsLoadingDetalle] = useState(false)
@@ -104,6 +106,13 @@ export default function MisCarrerasPage() {
 
     fetchCarreras()
   }, [])
+
+  // Función para recargar carreras después de agregar una nueva
+  const handleCarreraAgregada = () => {
+    // TODO: Aquí cargaremos las carreras reales desde la BD
+    console.log('Carrera agregada, recargando lista...')
+    // Por ahora mantenemos los datos mock
+  }
 
   // Simular carga de detalle cuando se selecciona una carrera
   const handleSelectCarrera = async (carrera: CarreraResumen) => {
@@ -139,10 +148,10 @@ export default function MisCarrerasPage() {
               <h1 className="text-3xl font-bold text-gray-900">Mis Carreras</h1>
               <p className="text-gray-600">Gestiona tus carreras y seguimiento académico</p>
             </div>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Agregar Carrera
-            </Button>
+            <AgregarCarreraModal 
+              onCarreraAgregada={handleCarreraAgregada}
+              usuarioId={user?.dbId ?? 1}
+            />
           </div>
 
           {/* Carreras Overview */}
