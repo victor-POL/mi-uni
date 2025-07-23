@@ -674,9 +674,9 @@ export default function PlanesEstudioPage() {
                 </div>
 
                 {/* Fila - Filtros Correlativa */}
-                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Search by Name/Code Correlativa*/}
-                  <div className="col-span-1 sm:col-span-2 md:col-span-1">
+                  <div className="col-span-1">
                     <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
                       Buscar Correlativa
                     </Label>
@@ -703,22 +703,24 @@ export default function PlanesEstudioPage() {
                   </div>
 
                   {/* Toggle Show Materia Correlativas */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="show-correlatives"
-                      checked={showCorrelatives}
-                      onCheckedChange={handleShowCorrelativesChange}
-                    />
-                    <Label htmlFor="show-correlatives" className="text-gray-700">
-                      Mostrar Correlativas
-                    </Label>
+                  <div className="col-span-1 flex flex-col justify-end">
+                    <div className="flex items-center space-x-2 h-10">
+                      <Switch
+                        id="show-correlatives"
+                        checked={showCorrelatives}
+                        onCheckedChange={handleShowCorrelativesChange}
+                      />
+                      <Label htmlFor="show-correlatives" className="text-gray-700">
+                        Mostrar Correlativas
+                      </Label>
+                    </div>
                   </div>
                 </div>
 
                 {/* Fila - Filtros Estado Materia */}
-                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Filter by Status */}
-                  <div className="col-span-1 sm:col-span-2 md:col-span-1">
+                  <div className="col-span-1">
                     <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                       Estado
                     </Label>
@@ -744,22 +746,24 @@ export default function PlanesEstudioPage() {
                   </div>
 
                   {/* Toggle Show Materia Status */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="show-status"
-                      checked={showMateriaStatus && isLoggedIn}
-                      onCheckedChange={handleShowMateriaStatusChange}
-                      disabled={!isLoggedIn}
-                    />
-                    <Label htmlFor="show-status" className="text-gray-700">
-                      Mostrar Estado de Materia
-                    </Label>
-                    {!isLoggedIn && (
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3 text-amber-600" />
-                        <span className="text-xs text-amber-600">Requiere autenticación</span>
-                      </div>
-                    )}
+                  <div className="col-span-1 flex flex-col justify-end">
+                    <div className="flex items-center space-x-2 h-10">
+                      <Switch
+                        id="show-status"
+                        checked={showMateriaStatus && isLoggedIn}
+                        onCheckedChange={handleShowMateriaStatusChange}
+                        disabled={!isLoggedIn}
+                      />
+                      <Label htmlFor="show-status" className="text-gray-700">
+                        Mostrar Estado de Materia
+                      </Label>
+                      {!isLoggedIn && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3 text-amber-600" />
+                          <span className="text-xs text-amber-600">Requiere autenticación</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
