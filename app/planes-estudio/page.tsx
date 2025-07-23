@@ -64,9 +64,6 @@ export default function PlanesEstudioPage() {
   const [filterStatus, setFilterStatus] = useState<string>('0')
   const [filterHours, setFilterHours] = useState<string>('')
   const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>('')
-  const [correlativeMateriasHabilitadas, setCorrelativeMateriasHabilitadas] = useState<MateriaPlanEstudio[] | null>(
-    null
-  )
 
   // Display toggles - will be synchronized with URL params via useEffect
   const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
@@ -119,6 +116,10 @@ export default function PlanesEstudioPage() {
   const handleSearchTermChange = (value: string) => {
     setSearchTerm(value)
     updateUrlWithFilters({ search: value })
+  }
+
+  const handleFilterCorrelativaChange = (value: string) => {
+    setCorrelativeSearchInput(value)
   }
 
   const handleFilterStatusChange = (value: string) => {
@@ -238,7 +239,6 @@ export default function PlanesEstudioPage() {
       // No reset filters when loading from URL - preserve URL parameters
       // Los filtros ya están inicializados desde los parámetros de URL
       setCorrelativeSearchInput('')
-      setCorrelativeMateriasHabilitadas(null)
     } catch (error) {
       console.error('Error loading plan from URL:', error)
       setIsLoadingPlanDetails(false)
@@ -261,7 +261,6 @@ export default function PlanesEstudioPage() {
         setFilterStatus('0')
         setFilterHours('')
         setCorrelativeSearchInput('')
-        setCorrelativeMateriasHabilitadas(null)
 
         // Update URL to clear filters but preserve plan parameter
         updateUrlWithFilters({
@@ -306,34 +305,6 @@ export default function PlanesEstudioPage() {
     return agrupadas
   }
 
-  const handleCorrelativeSearch = () => {
-    if (!planConsultado || !correlativeSearchInput) {
-      setCorrelativeMateriasHabilitadas(null)
-      return
-    }
-
-    const lowerCaseCorrelativeSearch = correlativeSearchInput.toLowerCase()
-    const foundCorrelativeMateria = planConsultado.materias.find(
-      (materia) =>
-        materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
-        materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
-    )
-
-    if (foundCorrelativeMateria) {
-      const habilitadas = planConsultado.materias.filter((materia) =>
-        materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
-      )
-      setCorrelativeMateriasHabilitadas(habilitadas)
-    } else {
-      setCorrelativeMateriasHabilitadas([]) // No correlative found, show empty
-    }
-  }
-
-  const handleClearCorrelativeSearch = () => {
-    setCorrelativeSearchInput('')
-    setCorrelativeMateriasHabilitadas(null)
-  }
-
   const handleClearAllFilters = () => {
     setFilterYear('0')
     setFilterCuatrimestre('0')
@@ -341,7 +312,6 @@ export default function PlanesEstudioPage() {
     setFilterStatus('0')
     setFilterHours('')
     setCorrelativeSearchInput('')
-    setCorrelativeMateriasHabilitadas(null)
 
     // Update URL to clear all filters
     updateUrlWithFilters({
@@ -364,15 +334,7 @@ export default function PlanesEstudioPage() {
     if (!planConsultado) return []
 
     let currentMaterias = planConsultado.materias
-
-    // If correlative search is active and has results, use those.
-    // If it's active but has no results (empty array), then show empty.
-    // If it's not active (null), then proceed with general filters.
-    if (correlativeMateriasHabilitadas !== null) {
-      return correlativeMateriasHabilitadas
-    }
-
-    // Apply general filters only if correlative search is not active
+    
     // Filter by year
     if (filterYear !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
@@ -411,6 +373,29 @@ export default function PlanesEstudioPage() {
         currentMaterias = currentMaterias.filter((materia) => materia.horasSemanales === hours)
       }
     }
+    console.log(correlativeSearchInput)
+
+    // Filter by correlative search - dynamic filtering
+    if (correlativeSearchInput) {
+      const lowerCaseCorrelativeSearch = correlativeSearchInput.toLowerCase()
+      
+      // Find the correlative materia being searched
+      const foundCorrelativeMateria = planConsultado.materias.find(
+        (materia) =>
+          materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
+          materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
+      )
+
+      if (foundCorrelativeMateria) {
+        // Filter to show only materias that have this correlative
+        currentMaterias = currentMaterias.filter((materia) =>
+          materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
+        )
+      } else {
+        // No correlative found, show empty results
+        currentMaterias = []
+      }
+    }
 
     return currentMaterias
   }, [
@@ -420,7 +405,8 @@ export default function PlanesEstudioPage() {
     searchTerm,
     filterStatus,
     filterHours,
-    correlativeMateriasHabilitadas,
+    correlativeSearchInput,
+    isLoggedIn,
   ])
 
   const materiasAgrupadas = useMemo(() => agruparMaterias(filteredMaterias), [filteredMaterias])
@@ -433,7 +419,7 @@ export default function PlanesEstudioPage() {
       searchTerm !== '' ||
       (filterStatus !== '0' && isLoggedIn) || // Solo considerar activo si está logueado
       filterHours !== '' ||
-      correlativeMateriasHabilitadas !== null
+      correlativeSearchInput !== ''
     )
   }, [
     filterYear,
@@ -441,7 +427,7 @@ export default function PlanesEstudioPage() {
     searchTerm,
     filterStatus,
     filterHours,
-    correlativeMateriasHabilitadas,
+    correlativeSearchInput,
     isLoggedIn,
   ])
 
@@ -567,7 +553,7 @@ export default function PlanesEstudioPage() {
                           searchTerm !== '',
                           filterStatus !== '0',
                           filterHours !== '',
-                          correlativeMateriasHabilitadas !== null,
+                          correlativeSearchInput !== '',
                         ].filter(Boolean).length
                       }
                     </Badge>
@@ -677,24 +663,24 @@ export default function PlanesEstudioPage() {
                 <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Search by Name/Code Correlativa*/}
                   <div className="col-span-1">
-                    <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+                    <Label htmlFor="search-correlativa" className="block text-sm font-medium text-gray-700 mb-2">
                       Buscar Correlativa
                     </Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
-                        id="search-term"
+                        id="search-correlativa"
                         placeholder="Nombre o código de la materia correlativa"
-                        value={searchTerm}
-                        onChange={(e) => handleSearchTermChange(e.target.value)}
+                        value={correlativeSearchInput}
+                        onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
                         className="pl-9 bg-white border-gray-300"
                       />
-                      {searchTerm && (
+                      {correlativeSearchInput && (
                         <Button
                           variant="ghost"
                           size="icon"
                           className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                          onClick={() => handleSearchTermChange('')}
+                          onClick={() => handleFilterCorrelativaChange('')}
                         >
                           <X className="h-4 w-4" />
                         </Button>
