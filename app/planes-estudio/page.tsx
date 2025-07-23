@@ -510,8 +510,9 @@ export default function PlanesEstudioPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1 max-w-md">
+            {/* Fila 1  - Label y Select*/}
+            <div className="grid gap-2">
+              <div>
                 <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
                   Plan de Estudio
                 </Label>
@@ -536,37 +537,23 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button
-                onClick={handleConsultar}
-                disabled={!selectedPlanId || selectedPlanId === '' || isLoadingPlanes || isLoadingPlanDetails}
-                className="px-8"
-              >
-                {isLoadingPlanDetails ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                    Cargando...
-                  </>
-                ) : (
-                  'Consultar'
+              {/* Fila 2 - Botones */}
+              <div className="flex justify-end gap-2">
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={handleClearAllFilters}
+                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Limpiar Todos los Filtros
+                  </Button>
                 )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Filtros y Opciones de Visualización */}
-        {planConsultado && (
-          <Card className="mb-8 bg-white shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-5 w-5" />
-                  <CardTitle className="text-gray-900">Filtros y Opciones de Visualización</CardTitle>
-                </div>
                 <Button
+                  disabled={planConsultado === null}
                   variant="outline"
-                  size="sm"
                   onClick={() => setShowFilters(!showFilters)}
+                  style={{ width: '200px' }}
                   className={`bg-white hover:bg-gray-50 border-gray-300 ${hasActiveFilters ? 'text-blue-700 border-blue-300' : 'text-gray-700'}`}
                 >
                   <Filter className="h-4 w-4 mr-2" />
@@ -586,55 +573,27 @@ export default function PlanesEstudioPage() {
                     </Badge>
                   )}
                 </Button>
+                <Button
+                  onClick={handleConsultar}
+                  disabled={!selectedPlanId || selectedPlanId === '' || isLoadingPlanes || isLoadingPlanDetails}
+                  style={{ width: '150px' }}
+                >
+                  {isLoadingPlanDetails ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                      Cargando...
+                    </>
+                  ) : (
+                    'Consultar'
+                  )}
+                </Button>
               </div>
-              <CardDescription className="text-gray-600">
-                Filtra las materias por año, cuatrimestre, nombre, estado u horas. También puedes ajustar la
-                visualización.
-              </CardDescription>
-            </CardHeader>
+            </div>
             {showFilters && (
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {/* Filter by Year */}
-                  <div>
-                    <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
-                      Año
-                    </Label>
-                    <Select value={filterYear} onValueChange={handleFilterYearChange}>
-                      <SelectTrigger id="filter-year" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los años" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value="0">Todos los años</SelectItem>
-                        {allYears.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}° Año
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Filter by Cuatrimestre */}
-                  <div>
-                    <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
-                      Cuatrimestre
-                    </Label>
-                    <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
-                      <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los cuatrimestres" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value="0">Todos los cuatrimestres</SelectItem>
-                        <SelectItem value="anual">Anual</SelectItem>
-                        <SelectItem value="1">Primer Cuatrimestre</SelectItem>
-                        <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Search by Name/Code */}
-                  <div>
+              <div className="mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Search by Name/Code */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="col-span-1 sm:col-span-2 md:col-span-2">
                     <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
                       Buscar Materia
                     </Label>
@@ -659,9 +618,107 @@ export default function PlanesEstudioPage() {
                       )}
                     </div>
                   </div>
+                </div>
 
+                {/* Filter by Year */}
+                <div>
+                  <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
+                    Año
+                  </Label>
+                  <Select value={filterYear} onValueChange={handleFilterYearChange}>
+                    <SelectTrigger id="filter-year" className="bg-white border-gray-300">
+                      <SelectValue placeholder="Todos los años" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-300">
+                      <SelectItem value="0">Todos los años</SelectItem>
+                      {allYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}° Año
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Cuatrimestre */}
+                <div>
+                  <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
+                    Cuatrimestre
+                  </Label>
+                  <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
+                    <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
+                      <SelectValue placeholder="Todos los cuatrimestres" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-300">
+                      <SelectItem value="0">Todos los cuatrimestres</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
+                      <SelectItem value="1">1° Cuatrimestre</SelectItem>
+                      <SelectItem value="2">2° Cuatrimestre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Hours */}
+                <div>
+                  <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
+                    Horas Semanales
+                  </Label>
+                  <Input
+                    id="filter-hours"
+                    type="number"
+                    placeholder="Ej: 4"
+                    value={filterHours}
+                    onChange={(e) => handleFilterHoursChange(e.target.value)}
+                    className="bg-white border-gray-300"
+                  />
+                </div>
+
+                {/* Fila - Filtros Correlativa */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {/* Search by Name/Code Correlativa*/}
+                  <div className="col-span-1 sm:col-span-2 md:col-span-1">
+                    <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+                      Buscar Correlativa
+                    </Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search-term"
+                        placeholder="Nombre o código de la materia correlativa"
+                        value={searchTerm}
+                        onChange={(e) => handleSearchTermChange(e.target.value)}
+                        className="pl-9 bg-white border-gray-300"
+                      />
+                      {searchTerm && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                          onClick={() => handleSearchTermChange('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Toggle Show Materia Correlativas */}
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="show-correlatives"
+                      checked={showCorrelatives}
+                      onCheckedChange={handleShowCorrelativesChange}
+                    />
+                    <Label htmlFor="show-correlatives" className="text-gray-700">
+                      Mostrar Correlativas
+                    </Label>
+                  </div>
+                </div>
+
+                {/* Fila - Filtros Estado Materia */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {/* Filter by Status */}
-                  <div>
+                  <div className="col-span-1 sm:col-span-2 md:col-span-1">
                     <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                       Estado
                     </Label>
@@ -686,23 +743,8 @@ export default function PlanesEstudioPage() {
                     )}
                   </div>
 
-                  {/* Filter by Hours */}
-                  <div>
-                    <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
-                      Horas Semanales
-                    </Label>
-                    <Input
-                      id="filter-hours"
-                      type="number"
-                      placeholder="Ej: 4"
-                      value={filterHours}
-                      onChange={(e) => handleFilterHoursChange(e.target.value)}
-                      className="bg-white border-gray-300"
-                    />
-                  </div>
-
                   {/* Toggle Show Materia Status */}
-                  <div className="flex items-center space-x-2 mt-2">
+                  <div className="flex items-center space-x-2">
                     <Switch
                       id="show-status"
                       checked={showMateriaStatus && isLoggedIn}
@@ -719,78 +761,11 @@ export default function PlanesEstudioPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Toggle Show Correlatives */}
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Switch
-                      id="show-correlatives"
-                      checked={showCorrelatives}
-                      onCheckedChange={handleShowCorrelativesChange}
-                    />
-                    <Label htmlFor="show-correlatives" className="text-gray-700">
-                      Mostrar Correlativas
-                    </Label>
-                  </div>
                 </div>
-
-                {/* Clear all filters button */}
-                {hasActiveFilters && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClearAllFilters}
-                      className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Limpiar Todos los Filtros
-                    </Button>
-                  </div>
-                )}
-
-                {/* Correlative Search */}
-                <div className="mt-6 pt-4 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    Buscar Materias Habilitadas por Correlativa
-                  </h3>
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                      <Label htmlFor="correlative-search" className="block text-sm font-medium text-gray-700 mb-2">
-                        Materia Correlativa
-                      </Label>
-                      <Input
-                        id="correlative-search"
-                        placeholder="Nombre o código de la correlativa"
-                        value={correlativeSearchInput}
-                        onChange={(e) => setCorrelativeSearchInput(e.target.value)}
-                        className="bg-white border-gray-300"
-                      />
-                    </div>
-                    <Button onClick={handleCorrelativeSearch} disabled={!correlativeSearchInput}>
-                      <Search className="h-4 w-4 mr-2" />
-                      Buscar Habilitadas
-                    </Button>
-                    {correlativeMateriasHabilitadas !== null && (
-                      <Button
-                        variant="outline"
-                        onClick={handleClearCorrelativeSearch}
-                        className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Limpiar
-                      </Button>
-                    )}
-                  </div>
-                  {correlativeMateriasHabilitadas && correlativeMateriasHabilitadas.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      No se encontraron materias habilitadas por la correlativa ingresada o la correlativa no existe.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
+              </div>
             )}
-          </Card>
-        )}
+          </CardContent>
+        </Card>
 
         {/* Loading state para plan details */}
         {isLoadingPlanDetails && (
@@ -1045,7 +1020,6 @@ export default function PlanesEstudioPage() {
             </Accordion>
           </div>
         )}
-        
       </div>
     </AppLayout>
   )
