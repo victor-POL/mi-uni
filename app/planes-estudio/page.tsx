@@ -1045,21 +1045,7 @@ export default function PlanesEstudioPage() {
             </Accordion>
           </div>
         )}
-
-        {/* Estado inicial */}
-        {!planConsultado && !isLoadingPlanDetails && (
-          <Card className="bg-white shadow-sm">
-            <CardContent className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona un Plan de Estudio</h3>
-              <p className="text-gray-600">
-                {isLoadingPlanes
-                  ? 'Cargando planes de estudio disponibles...'
-                  : 'Elige un plan de estudio del selector de arriba y haz clic en "Consultar" para ver su estructura completa.'}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        
       </div>
     </AppLayout>
   )
