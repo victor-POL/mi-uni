@@ -5,7 +5,15 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
@@ -15,7 +23,6 @@ import { Input } from '@/components/ui/input'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/contexts/AuthContext'
 import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
@@ -26,27 +33,27 @@ export default function PlanesEstudioPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const planIdFromUrl = searchParams.get('plan')
-  
+
   // Hook de autenticación
   const { user, loading: authLoading, isUserInitialized } = useAuth()
-  
+
   // Hook para obtener planes disponibles (solo summary)
-  const { 
-    planes: planesDisponibles, 
+  const {
+    planes: planesDisponibles,
     loading: isLoadingPlanes,
     fetchPlanById,
-    fetchEstadosMaterias
+    fetchEstadosMaterias,
   } = usePlanesSummary()
-  
+
   // Estados para el plan seleccionado
-  const [selectedPlanId, setSelectedPlanId] = useState<string>('0')
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
   const [estadosMaterias, setEstadosMaterias] = useState<Record<string, string> | null>(null)
-  
+
   // Estado para controlar si el plan ya fue cargado manualmente
   const [planLoadedManually, setPlanLoadedManually] = useState<boolean>(false)
-  
+
   // Loading state para detalles del plan
   const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
 
@@ -64,7 +71,7 @@ export default function PlanesEstudioPage() {
   // Display toggles - will be synchronized with URL params via useEffect
   const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
   const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
-  
+
   // Local UI state for showing/hiding filters section
   const [showFilters, setShowFilters] = useState<boolean>(false)
 
@@ -74,7 +81,7 @@ export default function PlanesEstudioPage() {
   // Function to update URL with current filters
   const updateUrlWithFilters = (updates: Record<string, string | null>) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()))
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value && value !== '0' && value !== '') {
         // For toggle values, only add to URL if they're not the default value
@@ -142,7 +149,7 @@ export default function PlanesEstudioPage() {
       setIsLoadingPlanDetails(true)
       const planData = await fetchPlanById(parseInt(planId))
       setPlanConsultado(planData)
-      
+
       // Si el usuario está logueado, también cargar los estados de las materias
       if (isLoggedIn && user?.dbId && user.dbId > 0) {
         try {
@@ -158,7 +165,7 @@ export default function PlanesEstudioPage() {
         console.log('⚠️ Usuario no logueado o sin dbId, no cargando estados')
         setEstadosMaterias(null)
       }
-      
+
       return planData
     } catch (error) {
       console.error('Error fetching plan details:', error)
@@ -194,20 +201,20 @@ export default function PlanesEstudioPage() {
   useEffect(() => {
     const showStatusParam = searchParams.get('showStatus')
     const showCorrelativesParam = searchParams.get('showCorrelatives')
-    
+
     // Update states based on URL parameters
     if (showStatusParam !== null && isLoggedIn) {
       setShowMateriaStatus(showStatusParam === 'true')
     } else {
       setShowMateriaStatus(isLoggedIn) // Solo mostrar si está logueado
     }
-    
+
     if (showCorrelativesParam !== null) {
       setShowCorrelatives(showCorrelativesParam === 'true')
     } else {
       setShowCorrelatives(true) // Default value
     }
-    
+
     // Sync other filter states as well
     setFilterYear(searchParams.get('year') || '0')
     setFilterCuatrimestre(searchParams.get('semester') || '0')
@@ -223,11 +230,11 @@ export default function PlanesEstudioPage() {
 
   const handleConsultarFromUrl = async (planId: string) => {
     setIsLoadingPlanDetails(true)
-    
+
     try {
       await fetchPlanDetallado(planId)
       setIsLoadingPlanDetails(false)
-      
+
       // No reset filters when loading from URL - preserve URL parameters
       // Los filtros ya están inicializados desde los parámetros de URL
       setCorrelativeSearchInput('')
@@ -242,11 +249,11 @@ export default function PlanesEstudioPage() {
     if (selectedPlanId) {
       setIsLoadingPlanDetails(true)
       setPlanLoadedManually(true) // Marcar que fue cargado manualmente
-      
+
       try {
         await fetchPlanDetallado(selectedPlanId)
         setIsLoadingPlanDetails(false)
-        
+
         // Reset filters when a new plan is selected manually
         setFilterYear('0')
         setFilterCuatrimestre('0')
@@ -255,7 +262,7 @@ export default function PlanesEstudioPage() {
         setFilterHours('')
         setCorrelativeSearchInput('')
         setCorrelativeMateriasHabilitadas(null)
-        
+
         // Update URL to clear filters but preserve plan parameter
         updateUrlWithFilters({
           plan: selectedPlanId,
@@ -265,7 +272,7 @@ export default function PlanesEstudioPage() {
           status: null,
           hours: null,
           showStatus: showMateriaStatus ? 'true' : 'false',
-          showCorrelatives: showCorrelatives ? 'true' : 'false'
+          showCorrelatives: showCorrelatives ? 'true' : 'false',
         })
       } catch (error) {
         console.error('Error loading plan:', error)
@@ -335,14 +342,14 @@ export default function PlanesEstudioPage() {
     setFilterHours('')
     setCorrelativeSearchInput('')
     setCorrelativeMateriasHabilitadas(null)
-    
+
     // Update URL to clear all filters
     updateUrlWithFilters({
       year: null,
       semester: null,
       search: null,
       status: null,
-      hours: null
+      hours: null,
     })
   }
 
@@ -420,13 +427,23 @@ export default function PlanesEstudioPage() {
 
   // Check if any filters are active
   const hasActiveFilters = useMemo(() => {
-    return filterYear !== '0' || 
-           filterCuatrimestre !== '0' || 
-           searchTerm !== '' || 
-           (filterStatus !== '0' && isLoggedIn) || // Solo considerar activo si está logueado
-           filterHours !== '' ||
-           correlativeMateriasHabilitadas !== null
-  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeMateriasHabilitadas, isLoggedIn])
+    return (
+      filterYear !== '0' ||
+      filterCuatrimestre !== '0' ||
+      searchTerm !== '' ||
+      (filterStatus !== '0' && isLoggedIn) || // Solo considerar activo si está logueado
+      filterHours !== '' ||
+      correlativeMateriasHabilitadas !== null
+    )
+  }, [
+    filterYear,
+    filterCuatrimestre,
+    searchTerm,
+    filterStatus,
+    filterHours,
+    correlativeMateriasHabilitadas,
+    isLoggedIn,
+  ])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -473,12 +490,23 @@ export default function PlanesEstudioPage() {
 
   return (
     <AppLayout title="Planes de Estudio">
-      {/* Selector de Plan */}
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Planes de Estudio</h1>
+            <p className="text-gray-600">
+              Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
+            </p>
+          </div>
+        </div>
+
+        {/* Selector de Plan */}
         <Card className="mb-8 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-gray-900">Consultar Plan de Estudio</CardTitle>
+            <CardTitle className="text-gray-900">Búsqueda</CardTitle>
             <CardDescription className="text-gray-600">
-              Selecciona un plan de estudio para ver su estructura completa
+              Luego de consultar un plan, podrás filtrar las materias por año, cuatrimestre, nombre, estado u horas.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -489,7 +517,9 @@ export default function PlanesEstudioPage() {
                 </Label>
                 <Select value={selectedPlanId} onValueChange={setSelectedPlanId} disabled={isLoadingPlanes}>
                   <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue placeholder={isLoadingPlanes ? "Cargando planes..." : "Selecciona un plan de estudio"} />
+                    <SelectValue
+                      placeholder={isLoadingPlanes ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-gray-300">
                     {isLoadingPlanes ? (
@@ -506,9 +536,9 @@ export default function PlanesEstudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button 
-                onClick={handleConsultar} 
-                disabled={!selectedPlanId || selectedPlanId === '0' || isLoadingPlanes || isLoadingPlanDetails} 
+              <Button
+                onClick={handleConsultar}
+                disabled={!selectedPlanId || selectedPlanId === '' || isLoadingPlanes || isLoadingPlanDetails}
                 className="px-8"
               >
                 {isLoadingPlanDetails ? (
@@ -531,9 +561,7 @@ export default function PlanesEstudioPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Filter className="h-5 w-5" />
-                  <CardTitle className="text-gray-900">
-                    Filtros y Opciones de Visualización
-                  </CardTitle>
+                  <CardTitle className="text-gray-900">Filtros y Opciones de Visualización</CardTitle>
                 </div>
                 <Button
                   variant="outline"
@@ -545,14 +573,16 @@ export default function PlanesEstudioPage() {
                   {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
                   {hasActiveFilters && (
                     <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
-                      {[
-                        filterYear !== '0',
-                        filterCuatrimestre !== '0',
-                        searchTerm !== '',
-                        filterStatus !== '0',
-                        filterHours !== '',
-                        correlativeMateriasHabilitadas !== null
-                      ].filter(Boolean).length}
+                      {
+                        [
+                          filterYear !== '0',
+                          filterCuatrimestre !== '0',
+                          searchTerm !== '',
+                          filterStatus !== '0',
+                          filterHours !== '',
+                          correlativeMateriasHabilitadas !== null,
+                        ].filter(Boolean).length
+                      }
                     </Badge>
                   )}
                 </Button>
@@ -564,204 +594,200 @@ export default function PlanesEstudioPage() {
             </CardHeader>
             {showFilters && (
               <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {/* Filter by Year */}
-                <div>
-                  <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
-                    Año
-                  </Label>
-                  <Select value={filterYear} onValueChange={handleFilterYearChange}>
-                    <SelectTrigger id="filter-year" className="bg-white border-gray-300">
-                      <SelectValue placeholder="Todos los años" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      <SelectItem value="0">Todos los años</SelectItem>
-                      {allYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}° Año
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Filter by Year */}
+                  <div>
+                    <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
+                      Año
+                    </Label>
+                    <Select value={filterYear} onValueChange={handleFilterYearChange}>
+                      <SelectTrigger id="filter-year" className="bg-white border-gray-300">
+                        <SelectValue placeholder="Todos los años" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="0">Todos los años</SelectItem>
+                        {allYears.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}° Año
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Filter by Cuatrimestre */}
-                <div>
-                  <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
-                    Cuatrimestre
-                  </Label>
-                  <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
-                    <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
-                      <SelectValue placeholder="Todos los cuatrimestres" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      <SelectItem value="0">Todos los cuatrimestres</SelectItem>
-                      <SelectItem value="anual">Anual</SelectItem>
-                      <SelectItem value="1">Primer Cuatrimestre</SelectItem>
-                      <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* Filter by Cuatrimestre */}
+                  <div>
+                    <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
+                      Cuatrimestre
+                    </Label>
+                    <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
+                      <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
+                        <SelectValue placeholder="Todos los cuatrimestres" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="0">Todos los cuatrimestres</SelectItem>
+                        <SelectItem value="anual">Anual</SelectItem>
+                        <SelectItem value="1">Primer Cuatrimestre</SelectItem>
+                        <SelectItem value="2">Segundo Cuatrimestre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Search by Name/Code */}
-                <div>
-                  <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
-                    Buscar Materia
-                  </Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="search-term"
-                      placeholder="Nombre o código"
-                      value={searchTerm}
-                      onChange={(e) => handleSearchTermChange(e.target.value)}
-                      className="pl-9 bg-white border-gray-300"
-                    />
-                    {searchTerm && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                        onClick={() => handleSearchTermChange('')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                  {/* Search by Name/Code */}
+                  <div>
+                    <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+                      Buscar Materia
+                    </Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search-term"
+                        placeholder="Nombre o código"
+                        value={searchTerm}
+                        onChange={(e) => handleSearchTermChange(e.target.value)}
+                        className="pl-9 bg-white border-gray-300"
+                      />
+                      {searchTerm && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                          onClick={() => handleSearchTermChange('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Filter by Status */}
+                  <div>
+                    <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
+                      Estado
+                    </Label>
+                    <Select value={filterStatus} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
+                      <SelectTrigger id="filter-status" className="bg-white border-gray-300">
+                        <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="0">Todos los estados</SelectItem>
+                        {allStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!isLoggedIn && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <User className="h-3 w-3 text-amber-600" />
+                        <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
+                      </div>
                     )}
                   </div>
-                </div>
 
-                {/* Filter by Status */}
-                <div>
-                  <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
-                    Estado
-                  </Label>
-                  <Select 
-                    value={filterStatus} 
-                    onValueChange={handleFilterStatusChange}
-                    disabled={!isLoggedIn}
-                  >
-                    <SelectTrigger id="filter-status" className="bg-white border-gray-300">
-                      <SelectValue placeholder={!isLoggedIn ? "Requiere autenticación" : "Todos los estados"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      <SelectItem value="0">Todos los estados</SelectItem>
-                      {allStatuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {!isLoggedIn && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <User className="h-3 w-3 text-amber-600" />
-                      <span className="text-xs text-amber-600">
-                        Inicia sesión para filtrar por estado
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Filter by Hours */}
-                <div>
-                  <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
-                    Horas Semanales
-                  </Label>
-                  <Input
-                    id="filter-hours"
-                    type="number"
-                    placeholder="Ej: 4"
-                    value={filterHours}
-                    onChange={(e) => handleFilterHoursChange(e.target.value)}
-                    className="bg-white border-gray-300"
-                  />
-                </div>
-
-                {/* Toggle Show Materia Status */}
-                <div className="flex items-center space-x-2 mt-2">
-                  <Switch 
-                    id="show-status" 
-                    checked={showMateriaStatus && isLoggedIn} 
-                    onCheckedChange={handleShowMateriaStatusChange}
-                    disabled={!isLoggedIn}
-                  />
-                  <Label htmlFor="show-status" className="text-gray-700">
-                    Mostrar Estado de Materia
-                  </Label>
-                  {!isLoggedIn && (
-                    <div className="flex items-center gap-1">
-                      <User className="h-3 w-3 text-amber-600" />
-                      <span className="text-xs text-amber-600">
-                        Requiere autenticación
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Toggle Show Correlatives */}
-                <div className="flex items-center space-x-2 mt-2">
-                  <Switch id="show-correlatives" checked={showCorrelatives} onCheckedChange={handleShowCorrelativesChange} />
-                  <Label htmlFor="show-correlatives" className="text-gray-700">
-                    Mostrar Correlativas
-                  </Label>
-                </div>
-              </div>
-
-              {/* Clear all filters button */}
-              {hasActiveFilters && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearAllFilters}
-                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Limpiar Todos los Filtros
-                  </Button>
-                </div>
-              )}
-
-              {/* Correlative Search */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Buscar Materias Habilitadas por Correlativa
-                </h3>
-                <div className="flex gap-4 items-end">
-                  <div className="flex-1">
-                    <Label htmlFor="correlative-search" className="block text-sm font-medium text-gray-700 mb-2">
-                      Materia Correlativa
+                  {/* Filter by Hours */}
+                  <div>
+                    <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
+                      Horas Semanales
                     </Label>
                     <Input
-                      id="correlative-search"
-                      placeholder="Nombre o código de la correlativa"
-                      value={correlativeSearchInput}
-                      onChange={(e) => setCorrelativeSearchInput(e.target.value)}
+                      id="filter-hours"
+                      type="number"
+                      placeholder="Ej: 4"
+                      value={filterHours}
+                      onChange={(e) => handleFilterHoursChange(e.target.value)}
                       className="bg-white border-gray-300"
                     />
                   </div>
-                  <Button onClick={handleCorrelativeSearch} disabled={!correlativeSearchInput}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Buscar Habilitadas
-                  </Button>
-                  {correlativeMateriasHabilitadas !== null && (
+
+                  {/* Toggle Show Materia Status */}
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Switch
+                      id="show-status"
+                      checked={showMateriaStatus && isLoggedIn}
+                      onCheckedChange={handleShowMateriaStatusChange}
+                      disabled={!isLoggedIn}
+                    />
+                    <Label htmlFor="show-status" className="text-gray-700">
+                      Mostrar Estado de Materia
+                    </Label>
+                    {!isLoggedIn && (
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3 text-amber-600" />
+                        <span className="text-xs text-amber-600">Requiere autenticación</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Toggle Show Correlatives */}
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Switch
+                      id="show-correlatives"
+                      checked={showCorrelatives}
+                      onCheckedChange={handleShowCorrelativesChange}
+                    />
+                    <Label htmlFor="show-correlatives" className="text-gray-700">
+                      Mostrar Correlativas
+                    </Label>
+                  </div>
+                </div>
+
+                {/* Clear all filters button */}
+                {hasActiveFilters && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
                     <Button
                       variant="outline"
-                      onClick={handleClearCorrelativeSearch}
+                      size="sm"
+                      onClick={handleClearAllFilters}
                       className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Limpiar
+                      Limpiar Todos los Filtros
                     </Button>
+                  </div>
+                )}
+
+                {/* Correlative Search */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Buscar Materias Habilitadas por Correlativa
+                  </h3>
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor="correlative-search" className="block text-sm font-medium text-gray-700 mb-2">
+                        Materia Correlativa
+                      </Label>
+                      <Input
+                        id="correlative-search"
+                        placeholder="Nombre o código de la correlativa"
+                        value={correlativeSearchInput}
+                        onChange={(e) => setCorrelativeSearchInput(e.target.value)}
+                        className="bg-white border-gray-300"
+                      />
+                    </div>
+                    <Button onClick={handleCorrelativeSearch} disabled={!correlativeSearchInput}>
+                      <Search className="h-4 w-4 mr-2" />
+                      Buscar Habilitadas
+                    </Button>
+                    {correlativeMateriasHabilitadas !== null && (
+                      <Button
+                        variant="outline"
+                        onClick={handleClearCorrelativeSearch}
+                        className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Limpiar
+                      </Button>
+                    )}
+                  </div>
+                  {correlativeMateriasHabilitadas && correlativeMateriasHabilitadas.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      No se encontraron materias habilitadas por la correlativa ingresada o la correlativa no existe.
+                    </p>
                   )}
                 </div>
-                {correlativeMateriasHabilitadas && correlativeMateriasHabilitadas.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    No se encontraron materias habilitadas por la correlativa ingresada o la correlativa no existe.
-                  </p>
-                )}
-              </div>
-            </CardContent>
+              </CardContent>
             )}
           </Card>
         )}
@@ -805,7 +831,10 @@ export default function PlanesEstudioPage() {
                         </div>
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pl-4">
                           {[1, 2, 3, 4, 5, 6].map((materia) => (
-                            <Card key={materia} className="border-l-4 border-l-gray-200 bg-white shadow-sm animate-pulse">
+                            <Card
+                              key={materia}
+                              className="border-l-4 border-l-gray-200 bg-white shadow-sm animate-pulse"
+                            >
                               <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1">
@@ -910,17 +939,17 @@ export default function PlanesEstudioPage() {
                                     {materiasAgrupadas[anio][cuatrimestre].map((materia) => {
                                       // Obtener el estado real de la materia si está disponible
                                       const estadoReal = estadosMaterias?.[materia.codigoMateria] || materia.estado
-                                      
+
                                       // Debug para ver qué estado se está usando
                                       if (materia.codigoMateria === '03621' || materia.codigoMateria === '03624') {
                                         console.log(`🎯 Materia ${materia.codigoMateria}:`, {
                                           estadoOriginal: materia.estado,
                                           estadoEnMap: estadosMaterias?.[materia.codigoMateria],
                                           estadoFinal: estadoReal,
-                                          tieneEstadosMap: !!estadosMaterias
+                                          tieneEstadosMap: !!estadosMaterias,
                                         })
                                       }
-                                      
+
                                       return (
                                         <Card
                                           key={materia.codigoMateria}
@@ -959,46 +988,48 @@ export default function PlanesEstudioPage() {
                                               </div>
                                             </div>
                                           </CardHeader>
-                                        <CardContent className="pt-0">
-                                          {/* Correlativas */}
-                                          {showCorrelatives && materia.listaCorrelativas.length > 0 && (
-                                            <div>
-                                              <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
-                                              <div className="space-y-1">
-                                                {materia.listaCorrelativas.map((codigoCorrelativa) => (
-                                                  <Button
-                                                    key={codigoCorrelativa}
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => navegarACorrelativa(codigoCorrelativa)}
-                                                    className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
-                                                  >
-                                                    {getNombreMateriaById(codigoCorrelativa)}
-                                                  </Button>
-                                                ))}
+                                          <CardContent className="pt-0">
+                                            {/* Correlativas */}
+                                            {showCorrelatives && materia.listaCorrelativas.length > 0 && (
+                                              <div>
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                                  Correlativas:
+                                                </h4>
+                                                <div className="space-y-1">
+                                                  {materia.listaCorrelativas.map((codigoCorrelativa) => (
+                                                    <Button
+                                                      key={codigoCorrelativa}
+                                                      variant="outline"
+                                                      size="sm"
+                                                      onClick={() => navegarACorrelativa(codigoCorrelativa)}
+                                                      className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
+                                                    >
+                                                      {getNombreMateriaById(codigoCorrelativa)}
+                                                    </Button>
+                                                  ))}
+                                                </div>
                                               </div>
-                                            </div>
-                                          )}
-                                          {showCorrelatives && materia.listaCorrelativas.length === 0 && (
-                                            <div className="text-xs text-gray-500 italic">Sin correlativas</div>
-                                          )}
-                                          {!showCorrelatives && (
-                                            <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
-                                          )}
+                                            )}
+                                            {showCorrelatives && materia.listaCorrelativas.length === 0 && (
+                                              <div className="text-xs text-gray-500 italic">Sin correlativas</div>
+                                            )}
+                                            {!showCorrelatives && (
+                                              <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
+                                            )}
 
-                                          {/* Botón Ver Detalles */}
-                                          <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                                            >
-                                              <BookOpen className="h-3 w-3 mr-1" />
-                                              Ver Detalles
-                                            </Button>
-                                          </Link>
-                                        </CardContent>
-                                      </Card>
+                                            {/* Botón Ver Detalles */}
+                                            <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                                              >
+                                                <BookOpen className="h-3 w-3 mr-1" />
+                                                Ver Detalles
+                                              </Button>
+                                            </Link>
+                                          </CardContent>
+                                        </Card>
                                       )
                                     })}
                                   </div>
@@ -1022,14 +1053,14 @@ export default function PlanesEstudioPage() {
               <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Selecciona un Plan de Estudio</h3>
               <p className="text-gray-600">
-                {isLoadingPlanes 
-                  ? "Cargando planes de estudio disponibles..."
-                  : "Elige un plan de estudio del selector de arriba y haz clic en \"Consultar\" para ver su estructura completa."
-                }
+                {isLoadingPlanes
+                  ? 'Cargando planes de estudio disponibles...'
+                  : 'Elige un plan de estudio del selector de arriba y haz clic en "Consultar" para ver su estructura completa.'}
               </p>
             </CardContent>
           </Card>
         )}
+      </div>
     </AppLayout>
   )
 }
