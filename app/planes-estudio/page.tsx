@@ -334,7 +334,7 @@ export default function PlanesEstudioPage() {
     if (!planConsultado) return []
 
     let currentMaterias = planConsultado.materias
-    
+
     // Filter by year
     if (filterYear !== '0') {
       currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
@@ -378,7 +378,7 @@ export default function PlanesEstudioPage() {
     // Filter by correlative search - dynamic filtering
     if (correlativeSearchInput) {
       const lowerCaseCorrelativeSearch = correlativeSearchInput.toLowerCase()
-      
+
       // Find the correlative materia being searched
       const foundCorrelativeMateria = planConsultado.materias.find(
         (materia) =>
@@ -421,15 +421,7 @@ export default function PlanesEstudioPage() {
       filterHours !== '' ||
       correlativeSearchInput !== ''
     )
-  }, [
-    filterYear,
-    filterCuatrimestre,
-    searchTerm,
-    filterStatus,
-    filterHours,
-    correlativeSearchInput,
-    isLoggedIn,
-  ])
+  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeSearchInput, isLoggedIn])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -709,6 +701,12 @@ export default function PlanesEstudioPage() {
                   <div className="col-span-1">
                     <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
                       Estado
+                      {!isLoggedIn && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <User className="h-3 w-3 text-amber-600" />
+                          <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
+                        </div>
+                      )}
                     </Label>
                     <Select value={filterStatus} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
                       <SelectTrigger id="filter-status" className="bg-white border-gray-300">
@@ -723,12 +721,6 @@ export default function PlanesEstudioPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {!isLoggedIn && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <User className="h-3 w-3 text-amber-600" />
-                        <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Toggle Show Materia Status */}
@@ -743,12 +735,6 @@ export default function PlanesEstudioPage() {
                       <Label htmlFor="show-status" className="text-gray-700">
                         Mostrar Estado de Materia
                       </Label>
-                      {!isLoggedIn && (
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3 text-amber-600" />
-                          <span className="text-xs text-amber-600">Requiere autenticación</span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
