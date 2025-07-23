@@ -21,21 +21,11 @@ export async function GET(request: NextRequest) {
           source: 'database'
         })
       } catch (error) {
-        console.error('Error fetching from database, falling back to static data:', error)
-        
-        // Fallback a datos estáticos
-        const planesSummary = planesDeEstudio.map(plan => ({
-          idPlan: plan.idPlan,
-          nombreCarrera: plan.nombreCarrera,
-          anio: plan.anio
-        }))
-        
+        console.error('Error fetching from database:', error)
+
         return NextResponse.json({
-          success: true,
-          data: planesSummary,
-          count: planesSummary.length,
-          source: 'fallback'
-        })
+          error: 'Internal server error: Unable to fetch basic plans'
+        }, { status: 500 })
       }
     }
 
@@ -65,22 +55,11 @@ export async function GET(request: NextRequest) {
           source: 'database'
         })
       } catch (error) {
-        console.error('Error fetching plan from database, falling back to static data:', error)
-        
-        // Fallback a datos estáticos
-        const plan = planesDeEstudio.find(p => p.idPlan === id)
-        if (!plan) {
-          return NextResponse.json(
-            { error: 'Plan not found' },
-            { status: 404 }
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          data: plan,
-          source: 'fallback'
-        })
+        console.error('Error fetching plan from database: ', error)
+        return NextResponse.json(
+          { error: 'Internal server error: Something went wrong'},
+          { status: 500 }
+        )
       }
     }
 
