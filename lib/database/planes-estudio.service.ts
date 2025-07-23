@@ -90,6 +90,7 @@ export async function getPlanById(planId: number): Promise<PlanDeEstudioDetalle 
         FROM prod.correlativa c
         JOIN prod.materia m_corr ON c.correlativa_materia_id = m_corr.id
         WHERE c.materia_id IN (SELECT materia_id FROM materias_plan)
+          AND c.plan_estudio_id = $1
         GROUP BY c.materia_id
       )
       SELECT 
