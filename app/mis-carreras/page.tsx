@@ -161,11 +161,11 @@ export default function MisCarrerasPage() {
   return (
     <ProtectedRoute>
       <AppLayout title="Mis Carreras">
-        <div className="space-y-6">
+        <div className="container mx-auto p-6 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">Mis Carreras</h1>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Mis Carreras</h1>
               <p className="text-gray-600">Gestiona tus carreras y seguimiento académico</p>
             </div>
             <AgregarCarreraModal 
