@@ -71,8 +71,8 @@ export async function POST(request: NextRequest) {
     await query(
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
-       ON CONFLICT (usuario_id, anio_academico) 
-       DO UPDATE SET fecha_actualizacion = NOW()`,
+       ON CONFLICT (usuario_id) 
+       DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
       [parseInt(usuarioId), parseInt(anioAcademico)]
     )
 
@@ -108,20 +108,12 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Actualizar todas las materias en curso al nuevo año
-    await query(
-      `UPDATE prod.usuario_materia_cursada 
-       SET anio_academico = $2, fecha_actualizacion = NOW()
-       WHERE usuario_id = $1`,
-      [parseInt(usuarioId), parseInt(nuevoAnioAcademico)]
-    )
-
     // Crear/actualizar registro de año académico
     await query(
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
-       ON CONFLICT (usuario_id, anio_academico) 
-       DO UPDATE SET fecha_actualizacion = NOW()`,
+       ON CONFLICT (usuario_id) 
+       DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
       [parseInt(usuarioId), parseInt(nuevoAnioAcademico)]
     )
 

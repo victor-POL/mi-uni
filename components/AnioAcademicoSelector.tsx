@@ -44,7 +44,7 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
         title: "Éxito",
         description: esNuevo 
           ? "Año académico establecido correctamente"
-          : "Año académico actualizado. Todas las materias en curso han sido movidas al nuevo año.",
+          : "Año académico actualizado correctamente",
       })
       setModalAbierto(false)
       setNuevoAnio('')
@@ -107,7 +107,7 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
             <DialogDescription>
               {esNuevo 
                 ? 'Establece el año académico para tus materias en curso.'
-                : 'Cambiar el año académico moverá todas tus materias en curso al nuevo año.'
+                : 'Cambiar el año académico actualizará tu año académico actual.'
               }
             </DialogDescription>
           </DialogHeader>
