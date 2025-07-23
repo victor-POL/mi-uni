@@ -32,7 +32,7 @@ CREATE TABLE prod.materia (
   tipo             VARCHAR(20)  NOT NULL
                      CHECK (tipo IN ('cursable','electiva')),
   horas_semanales  INT          NOT NULL
-                     CHECK (horas_semanales > 0 AND horas_semanales <= 168)
+                     CHECK (horas_semanales >= 0 AND horas_semanales <= 168)
 );
 
 
