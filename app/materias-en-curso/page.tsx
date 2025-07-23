@@ -27,7 +27,6 @@ export default function MateriasEnCursoPage() {
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
   const [loading, setLoading] = useState(true)
-  const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false)
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
@@ -137,17 +136,7 @@ export default function MateriasEnCursoPage() {
               <h1 className="text-3xl font-bold">Materias en Curso</h1>
               <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
             </div>
-            {anioAcademico && (
-              <Button
-                onClick={() => setModalAgregarAbierto(true)}
-                className="flex items-center gap-2"
-                disabled={!anioAcademico || esNuevo}
-                title={!anioAcademico || esNuevo ? 'Debe establecer un año académico primero' : ''}
-              >
-                <Plus className="h-4 w-4" />
-                Agregar Materia
-              </Button>
-            )}
+            {anioAcademico && <AgregarMateriaEnCursoModal usuarioId={user?.dbId || 0} />}
           </div>
 
           {/* Año Académico y Estadísticas */}
@@ -303,19 +292,6 @@ export default function MateriasEnCursoPage() {
         </div>
 
         {/* Modales */}
-        <AgregarMateriaEnCursoModal
-          isOpen={modalAgregarAbierto}
-          onClose={() => setModalAgregarAbierto(false)}
-          usuarioId={user?.dbId || 0}
-          onSuccess={() => {
-            cargarMateriasEnCurso()
-            toast({
-              title: 'Éxito',
-              description: 'Materia agregada correctamente',
-            })
-          }}
-        />
-
         <EditarNotasMateriaModal
           isOpen={modalEditarAbierto}
           onClose={() => {

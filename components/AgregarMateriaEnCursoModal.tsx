@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { DialogTrigger } from '@radix-ui/react-dialog'
+import { NotebookPen, Plus } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface MateriaDisponible {
   id: number
@@ -24,101 +26,105 @@ interface PlanUsuario {
 }
 
 interface AgregarMateriaEnCursoModalProps {
-  isOpen: boolean
-  onClose: () => void
   usuarioId: number
-  onSuccess: () => void
 }
 
-export function AgregarMateriaEnCursoModal({ 
-  isOpen, 
-  onClose, 
-  usuarioId, 
-  onSuccess 
-}: AgregarMateriaEnCursoModalProps) {
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
-  const [loadingMaterias, setLoadingMaterias] = useState(false)
-  
-  const [planesUsuario, setPlanesUsuario] = useState<PlanUsuario[]>([])
+export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateriaEnCursoModalProps>) {
+  const [carrerasUsuario, setCarrerasUsuario] = useState<PlanUsuario[]>([])
   const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaDisponible[]>([])
-  
-  const [formData, setFormData] = useState({
-    planEstudioId: '',
-    materiaId: ''
-  })
+
+  const [selectedCarrera, setSelectedCarrera] = useState<string>('')
+  const [selectedMateria, setSelectedMateria] = useState<string>('')
+
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoadingCarrerasUsuario, setIsLoadingCarrerasUsuario] = useState(false)
+  const [isLoadingMaterias, setIsLoadingMaterias] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { toast } = useToast()
 
   // Cargar planes del usuario al abrir el modal
   useEffect(() => {
     if (isOpen) {
-      cargarPlanesUsuario()
+      cargarCarrerasUsuario()
     }
   }, [isOpen, usuarioId])
 
   // Cargar materias disponibles cuando se selecciona un plan
   useEffect(() => {
-    if (formData.planEstudioId) {
+    if (selectedCarrera) {
       cargarMateriasDisponibles()
+      setSelectedMateria('')
     } else {
       setMateriasDisponibles([])
-      setFormData(prev => ({ ...prev, materiaId: '' }))
+      setSelectedMateria('')
     }
-  }, [formData.planEstudioId])
+  }, [selectedCarrera])
 
-  const cargarPlanesUsuario = async () => {
+  const cargarCarrerasUsuario = async () => {
+    setIsLoadingCarrerasUsuario(true)
     try {
       const response = await fetch(`/api/user/carreras/resumen?usuarioId=${usuarioId}`)
-      
+
       if (!response.ok) throw new Error('Error cargando planes')
-      
+
       const data = await response.json()
-      setPlanesUsuario(data || [])
+      setCarrerasUsuario(data || [])
     } catch (error) {
       console.error('Error cargando planes:', error)
       toast({
-        title: "Error",
-        description: "No se pudieron cargar los planes de estudio",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudieron cargar los planes de estudio',
+        variant: 'destructive',
       })
+    } finally {
+      setIsLoadingCarrerasUsuario(false)
     }
   }
 
   const cargarMateriasDisponibles = async () => {
+    setIsLoadingMaterias(true)
     try {
-      setLoadingMaterias(true)
       const response = await fetch(
-        `/api/materias-en-curso/agregar?usuarioId=${usuarioId}&planEstudioId=${formData.planEstudioId}`
+        `/api/materias-en-curso/agregar?usuarioId=${usuarioId}&planEstudioId=${selectedCarrera}`
       )
-      
+
       if (!response.ok) throw new Error('Error cargando materias')
-      
+
       const data = await response.json()
-      setMateriasDisponibles(data.materiasDisponibles)
+      setMateriasDisponibles(data.materiasDisponibles || [])
     } catch (error) {
       console.error('Error:', error)
       toast({
-        title: "Error",
-        description: "No se pudieron cargar las materias disponibles",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudieron cargar las materias disponibles',
+        variant: 'destructive',
       })
     } finally {
-      setLoadingMaterias(false)
+      setIsLoadingMaterias(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!formData.planEstudioId || !formData.materiaId) {
+  const handleSubmit = async () => {
+    if (!selectedCarrera) {
       toast({
-        title: "Error",
-        description: "Todos los campos son requeridos",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Por favor selecciona una carrera',
+        variant: 'destructive',
       })
       return
     }
 
-    setLoading(true)
+    if (!selectedMateria) {
+      toast({
+        title: 'Selección requerida',
+        description: 'Por favor selecciona una materia',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsSubmitting(true)
     try {
       const response = await fetch('/api/materias-en-curso/agregar', {
         method: 'POST',
@@ -127,8 +133,8 @@ export function AgregarMateriaEnCursoModal({
         },
         body: JSON.stringify({
           usuarioId,
-          planEstudioId: parseInt(formData.planEstudioId),
-          materiaId: parseInt(formData.materiaId)
+          planEstudioId: parseInt(selectedCarrera),
+          materiaId: parseInt(selectedMateria),
         }),
       })
 
@@ -138,111 +144,149 @@ export function AgregarMateriaEnCursoModal({
       }
 
       toast({
-        title: "Éxito",
-        description: "Materia agregada correctamente",
+        title: 'Éxito',
+        description: 'Materia agregada correctamente',
       })
 
-      onSuccess()
-      onClose()
-      resetForm()
+      // Reset form y cerrar modal
+      setSelectedCarrera('')
+      setSelectedMateria('')
+      setCarrerasUsuario([])
+      setMateriasDisponibles([])
+      setIsOpen(false)
     } catch (error) {
       console.error('Error:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "No se pudo agregar la materia",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo agregar la materia',
+        variant: 'destructive',
       })
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  const resetForm = () => {
-    setFormData({
-      planEstudioId: '',
-      materiaId: ''
-    })
-    setMateriasDisponibles([])
-  }
-
-  const handleClose = () => {
-    resetForm()
-    onClose()
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>Agregar Materia en Curso</DialogTitle>
-            <DialogDescription>
-              Selecciona la materia que vas a cursar y especifica el año y cuatrimestre
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Agregar Materia
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <NotebookPen className="h-5 w-5" />
+            Agregar Materia en Curso
+          </DialogTitle>
+        </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            {/* Plan de Estudio */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="plan" className="text-right">
-                Plan de Estudio *
-              </Label>
-              <Select 
-                value={formData.planEstudioId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, planEstudioId: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecciona un plan de estudio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {planesUsuario.map((plan) => (
-                    <SelectItem key={plan.planEstudioId} value={plan.planEstudioId.toString()}>
-                      {plan.nombre} - Plan {plan.planEstudioAnio}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="space-y-6">
+          {/* Seleccion de Plan de Estudio */}
+          <div className="space-y-2">
+            <label htmlFor="plan-select" className="text-sm font-medium">
+              Plan de Estudio
+            </label>
+            {(() => {
+              if (isLoadingCarrerasUsuario) {
+                return (
+                  <div className="flex items-center justify-center py-4">
+                    <LoadingSpinner size="sm" text="Cargando planes..." />
+                  </div>
+                )
+              }
 
-            {/* Materia */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="materia" className="text-right">
-                Materia *
-              </Label>
-              <Select 
-                value={formData.materiaId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, materiaId: value }))}
-                disabled={!formData.planEstudioId || loadingMaterias}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={
-                    (() => {
-                      if (loadingMaterias) return "Cargando materias..."
-                      if (!formData.planEstudioId) return "Selecciona primero un plan"
-                      return "Selecciona una materia"
-                    })()
-                  } />
-                </SelectTrigger>
-                <SelectContent>
-                  {materiasDisponibles.map((materia) => (
-                    <SelectItem key={materia.id} value={materia.id.toString()}>
-                      {materia.codigo} - {materia.nombre} ({materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatr.)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              if (carrerasUsuario.length > 0) {
+                return (
+                  <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
+                    <SelectTrigger id="plan-select">
+                      <SelectValue placeholder="Selecciona un plan de estudio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carrerasUsuario.map((plan) => (
+                        <SelectItem key={plan.planEstudioId} value={plan.planEstudioId.toString()}>
+                          <div className="flex items-center gap-2">{`${plan.nombre} - ${plan.planEstudioAnio}`}</div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )
+              }
+
+              return <div className="text-center py-4 text-gray-500">No hay carreras asociadas a este usuario.</div>
+            })()}
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Agregando...' : 'Agregar Materia'}
-            </Button>
-          </DialogFooter>
-        </form>
+          {/* Seleccion de Materia */}
+          {selectedCarrera && (
+            <div className="space-y-2">
+              <label htmlFor="materia" className="text-sm font-medium">
+                Materia
+              </label>
+              {(() => {
+                if (isLoadingMaterias) {
+                  return (
+                    <div className="flex items-center justify-center py-4">
+                      <LoadingSpinner size="sm" text="Cargando materias..." />
+                    </div>
+                  )
+                }
+
+                if (materiasDisponibles.length > 0) {
+                  return (
+                    <Select
+                      value={selectedMateria}
+                      onValueChange={setSelectedMateria}
+                      disabled={!selectedCarrera || isLoadingMaterias}
+                    >
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue
+                          placeholder={(() => {
+                            if (isLoadingMaterias) return 'Cargando materias...'
+                            if (!selectedCarrera) return 'Selecciona primero un plan'
+                            return 'Selecciona una materia'
+                          })()}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {materiasDisponibles.map((materia) => (
+                          <SelectItem key={materia.id} value={materia.id.toString()}>
+                            {materia.codigo} - {materia.nombre} ({materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}
+                            ° cuatr.)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                }
+
+                return (
+                  <div className="text-center py-4 text-gray-500">
+                    No hay materias disponibles para este plan de estudio
+                  </div>
+                )
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* Botones de acción */}
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => setIsOpen(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} disabled={!selectedMateria || !selectedCarrera || isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <LoadingSpinner size="sm" />
+                <span className="ml-2">Agregando...</span>
+              </>
+            ) : (
+              'Agregar Materia'
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

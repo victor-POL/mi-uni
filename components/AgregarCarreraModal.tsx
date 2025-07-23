@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { GraduationCap, Calendar, Plus } from 'lucide-react'
+import { GraduationCap, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Carrera {
@@ -27,15 +27,17 @@ interface AgregarCarreraModalProps {
 }
 
 export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCarreraModalProps) => {
-  const [isOpen, setIsOpen] = useState(false)
   const [carreras, setCarreras] = useState<Carrera[]>([])
   const [planes, setPlanes] = useState<PlanEstudio[]>([])
+
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
   const [selectedPlan, setSelectedPlan] = useState<string>('')
+
+  const [isOpen, setIsOpen] = useState(false)
   const [isLoadingCarreras, setIsLoadingCarreras] = useState(false)
   const [isLoadingPlanes, setIsLoadingPlanes] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   const { toast } = useToast()
 
   // Cargar carreras cuando se abre el modal
@@ -49,7 +51,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
   useEffect(() => {
     if (selectedCarrera) {
       cargarPlanes(parseInt(selectedCarrera))
-      setSelectedPlan('') // Reset plan selection
+      setSelectedPlan('')
     } else {
       setPlanes([])
       setSelectedPlan('')
@@ -60,16 +62,17 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
     setIsLoadingCarreras(true)
     try {
       const response = await fetch('/api/carreras')
+
       if (!response.ok) throw new Error('Error cargando carreras')
-      
+
       const data = await response.json()
-      setCarreras(data)
+      setCarreras(data || [])
     } catch (error) {
       console.error('Error:', error)
       toast({
-        title: "Error",
-        description: "No se pudieron cargar las carreras disponibles",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudieron cargar las carreras disponibles',
+        variant: 'destructive',
       })
     } finally {
       setIsLoadingCarreras(false)
@@ -80,16 +83,17 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
     setIsLoadingPlanes(true)
     try {
       const response = await fetch(`/api/carreras/${carreraId}/planes`)
+
       if (!response.ok) throw new Error('Error cargando planes')
-      
+
       const data = await response.json()
-      setPlanes(data)
+      setPlanes(data || [])
     } catch (error) {
       console.error('Error:', error)
       toast({
-        title: "Error",
-        description: "No se pudieron cargar los planes de estudio",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudieron cargar los planes de estudio',
+        variant: 'destructive',
       })
     } finally {
       setIsLoadingPlanes(false)
@@ -99,9 +103,9 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
   const handleSubmit = async () => {
     if (!selectedPlan) {
       toast({
-        title: "Selección requerida",
-        description: "Por favor selecciona un plan de estudio",
-        variant: "destructive",
+        title: 'Selección requerida',
+        description: 'Por favor selecciona un plan de estudio',
+        variant: 'destructive',
       })
       return
     }
@@ -115,7 +119,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
         },
         body: JSON.stringify({
           usuarioId,
-          planEstudioId: parseInt(selectedPlan)
+          planEstudioId: parseInt(selectedPlan),
         }),
       })
 
@@ -125,31 +129,31 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
       }
 
       toast({
-        title: "¡Éxito!",
-        description: "Carrera agregada correctamente",
+        title: '¡Éxito!',
+        description: 'Carrera agregada correctamente',
       })
 
       // Reset form y cerrar modal
       setSelectedCarrera('')
       setSelectedPlan('')
+      setCarreras([])
       setPlanes([])
       setIsOpen(false)
       onCarreraAgregada()
-
     } catch (error) {
       console.error('Error:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "No se pudo agregar la carrera",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo agregar la carrera',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const selectedCarreraData = carreras.find(c => c.id.toString() === selectedCarrera)
-  const selectedPlanData = planes.find(p => p.id.toString() === selectedPlan)
+  const selectedCarreraData = carreras.find((c) => c.id.toString() === selectedCarrera)
+  const selectedPlanData = planes.find((p) => p.id.toString() === selectedPlan)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -170,31 +174,45 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
         <div className="space-y-6">
           {/* Selección de Carrera */}
           <div className="space-y-2">
-            <label htmlFor="carrera-select" className="text-sm font-medium">Carrera</label>
-            {isLoadingCarreras ? (
-              <div className="flex items-center justify-center py-4">
-                <LoadingSpinner size="sm" text="Cargando carreras..." />
-              </div>
-            ) : (
-              <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
-                <SelectTrigger id="carrera-select">
-                  <SelectValue placeholder="Selecciona una carrera" />
-                </SelectTrigger>
-                <SelectContent>
-                  {carreras.map((carrera) => (
-                    <SelectItem key={carrera.id} value={carrera.id.toString()}>
-                      {carrera.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <label htmlFor="carrera-select" className="text-sm font-medium">
+              Carrera
+            </label>
+            {(() => {
+              if (isLoadingCarreras) {
+                return (
+                  <div className="flex items-center justify-center py-4">
+                    <LoadingSpinner size="sm" text="Cargando carreras..." />
+                  </div>
+                )
+              }
+
+              if (carreras.length > 0) {
+                return (
+                  <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
+                    <SelectTrigger id="carrera-select">
+                      <SelectValue placeholder="Selecciona una carrera" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carreras.map((carrera) => (
+                        <SelectItem key={carrera.id} value={carrera.id.toString()}>
+                          {carrera.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )
+              }
+
+              return <div className="text-center py-4 text-gray-500">No se encontraron carreras.</div>
+            })()}
           </div>
 
           {/* Selección de Plan de Estudio */}
           {selectedCarrera && (
             <div className="space-y-2">
-              <label htmlFor="plan-select" className="text-sm font-medium">Plan de Estudio</label>
+              <label htmlFor="plan-select" className="text-sm font-medium">
+                Plan de Estudio
+              </label>
               {(() => {
                 if (isLoadingPlanes) {
                   return (
@@ -203,7 +221,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
                     </div>
                   )
                 }
-                
+
                 if (planes.length > 0) {
                   return (
                     <Select value={selectedPlan} onValueChange={setSelectedPlan}>
@@ -213,17 +231,14 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
                       <SelectContent>
                         {planes.map((plan) => (
                           <SelectItem key={plan.id} value={plan.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              Plan {plan.anio}
-                            </div>
+                            <div className="flex items-center gap-2">Plan {plan.anio}</div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )
                 }
-                
+
                 return (
                   <div className="text-center py-4 text-gray-500">
                     No hay planes de estudio disponibles para esta carrera
@@ -254,18 +269,11 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
           )}
 
           {/* Botones de acción */}
-          <div className="flex justify-end gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-            >
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => setIsOpen(false)}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!selectedPlan || isSubmitting}
-            >
+            <Button onClick={handleSubmit} disabled={!selectedPlan || isSubmitting}>
               {isSubmitting ? (
                 <>
                   <LoadingSpinner size="sm" />
@@ -275,7 +283,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
                 'Agregar Carrera'
               )}
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
