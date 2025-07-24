@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -44,10 +43,6 @@ const initialPlanFilters: PlanesEstudioFilters = {
 }
 
 export default function PlanesEstudioPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const planIdFromUrl = searchParams.get('plan')
-
   // Hook de autenticación
   const { user, isUserInitialized } = useAuth()
 
@@ -71,31 +66,6 @@ export default function PlanesEstudioPage() {
   // Helper para verificar si el usuario está logueado
   const isLoggedIn = user !== null && isUserInitialized
 
-  // Function to update URL with current filters
-  const updateUrlWithFilters = (updates: Record<string, string | null>) => {
-    // TODO: Revisar la implementacion para la actualización de la URL con los filtros
-    // const current = new URLSearchParams(Array.from(searchParams.entries()))
-    // Object.entries(updates).forEach(([key, value]) => {
-    //   if (value && value !== '0' && value !== '') {
-    //     // For toggle values, only add to URL if they're not the default value
-    //     if ((key === 'showStatus' || key === 'showCorrelatives') && value === 'true') {
-    //       current.delete(key) // Remove if it's the default value (true)
-    //     } else {
-    //       current.set(key, value)
-    //     }
-    //   } else {
-    //     current.delete(key)
-    //   }
-    // })
-    // // Only preserve the plan parameter if there's an actual consulted plan and no plan update is being made
-    // if (planConsultado && !updates.plan) {
-    //   current.set('plan', planConsultado.idPlan.toString())
-    // }
-    // const search = current.toString()
-    // const query = search ? `?${search}` : ''
-    // router.replace(`/planes-estudio${query}`, { scroll: false })
-  }
-
   const handleSelectedPlanIdChange = (value: string) => {
     setSelectedPlanId(value)
   }
@@ -103,17 +73,14 @@ export default function PlanesEstudioPage() {
   // Wrapper functions to update both state and URL
   const handleFilterYearChange = (value: string) => {
     setFiltersPlan((prev) => ({ ...prev, year: value }))
-    updateUrlWithFilters({ year: value })
   }
 
   const handleFilterCuatrimestreChange = (value: string) => {
     setFiltersPlan((prev) => ({ ...prev, semester: value }))
-    updateUrlWithFilters({ semester: value })
   }
 
   const handleSearchTermChange = (value: string) => {
     setFiltersPlan((prev) => ({ ...prev, search: value }))
-    updateUrlWithFilters({ search: value })
   }
 
   const handleFilterCorrelativaChange = (value: string) => {
@@ -123,23 +90,19 @@ export default function PlanesEstudioPage() {
   const handleFilterStatusChange = (value: string) => {
     if (!isLoggedIn) return // No permitir cambios si no está logueado
     setFiltersPlan((prev) => ({ ...prev, status: value }))
-    updateUrlWithFilters({ status: value })
   }
 
   const handleFilterHoursChange = (value: string) => {
     setFiltersPlan((prev) => ({ ...prev, hours: value }))
-    updateUrlWithFilters({ hours: value })
   }
 
   const handleShowMateriaStatusChange = (value: boolean) => {
     if (!isLoggedIn) return
     setFiltersPlan((prev) => ({ ...prev, showStatus: value }))
-    updateUrlWithFilters({ showStatus: value.toString() })
   }
 
   const handleShowCorrelativesChange = (value: boolean) => {
     setFiltersPlan((prev) => ({ ...prev, showCorrelatives: value }))
-    updateUrlWithFilters({ showCorrelatives: value.toString() })
   }
 
   // Función para obtener el plan completo con todas las materias usando el hook
@@ -164,47 +127,6 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  // TODO: Revisar la implementación de la carga automática del plan desde la URL
-  // Effect to handle URL plan parameter - auto-load only on initial URL access
-  // useEffect(() => {
-  //   if (planIdFromUrl && !isLoadingPlanes) {
-  //     // Check if the plan exists in the available plans
-  //     const planExists = planesDisponibles.find((p) => p.idPlan.toString() === planIdFromUrl)
-  //     if (planExists) {
-  //       setSelectedPlanId(planIdFromUrl)
-
-  //       // Auto-load the plan only if we don't have a consulted plan yet (initial load from URL)
-  //       if (!planConsultado) {
-  //         fetchPlanDetallado(planIdFromUrl)
-  //       }
-  //     }
-  //   }
-  // }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planConsultado])
-
-  // Effect to sync toggle states with URL parameters
-  useEffect(() => {
-    const yearParam = searchParams.get('year')
-    const semesterParam = searchParams.get('semester')
-    const searchParam = searchParams.get('search')
-    const statusParam = searchParams.get('status')
-    const hoursParam = searchParams.get('hours')
-    const showStatusParam = searchParams.get('showStatus')
-    const showCorrelativesParam = searchParams.get('showCorrelatives')
-
-    const filterSettedByParams: PlanesEstudioFilters = {
-      year: yearParam || initialPlanFilters.year,
-      semester: semesterParam || initialPlanFilters.semester,
-      search: searchParam || initialPlanFilters.search,
-      status: statusParam || initialPlanFilters.status,
-      hours: hoursParam || initialPlanFilters.hours,
-      showStatus: !isLoggedIn ? false : showStatusParam === 'true' || initialPlanFilters.showStatus,
-      showCorrelatives: showCorrelativesParam === 'true' || initialPlanFilters.showCorrelatives,
-      searchCorrelativa: initialPlanFilters.searchCorrelativa,
-    }
-
-    setFiltersPlan(filterSettedByParams)
-  }, [searchParams, isLoggedIn])
-
   const handleSubmitPlan = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -213,21 +135,9 @@ export default function PlanesEstudioPage() {
 
       try {
         await fetchPlanDetallado(selectedPlanId)
+
         setIsLoadingPlanDetails(false)
-
         setFiltersPlan(initialPlanFilters)
-
-        // Update URL to clear filters but preserve plan parameter
-        updateUrlWithFilters({
-          plan: selectedPlanId,
-          year: null,
-          semester: null,
-          search: null,
-          status: null,
-          hours: null,
-          showStatus: !isLoggedIn ? 'false' : filtersPlan.showStatus ? 'true' : 'false',
-          showCorrelatives: filtersPlan.showCorrelatives ? 'true' : 'false',
-        })
       } catch (error) {
         console.error('Error loading plan:', error)
         setIsLoadingPlanDetails(false)
@@ -261,15 +171,6 @@ export default function PlanesEstudioPage() {
 
   const handleClearAllFilters = () => {
     setFiltersPlan(initialPlanFilters)
-
-    // Update URL to clear all filters
-    updateUrlWithFilters({
-      year: null,
-      semester: null,
-      search: null,
-      status: null,
-      hours: null,
-    })
   }
 
   const allYears = useMemo(() => {
