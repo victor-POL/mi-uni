@@ -42,14 +42,12 @@ export default function PlanesEstudioPage() {
     planes: planesDisponibles,
     loading: isLoadingPlanes,
     fetchPlanById,
-    fetchEstadosMaterias,
   } = usePlanesSummary()
 
   // Estados para el plan seleccionado
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
-  const [estadosMaterias, setEstadosMaterias] = useState<Record<string, string> | null>(null)
 
   // Estado para controlar si el plan ya fue cargado manualmente
   const [planLoadedManually, setPlanLoadedManually] = useState<boolean>(false)
@@ -148,24 +146,11 @@ export default function PlanesEstudioPage() {
   const fetchPlanDetallado = async (planId: string) => {
     try {
       setIsLoadingPlanDetails(true)
-      const planData = await fetchPlanById(parseInt(planId))
+      
+      const usuarioIdToPass = isLoggedIn && user?.dbId && user.dbId > 0 ? user.dbId : undefined
+      
+      const planData = await fetchPlanById(parseInt(planId), usuarioIdToPass)
       setPlanConsultado(planData)
-
-      // Si el usuario está logueado, también cargar los estados de las materias
-      if (isLoggedIn && user?.dbId && user.dbId > 0) {
-        try {
-          console.log('🔍 Cargando estados de materias para usuario:', user.dbId, 'plan:', planId)
-          const estados = await fetchEstadosMaterias(parseInt(planId), user.dbId)
-          console.log('✅ Estados cargados:', estados)
-          setEstadosMaterias(estados)
-        } catch (error) {
-          console.error('❌ Error cargando estados de materias:', error)
-          setEstadosMaterias(null)
-        }
-      } else {
-        console.log('⚠️ Usuario no logueado o sin dbId, no cargando estados')
-        setEstadosMaterias(null)
-      }
 
       return planData
     } catch (error) {
@@ -173,7 +158,6 @@ export default function PlanesEstudioPage() {
       // Fallback a datos estáticos si hay error
       const plan = planesDeEstudio.find((p) => p.idPlan.toString() === planId)
       setPlanConsultado(plan || null)
-      setEstadosMaterias(null)
       return plan || null
     } finally {
       setIsLoadingPlanDetails(false)
@@ -888,19 +872,6 @@ export default function PlanesEstudioPage() {
                                 <AccordionContent className="pl-4">
                                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                     {materiasAgrupadas[anio][cuatrimestre].map((materia) => {
-                                      // Obtener el estado real de la materia si está disponible
-                                      const estadoReal = estadosMaterias?.[materia.codigoMateria] || materia.estado
-
-                                      // Debug para ver qué estado se está usando
-                                      if (materia.codigoMateria === '03621' || materia.codigoMateria === '03624') {
-                                        console.log(`🎯 Materia ${materia.codigoMateria}:`, {
-                                          estadoOriginal: materia.estado,
-                                          estadoEnMap: estadosMaterias?.[materia.codigoMateria],
-                                          estadoFinal: estadoReal,
-                                          tieneEstadosMap: !!estadosMaterias,
-                                        })
-                                      }
-
                                       return (
                                         <Card
                                           key={materia.codigoMateria}
@@ -929,11 +900,11 @@ export default function PlanesEstudioPage() {
                                                   <Clock className="h-3 w-3" />
                                                   {materia.horasSemanales}h
                                                 </Badge>
-                                                {showMateriaStatus && isLoggedIn && (
+                                                {showMateriaStatus && isLoggedIn && materia.estado && (
                                                   <Badge
-                                                    className={`text-xs ${getStatusBadgeColor(estadoReal as EstadoMateriaPlanEstudio)}`}
+                                                    className={`text-xs ${getStatusBadgeColor(materia.estado)}`}
                                                   >
-                                                    {estadoReal}
+                                                    {materia.estado}
                                                   </Badge>
                                                 )}
                                               </div>

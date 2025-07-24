@@ -45,7 +45,7 @@ export async function getAllPlanesBasicos() {
 /**
  * Obtiene un plan completo con todas las materias desde la base de datos
  */
-export async function getPlanById(planId: number): Promise<PlanDeEstudioDetalle | null> {
+export async function getPlanById(planId: number, usuarioId?: number): Promise<PlanDeEstudioDetalle | null> {
   try {
     // Configurar el search_path
     await pool.query(`SET search_path = prod, public`)
@@ -92,14 +92,36 @@ export async function getPlanById(planId: number): Promise<PlanDeEstudioDetalle 
         WHERE c.materia_id IN (SELECT materia_id FROM materias_plan)
           AND c.plan_estudio_id = $1
         GROUP BY c.materia_id
+      ),
+      usuario_tiene_plan AS (
+        SELECT CASE 
+          WHEN $2::int IS NULL THEN false
+          WHEN EXISTS (
+            SELECT 1 
+            FROM prod.usuario_plan_estudio upe 
+            JOIN prod.plan_estudio pe ON upe.plan_estudio_id = pe.id 
+            WHERE upe.usuario_id = $2::int AND pe.id = $1
+          ) THEN true
+          ELSE false
+        END as tiene_acceso
       )
       SELECT 
         mp.*,
+        CASE 
+          WHEN utp.tiene_acceso THEN (
+            SELECT ume.estado
+            FROM prod.usuario_materia_estado ume
+            WHERE ume.usuario_id = $2::int
+              AND ume.materia_id = mp.materia_id
+          )
+          ELSE NULL
+        END as estado_materia_usuario,
         COALESCE(ca.correlativas, ARRAY[]::text[]) as lista_correlativas
       FROM materias_plan mp
       LEFT JOIN correlativas_agrupadas ca ON mp.materia_id = ca.materia_id
+      CROSS JOIN usuario_tiene_plan utp
       ORDER BY mp.anio_cursada, mp.cuatrimestre, mp.codigo_materia
-    `, [planId])
+    `, [planId, usuarioId])
 
     // Transformar las materias al formato esperado
     const materias = materiasResult.rows.map(row => ({
@@ -107,9 +129,9 @@ export async function getPlanById(planId: number): Promise<PlanDeEstudioDetalle 
       nombreMateria: row.nombre_materia,
       anioCursada: row.anio_cursada,
       cuatrimestreCursada: row.cuatrimestre,
-      horasSemanales: row.horas_semanales || 0,
-      tipo: row.tipo || 'cursable',
-      estado: 'Pendiente' as const,
+      horasSemanales: row.horas_semanales,
+      tipo: row.tipo,
+      estado: row.estado_materia_usuario,
       listaCorrelativas: row.lista_correlativas || []
     }))
 

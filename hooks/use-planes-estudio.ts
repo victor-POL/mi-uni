@@ -82,9 +82,14 @@ export function usePlanesEstudio(options: UsePlanesEstudioOptions = {}) {
     // Helper para obtener un plan específico
     getPlan: (id: number) => planes.find(plan => plan.idPlan === id),
     // Helper para hacer fetch manual de un plan específico
-    fetchPlanById: async (planId: number) => {
+    fetchPlanById: async (planId: number, usuarioId?: number) => {
       try {
-        const response = await fetch(`/api/planes-estudio?id=${planId}`)
+        const params = new URLSearchParams({ id: planId.toString() })
+        if (usuarioId) {
+          params.append('usuarioId', usuarioId.toString())
+        }
+        
+        const response = await fetch(`/api/planes-estudio?${params.toString()}`)
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }

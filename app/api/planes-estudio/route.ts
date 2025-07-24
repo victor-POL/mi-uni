@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const planId = searchParams.get('id')
     const carrera = searchParams.get('carrera')
     const summary = searchParams.get('summary')
+    const usuarioId = searchParams.get('usuarioId')
 
     // Si se solicita solo el resumen de planes (para el selector)
     if (summary === 'true') {
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
     // Si se proporciona un ID específico, devolver ese plan completo
     if (planId) {
       const id = parseInt(planId, 10)
+
       if (Number.isNaN(id)) {
         return NextResponse.json(
           { error: 'Invalid plan ID provided' },
@@ -41,7 +43,18 @@ export async function GET(request: NextRequest) {
 
       try {
         const planesService = await import('@/lib/database/planes-estudio.service')
-        const plan = await planesService.getPlanById(id)
+        
+        // Parsear usuarioId si está presente
+        const parsedUsuarioId = usuarioId ? Number(usuarioId) : undefined
+
+        if (usuarioId && Number.isNaN(parsedUsuarioId)) {
+          return NextResponse.json(
+            { error: 'Invalid usuario ID provided' },
+            { status: 400 }
+          )
+        }
+        
+        const plan = await planesService.getPlanById(id, parsedUsuarioId)
         if (!plan) {
           return NextResponse.json(
             { error: 'Plan not found' },
