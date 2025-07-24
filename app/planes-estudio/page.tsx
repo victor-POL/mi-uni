@@ -21,6 +21,28 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
 import { usePlanesSummary } from '@/hooks/use-planes-estudio'
 
+interface PlanesEstudioFilters {
+  year: string
+  semester: string
+  search: string
+  status: string
+  hours: string
+  showStatus: boolean
+  showCorrelatives: boolean
+  searchCorrelativa: string
+}
+
+const initialPlanFilters: PlanesEstudioFilters = {
+  year: '0',
+  semester: '0',
+  search: '',
+  status: '0',
+  hours: '',
+  showStatus: true,
+  showCorrelatives: true,
+  searchCorrelativa: '',
+}
+
 export default function PlanesEstudioPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -41,16 +63,7 @@ export default function PlanesEstudioPage() {
   const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
 
   // Filter states - will be synchronized with URL params via useEffect
-  const [filterYear, setFilterYear] = useState<string>('0')
-  const [filterCuatrimestre, setFilterCuatrimestre] = useState<string>('0')
-  const [searchTerm, setSearchTerm] = useState<string>('')
-  const [filterStatus, setFilterStatus] = useState<string>('0')
-  const [filterHours, setFilterHours] = useState<string>('')
-  const [correlativeSearchInput, setCorrelativeSearchInput] = useState<string>('')
-
-  // Display toggles - will be synchronized with URL params via useEffect
-  const [showMateriaStatus, setShowMateriaStatus] = useState<boolean>(true)
-  const [showCorrelatives, setShowCorrelatives] = useState<boolean>(true)
+  const [filtersPlan, setFiltersPlan] = useState(initialPlanFilters)
 
   // Local UI state for showing/hiding filters section
   const [showFilters, setShowFilters] = useState<boolean>(false)
@@ -60,75 +73,72 @@ export default function PlanesEstudioPage() {
 
   // Function to update URL with current filters
   const updateUrlWithFilters = (updates: Record<string, string | null>) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()))
-
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value && value !== '0' && value !== '') {
-        // For toggle values, only add to URL if they're not the default value
-        if ((key === 'showStatus' || key === 'showCorrelatives') && value === 'true') {
-          current.delete(key) // Remove if it's the default value (true)
-        } else {
-          current.set(key, value)
-        }
-      } else {
-        current.delete(key)
-      }
-    })
-
-    // Only preserve the plan parameter if there's an actual consulted plan and no plan update is being made
-    if (planConsultado && !updates.plan) {
-      current.set('plan', planConsultado.idPlan.toString())
-    }
-
-    const search = current.toString()
-    const query = search ? `?${search}` : ''
-    router.replace(`/planes-estudio${query}`, { scroll: false })
+    // TODO: Revisar la implementacion para la actualización de la URL con los filtros
+    // const current = new URLSearchParams(Array.from(searchParams.entries()))
+    // Object.entries(updates).forEach(([key, value]) => {
+    //   if (value && value !== '0' && value !== '') {
+    //     // For toggle values, only add to URL if they're not the default value
+    //     if ((key === 'showStatus' || key === 'showCorrelatives') && value === 'true') {
+    //       current.delete(key) // Remove if it's the default value (true)
+    //     } else {
+    //       current.set(key, value)
+    //     }
+    //   } else {
+    //     current.delete(key)
+    //   }
+    // })
+    // // Only preserve the plan parameter if there's an actual consulted plan and no plan update is being made
+    // if (planConsultado && !updates.plan) {
+    //   current.set('plan', planConsultado.idPlan.toString())
+    // }
+    // const search = current.toString()
+    // const query = search ? `?${search}` : ''
+    // router.replace(`/planes-estudio${query}`, { scroll: false })
   }
 
   const handleSelectedPlanIdChange = (value: string) => {
     setSelectedPlanId(value)
-    // No actualizar URL aquí, solo cuando se consulte
   }
 
   // Wrapper functions to update both state and URL
   const handleFilterYearChange = (value: string) => {
-    setFilterYear(value)
+    setFiltersPlan((prev) => ({ ...prev, year: value }))
     updateUrlWithFilters({ year: value })
   }
 
   const handleFilterCuatrimestreChange = (value: string) => {
-    setFilterCuatrimestre(value)
+    setFiltersPlan((prev) => ({ ...prev, semester: value }))
     updateUrlWithFilters({ semester: value })
   }
 
   const handleSearchTermChange = (value: string) => {
-    setSearchTerm(value)
+    setFiltersPlan((prev) => ({ ...prev, search: value }))
     updateUrlWithFilters({ search: value })
   }
 
   const handleFilterCorrelativaChange = (value: string) => {
-    setCorrelativeSearchInput(value)
+    setFiltersPlan((prev) => ({ ...prev, searchCorrelativa: value }))
   }
 
   const handleFilterStatusChange = (value: string) => {
     if (!isLoggedIn) return // No permitir cambios si no está logueado
-    setFilterStatus(value)
+    setFiltersPlan((prev) => ({ ...prev, status: value }))
     updateUrlWithFilters({ status: value })
   }
 
   const handleFilterHoursChange = (value: string) => {
-    setFilterHours(value)
+    setFiltersPlan((prev) => ({ ...prev, hours: value }))
     updateUrlWithFilters({ hours: value })
   }
 
   const handleShowMateriaStatusChange = (value: boolean) => {
-    if (!isLoggedIn) return // No permitir cambios si no está logueado
-    setShowMateriaStatus(value)
+    if (!isLoggedIn) return
+    setFiltersPlan((prev) => ({ ...prev, showStatus: value }))
     updateUrlWithFilters({ showStatus: value.toString() })
   }
 
   const handleShowCorrelativesChange = (value: boolean) => {
-    setShowCorrelatives(value)
+    setFiltersPlan((prev) => ({ ...prev, showCorrelatives: value }))
     updateUrlWithFilters({ showCorrelatives: value.toString() })
   }
 
@@ -154,51 +164,45 @@ export default function PlanesEstudioPage() {
     }
   }
 
+  // TODO: Revisar la implementación de la carga automática del plan desde la URL
   // Effect to handle URL plan parameter - auto-load only on initial URL access
-  useEffect(() => {
-    if (planIdFromUrl && !isLoadingPlanes) {
-      // Check if the plan exists in the available plans
-      const planExists = planesDisponibles.find((p) => p.idPlan.toString() === planIdFromUrl)
-      if (planExists) {
-        setSelectedPlanId(planIdFromUrl)
+  // useEffect(() => {
+  //   if (planIdFromUrl && !isLoadingPlanes) {
+  //     // Check if the plan exists in the available plans
+  //     const planExists = planesDisponibles.find((p) => p.idPlan.toString() === planIdFromUrl)
+  //     if (planExists) {
+  //       setSelectedPlanId(planIdFromUrl)
 
-        // Auto-load the plan only if we don't have a consulted plan yet (initial load from URL)
-        if (!planConsultado) {
-          fetchPlanDetallado(planIdFromUrl)
-        }
-      }
-    }
-  }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planConsultado])
+  //       // Auto-load the plan only if we don't have a consulted plan yet (initial load from URL)
+  //       if (!planConsultado) {
+  //         fetchPlanDetallado(planIdFromUrl)
+  //       }
+  //     }
+  //   }
+  // }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planConsultado])
 
   // Effect to sync toggle states with URL parameters
   useEffect(() => {
+    const yearParam = searchParams.get('year')
+    const semesterParam = searchParams.get('semester')
+    const searchParam = searchParams.get('search')
+    const statusParam = searchParams.get('status')
+    const hoursParam = searchParams.get('hours')
     const showStatusParam = searchParams.get('showStatus')
     const showCorrelativesParam = searchParams.get('showCorrelatives')
 
-    // Update states based on URL parameters
-    if (showStatusParam !== null && isLoggedIn) {
-      setShowMateriaStatus(showStatusParam === 'true')
-    } else {
-      setShowMateriaStatus(isLoggedIn) // Solo mostrar si está logueado
+    const filterSettedByParams: PlanesEstudioFilters = {
+      year: yearParam || initialPlanFilters.year,
+      semester: semesterParam || initialPlanFilters.semester,
+      search: searchParam || initialPlanFilters.search,
+      status: statusParam || initialPlanFilters.status,
+      hours: hoursParam || initialPlanFilters.hours,
+      showStatus: !isLoggedIn ? false : showStatusParam === 'true' || initialPlanFilters.showStatus,
+      showCorrelatives: showCorrelativesParam === 'true' || initialPlanFilters.showCorrelatives,
+      searchCorrelativa: initialPlanFilters.searchCorrelativa,
     }
 
-    if (showCorrelativesParam !== null) {
-      setShowCorrelatives(showCorrelativesParam === 'true')
-    } else {
-      setShowCorrelatives(true) // Default value
-    }
-
-    // Sync other filter states as well
-    setFilterYear(searchParams.get('year') || '0')
-    setFilterCuatrimestre(searchParams.get('semester') || '0')
-    setSearchTerm(searchParams.get('search') || '')
-    // Solo sincronizar filtro de estado si está logueado
-    if (isLoggedIn) {
-      setFilterStatus(searchParams.get('status') || '0')
-    } else {
-      setFilterStatus('0') // Reset si no está logueado
-    }
-    setFilterHours(searchParams.get('hours') || '')
+    setFiltersPlan(filterSettedByParams)
   }, [searchParams, isLoggedIn])
 
   const handleSubmitPlan = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -211,13 +215,7 @@ export default function PlanesEstudioPage() {
         await fetchPlanDetallado(selectedPlanId)
         setIsLoadingPlanDetails(false)
 
-        // Reset filters when a new plan is selected manually
-        setFilterYear('0')
-        setFilterCuatrimestre('0')
-        setSearchTerm('')
-        setFilterStatus('0')
-        setFilterHours('')
-        setCorrelativeSearchInput('')
+        setFiltersPlan(initialPlanFilters)
 
         // Update URL to clear filters but preserve plan parameter
         updateUrlWithFilters({
@@ -227,8 +225,8 @@ export default function PlanesEstudioPage() {
           search: null,
           status: null,
           hours: null,
-          showStatus: showMateriaStatus ? 'true' : 'false',
-          showCorrelatives: showCorrelatives ? 'true' : 'false',
+          showStatus: !isLoggedIn ? 'false' : filtersPlan.showStatus ? 'true' : 'false',
+          showCorrelatives: filtersPlan.showCorrelatives ? 'true' : 'false',
         })
       } catch (error) {
         console.error('Error loading plan:', error)
@@ -262,12 +260,7 @@ export default function PlanesEstudioPage() {
   }
 
   const handleClearAllFilters = () => {
-    setFilterYear('0')
-    setFilterCuatrimestre('0')
-    setSearchTerm('')
-    setFilterStatus('0')
-    setFilterHours('')
-    setCorrelativeSearchInput('')
+    setFiltersPlan(initialPlanFilters)
 
     // Update URL to clear all filters
     updateUrlWithFilters({
@@ -292,24 +285,24 @@ export default function PlanesEstudioPage() {
     let currentMaterias = planConsultado.materias
 
     // Filter by year
-    if (filterYear !== '0') {
-      currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filterYear)
+    if (filtersPlan.year !== initialPlanFilters.year) {
+      currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filtersPlan.year)
     }
 
     // Filter by cuatrimestre
-    if (filterCuatrimestre !== '0') {
-      if (filterCuatrimestre === 'anual') {
+    if (filtersPlan.semester !== initialPlanFilters.semester) {
+      if (filtersPlan.semester === 'anual') {
         currentMaterias = currentMaterias.filter((materia) => materia.cuatrimestreCursada === 0)
       } else {
         currentMaterias = currentMaterias.filter(
-          (materia) => materia.cuatrimestreCursada.toString() === filterCuatrimestre
+          (materia) => materia.cuatrimestreCursada.toString() === filtersPlan.semester
         )
       }
     }
 
     // Filter by search term (name or code)
-    if (searchTerm) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase()
+    if (filtersPlan.search) {
+      const lowerCaseSearchTerm = filtersPlan.search.toLowerCase()
       currentMaterias = currentMaterias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
@@ -318,22 +311,21 @@ export default function PlanesEstudioPage() {
     }
 
     // Filter by status (solo si está logueado)
-    if (filterStatus !== '0' && isLoggedIn) {
-      currentMaterias = currentMaterias.filter((materia) => materia.estado === filterStatus)
+    if (filtersPlan.status !== initialPlanFilters.status && isLoggedIn) {
+      currentMaterias = currentMaterias.filter((materia) => materia.estado === filtersPlan.status)
     }
 
     // Filter by hours
-    if (filterHours) {
-      const hours = Number.parseInt(filterHours)
+    if (filtersPlan.hours) {
+      const hours = Number.parseInt(filtersPlan.hours)
       if (!Number.isNaN(hours)) {
         currentMaterias = currentMaterias.filter((materia) => materia.horasSemanales === hours)
       }
     }
-    console.log(correlativeSearchInput)
 
     // Filter by correlative search - dynamic filtering
-    if (correlativeSearchInput) {
-      const lowerCaseCorrelativeSearch = correlativeSearchInput.toLowerCase()
+    if (filtersPlan.searchCorrelativa) {
+      const lowerCaseCorrelativeSearch = filtersPlan.searchCorrelativa.toLowerCase()
 
       // Find the correlative materia being searched
       const foundCorrelativeMateria = planConsultado.materias.find(
@@ -354,30 +346,25 @@ export default function PlanesEstudioPage() {
     }
 
     return currentMaterias
-  }, [
-    planConsultado,
-    filterYear,
-    filterCuatrimestre,
-    searchTerm,
-    filterStatus,
-    filterHours,
-    correlativeSearchInput,
-    isLoggedIn,
-  ])
+  }, [planConsultado, filtersPlan, isLoggedIn])
 
   const materiasAgrupadas = useMemo(() => agruparMaterias(filteredMaterias), [filteredMaterias])
 
   // Check if any filters are active
-  const hasActiveFilters = useMemo(() => {
-    return (
-      filterYear !== '0' ||
-      filterCuatrimestre !== '0' ||
-      searchTerm !== '' ||
-      (filterStatus !== '0' && isLoggedIn) || // Solo considerar activo si está logueado
-      filterHours !== '' ||
-      correlativeSearchInput !== ''
-    )
-  }, [filterYear, filterCuatrimestre, searchTerm, filterStatus, filterHours, correlativeSearchInput, isLoggedIn])
+  const cantidadFiltrosActivos = useMemo(() => {
+    return [
+      filtersPlan.year !== initialPlanFilters.year,
+      filtersPlan.semester !== initialPlanFilters.semester,
+      filtersPlan.search !== initialPlanFilters.search,
+      filtersPlan.status !== initialPlanFilters.status,
+      filtersPlan.hours !== initialPlanFilters.hours,
+      !isLoggedIn ? false : filtersPlan.showStatus !== initialPlanFilters.showStatus,
+      filtersPlan.showCorrelatives !== initialPlanFilters.showCorrelatives,
+      filtersPlan.searchCorrelativa !== initialPlanFilters.searchCorrelativa,
+    ].filter(Boolean).length
+  }, [filtersPlan, isLoggedIn])
+
+  const hasActiveFilters = useMemo(() => cantidadFiltrosActivos > 0, [cantidadFiltrosActivos])
 
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -476,6 +463,7 @@ export default function PlanesEstudioPage() {
                 <div className="flex justify-end gap-2">
                   {hasActiveFilters && (
                     <Button
+                      type="button"
                       variant="outline"
                       onClick={handleClearAllFilters}
                       className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
@@ -485,6 +473,7 @@ export default function PlanesEstudioPage() {
                     </Button>
                   )}
                   <Button
+                    type="button"
                     disabled={planConsultado === null}
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
@@ -495,16 +484,7 @@ export default function PlanesEstudioPage() {
                     {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
                     {hasActiveFilters && (
                       <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
-                        {
-                          [
-                            filterYear !== '0',
-                            filterCuatrimestre !== '0',
-                            searchTerm !== '',
-                            filterStatus !== '0',
-                            filterHours !== '',
-                            correlativeSearchInput !== '',
-                          ].filter(Boolean).length
-                        }
+                        {cantidadFiltrosActivos}
                       </Badge>
                     )}
                   </Button>
@@ -524,177 +504,179 @@ export default function PlanesEstudioPage() {
                   </Button>
                 </div>
               </div>
-              <div className={`mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-all duration-300 ${showFilters ? 'block' : 'hidden'}`}>
-                  {/* Search by Name/Code */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="col-span-1 sm:col-span-2 md:col-span-2">
-                      <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
-                        Buscar Materia
-                      </Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="search-term"
-                          placeholder="Nombre o código"
-                          value={searchTerm}
-                          onChange={(e) => handleSearchTermChange(e.target.value)}
-                          className="pl-9 bg-white border-gray-300"
-                        />
-                        {searchTerm && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                            onClick={() => handleSearchTermChange('')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+              <div
+                className={`mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-all duration-300 ${showFilters ? 'block' : 'hidden'}`}
+              >
+                {/* Search by Name/Code */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="col-span-1 sm:col-span-2 md:col-span-2">
+                    <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+                      Buscar Materia
+                    </Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search-term"
+                        placeholder="Nombre o código"
+                        value={filtersPlan.search}
+                        onChange={(e) => handleSearchTermChange(e.target.value)}
+                        className="pl-9 bg-white border-gray-300"
+                      />
+                      {filtersPlan.search && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                          onClick={() => handleSearchTermChange('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter by Year */}
+                <div>
+                  <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
+                    Año
+                  </Label>
+                  <Select value={filtersPlan.year} onValueChange={handleFilterYearChange}>
+                    <SelectTrigger id="filter-year" className="bg-white border-gray-300">
+                      <SelectValue placeholder="Todos los años" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-300">
+                      <SelectItem value="0">Todos los años</SelectItem>
+                      {allYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}° Año
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Cuatrimestre */}
+                <div>
+                  <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
+                    Cuatrimestre
+                  </Label>
+                  <Select value={filtersPlan.semester} onValueChange={handleFilterCuatrimestreChange}>
+                    <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
+                      <SelectValue placeholder="Todos los cuatrimestres" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-300">
+                      <SelectItem value="0">Todos los cuatrimestres</SelectItem>
+                      <SelectItem value="anual">Anual</SelectItem>
+                      <SelectItem value="1">1° Cuatrimestre</SelectItem>
+                      <SelectItem value="2">2° Cuatrimestre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter by Hours */}
+                <div>
+                  <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
+                    Horas Semanales
+                  </Label>
+                  <Input
+                    id="filter-hours"
+                    type="number"
+                    placeholder="Ej: 4"
+                    value={filtersPlan.hours}
+                    onChange={(e) => handleFilterHoursChange(e.target.value)}
+                    className="bg-white border-gray-300"
+                  />
+                </div>
+
+                {/* Fila - Filtros Correlativa */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Search by Name/Code Correlativa*/}
+                  <div className="col-span-1">
+                    <Label htmlFor="search-correlativa" className="block text-sm font-medium text-gray-700 mb-2">
+                      Buscar Correlativa
+                    </Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search-correlativa"
+                        placeholder="Nombre o código de la materia correlativa"
+                        value={filtersPlan.searchCorrelativa}
+                        onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
+                        className="pl-9 bg-white border-gray-300"
+                      />
+                      {filtersPlan.searchCorrelativa && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                          onClick={() => handleFilterCorrelativaChange('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Filter by Year */}
-                  <div>
-                    <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
-                      Año
+                  {/* Toggle Show Materia Correlativas */}
+                  <div className="col-span-1 flex flex-col justify-end">
+                    <div className="flex items-center space-x-2 h-10">
+                      <Switch
+                        id="show-correlatives"
+                        checked={filtersPlan.showCorrelatives}
+                        onCheckedChange={handleShowCorrelativesChange}
+                      />
+                      <Label htmlFor="show-correlatives" className="text-gray-700">
+                        Mostrar Correlativas
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fila - Filtros Estado Materia */}
+                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Filter by Status */}
+                  <div className="col-span-1">
+                    <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
+                      Estado
+                      {!isLoggedIn && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <User className="h-3 w-3 text-amber-600" />
+                          <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
+                        </div>
+                      )}
                     </Label>
-                    <Select value={filterYear} onValueChange={handleFilterYearChange}>
-                      <SelectTrigger id="filter-year" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los años" />
+                    <Select value={filtersPlan.status} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
+                      <SelectTrigger id="filter-status" className="bg-white border-gray-300">
+                        <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value="0">Todos los años</SelectItem>
-                        {allYears.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}° Año
+                        <SelectItem value="0">Todos los estados</SelectItem>
+                        {allStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Filter by Cuatrimestre */}
-                  <div>
-                    <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
-                      Cuatrimestre
-                    </Label>
-                    <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
-                      <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los cuatrimestres" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value="0">Todos los cuatrimestres</SelectItem>
-                        <SelectItem value="anual">Anual</SelectItem>
-                        <SelectItem value="1">1° Cuatrimestre</SelectItem>
-                        <SelectItem value="2">2° Cuatrimestre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Filter by Hours */}
-                  <div>
-                    <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
-                      Horas Semanales
-                    </Label>
-                    <Input
-                      id="filter-hours"
-                      type="number"
-                      placeholder="Ej: 4"
-                      value={filterHours}
-                      onChange={(e) => handleFilterHoursChange(e.target.value)}
-                      className="bg-white border-gray-300"
-                    />
-                  </div>
-
-                  {/* Fila - Filtros Correlativa */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Search by Name/Code Correlativa*/}
-                    <div className="col-span-1">
-                      <Label htmlFor="search-correlativa" className="block text-sm font-medium text-gray-700 mb-2">
-                        Buscar Correlativa
+                  {/* Toggle Show Materia Status */}
+                  <div className="col-span-1 flex flex-col justify-end">
+                    <div className="flex items-center space-x-2 h-10">
+                      <Switch
+                        id="show-status"
+                        checked={filtersPlan.showStatus && isLoggedIn}
+                        onCheckedChange={handleShowMateriaStatusChange}
+                        disabled={!isLoggedIn}
+                      />
+                      <Label htmlFor="show-status" className="text-gray-700">
+                        Mostrar Estado de Materia
                       </Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="search-correlativa"
-                          placeholder="Nombre o código de la materia correlativa"
-                          value={correlativeSearchInput}
-                          onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
-                          className="pl-9 bg-white border-gray-300"
-                        />
-                        {correlativeSearchInput && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                            onClick={() => handleFilterCorrelativaChange('')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Toggle Show Materia Correlativas */}
-                    <div className="col-span-1 flex flex-col justify-end">
-                      <div className="flex items-center space-x-2 h-10">
-                        <Switch
-                          id="show-correlatives"
-                          checked={showCorrelatives}
-                          onCheckedChange={handleShowCorrelativesChange}
-                        />
-                        <Label htmlFor="show-correlatives" className="text-gray-700">
-                          Mostrar Correlativas
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fila - Filtros Estado Materia */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Filter by Status */}
-                    <div className="col-span-1">
-                      <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
-                        Estado
-                        {!isLoggedIn && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <User className="h-3 w-3 text-amber-600" />
-                            <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
-                          </div>
-                        )}
-                      </Label>
-                      <Select value={filterStatus} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
-                        <SelectTrigger id="filter-status" className="bg-white border-gray-300">
-                          <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value="0">Todos los estados</SelectItem>
-                          {allStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Toggle Show Materia Status */}
-                    <div className="col-span-1 flex flex-col justify-end">
-                      <div className="flex items-center space-x-2 h-10">
-                        <Switch
-                          id="show-status"
-                          checked={showMateriaStatus && isLoggedIn}
-                          onCheckedChange={handleShowMateriaStatusChange}
-                          disabled={!isLoggedIn}
-                        />
-                        <Label htmlFor="show-status" className="text-gray-700">
-                          Mostrar Estado de Materia
-                        </Label>
-                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
             </CardContent>
           </Card>
         </form>
@@ -872,7 +854,7 @@ export default function PlanesEstudioPage() {
                                                   <Clock className="h-3 w-3" />
                                                   {materia.horasSemanales}h
                                                 </Badge>
-                                                {showMateriaStatus && isLoggedIn && materia.estado && (
+                                                {filtersPlan.showStatus && isLoggedIn && materia.estado && (
                                                   <Badge className={`text-xs ${getStatusBadgeColor(materia.estado)}`}>
                                                     {materia.estado}
                                                   </Badge>
@@ -882,7 +864,7 @@ export default function PlanesEstudioPage() {
                                           </CardHeader>
                                           <CardContent className="pt-0">
                                             {/* Correlativas */}
-                                            {showCorrelatives && materia.listaCorrelativas.length > 0 && (
+                                            {filtersPlan.showCorrelatives && materia.listaCorrelativas.length > 0 && (
                                               <div>
                                                 <h4 className="text-sm font-medium text-gray-700 mb-2">
                                                   Correlativas:
@@ -902,10 +884,10 @@ export default function PlanesEstudioPage() {
                                                 </div>
                                               </div>
                                             )}
-                                            {showCorrelatives && materia.listaCorrelativas.length === 0 && (
+                                            {filtersPlan.showCorrelatives && materia.listaCorrelativas.length === 0 && (
                                               <div className="text-xs text-gray-500 italic">Sin correlativas</div>
                                             )}
-                                            {!showCorrelatives && (
+                                            {!filtersPlan.showCorrelatives && (
                                               <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
                                             )}
 
