@@ -524,8 +524,7 @@ export default function PlanesEstudioPage() {
                   </Button>
                 </div>
               </div>
-              {showFilters && (
-                <div className="mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className={`mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-all duration-300 ${showFilters ? 'block' : 'hidden'}`}>
                   {/* Search by Name/Code */}
                   <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="col-span-1 sm:col-span-2 md:col-span-2">
@@ -696,7 +695,6 @@ export default function PlanesEstudioPage() {
                     </div>
                   </div>
                 </div>
-              )}
             </CardContent>
           </Card>
         </form>
