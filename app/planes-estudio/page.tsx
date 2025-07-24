@@ -5,15 +5,7 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
@@ -35,22 +27,15 @@ export default function PlanesEstudioPage() {
   const planIdFromUrl = searchParams.get('plan')
 
   // Hook de autenticación
-  const { user, loading: authLoading, isUserInitialized } = useAuth()
+  const { user, isUserInitialized } = useAuth()
 
   // Hook para obtener planes disponibles (solo summary)
-  const {
-    planes: planesDisponibles,
-    loading: isLoadingPlanes,
-    fetchPlanById,
-  } = usePlanesSummary()
+  const { planes: planesDisponibles, loading: isLoadingPlanes, fetchPlanById } = usePlanesSummary()
 
   // Estados para el plan seleccionado
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [planConsultado, setPlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
-
-  // Estado para controlar si el plan ya fue cargado manualmente
-  const [planLoadedManually, setPlanLoadedManually] = useState<boolean>(false)
 
   // Loading state para detalles del plan
   const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState(false)
@@ -90,14 +75,19 @@ export default function PlanesEstudioPage() {
       }
     })
 
-    // Always preserve the plan parameter if it exists
-    if (planIdFromUrl && !updates.plan) {
-      current.set('plan', planIdFromUrl)
+    // Only preserve the plan parameter if there's an actual consulted plan and no plan update is being made
+    if (planConsultado && !updates.plan) {
+      current.set('plan', planConsultado.idPlan.toString())
     }
 
     const search = current.toString()
     const query = search ? `?${search}` : ''
     router.replace(`/planes-estudio${query}`, { scroll: false })
+  }
+
+  const handleSelectedPlanIdChange = (value: string) => {
+    setSelectedPlanId(value)
+    // No actualizar URL aquí, solo cuando se consulte
   }
 
   // Wrapper functions to update both state and URL
@@ -146,9 +136,9 @@ export default function PlanesEstudioPage() {
   const fetchPlanDetallado = async (planId: string) => {
     try {
       setIsLoadingPlanDetails(true)
-      
+
       const usuarioIdToPass = isLoggedIn && user?.dbId && user.dbId > 0 ? user.dbId : undefined
-      
+
       const planData = await fetchPlanById(parseInt(planId), usuarioIdToPass)
       setPlanConsultado(planData)
 
@@ -164,23 +154,21 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  // Effect to handle URL plan parameter
+  // Effect to handle URL plan parameter - auto-load only on initial URL access
   useEffect(() => {
-    if (planIdFromUrl && !isLoadingPlanes && !planLoadedManually) {
+    if (planIdFromUrl && !isLoadingPlanes) {
       // Check if the plan exists in the available plans
       const planExists = planesDisponibles.find((p) => p.idPlan.toString() === planIdFromUrl)
       if (planExists) {
         setSelectedPlanId(planIdFromUrl)
-        // Auto-load the plan
-        handleConsultarFromUrl(planIdFromUrl)
+
+        // Auto-load the plan only if we don't have a consulted plan yet (initial load from URL)
+        if (!planConsultado) {
+          fetchPlanDetallado(planIdFromUrl)
+        }
       }
     }
-  }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planLoadedManually])
-
-  // Reset manual flag when plan selection changes
-  useEffect(() => {
-    setPlanLoadedManually(false)
-  }, [selectedPlanId])
+  }, [planIdFromUrl, isLoadingPlanes, planesDisponibles, planConsultado])
 
   // Effect to sync toggle states with URL parameters
   useEffect(() => {
@@ -213,26 +201,11 @@ export default function PlanesEstudioPage() {
     setFilterHours(searchParams.get('hours') || '')
   }, [searchParams, isLoggedIn])
 
-  const handleConsultarFromUrl = async (planId: string) => {
-    setIsLoadingPlanDetails(true)
+  const handleSubmitPlan = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault()
 
-    try {
-      await fetchPlanDetallado(planId)
-      setIsLoadingPlanDetails(false)
-
-      // No reset filters when loading from URL - preserve URL parameters
-      // Los filtros ya están inicializados desde los parámetros de URL
-      setCorrelativeSearchInput('')
-    } catch (error) {
-      console.error('Error loading plan from URL:', error)
-      setIsLoadingPlanDetails(false)
-    }
-  }
-
-  const handleConsultar = async () => {
     if (selectedPlanId) {
       setIsLoadingPlanDetails(true)
-      setPlanLoadedManually(true) // Marcar que fue cargado manualmente
 
       try {
         await fetchPlanDetallado(selectedPlanId)
@@ -260,7 +233,6 @@ export default function PlanesEstudioPage() {
       } catch (error) {
         console.error('Error loading plan:', error)
         setIsLoadingPlanDetails(false)
-        setPlanLoadedManually(false) // Reset en caso de error
       }
     }
   }
@@ -464,268 +436,270 @@ export default function PlanesEstudioPage() {
         </div>
 
         {/* Selector de Plan */}
-        <Card className="mb-8 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Búsqueda</CardTitle>
-            <CardDescription className="text-gray-600">
-              Luego de consultar un plan, podrás filtrar las materias por año, cuatrimestre, nombre, estado u horas.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Fila 1  - Label y Select*/}
-            <div className="grid gap-2">
-              <div>
-                <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
-                  Plan de Estudio
-                </Label>
-                <Select value={selectedPlanId} onValueChange={setSelectedPlanId} disabled={isLoadingPlanes}>
-                  <SelectTrigger className="bg-white border-gray-300">
-                    <SelectValue
-                      placeholder={isLoadingPlanes ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-300">
-                    {isLoadingPlanes ? (
-                      <SelectItem value="loading" disabled>
-                        Cargando planes de estudio...
-                      </SelectItem>
-                    ) : (
-                      planesDisponibles.map((plan) => (
-                        <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
-                          {plan.nombreCarrera} ({plan.anio})
+        <form onSubmit={handleSubmitPlan}>
+          <Card className="mb-8 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-gray-900">Búsqueda</CardTitle>
+              <CardDescription className="text-gray-600">
+                Luego de consultar un plan, podrás filtrar las materias por año, cuatrimestre, nombre, estado u horas.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Fila 1  - Label y Select*/}
+              <div className="grid gap-2">
+                <div>
+                  <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
+                    Plan de Estudio
+                  </Label>
+                  <Select value={selectedPlanId} onValueChange={handleSelectedPlanIdChange} disabled={isLoadingPlanes}>
+                    <SelectTrigger className="bg-white border-gray-300">
+                      <SelectValue
+                        placeholder={isLoadingPlanes ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-300">
+                      {isLoadingPlanes ? (
+                        <SelectItem value="loading" disabled>
+                          Cargando planes de estudio...
                         </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Fila 2 - Botones */}
-              <div className="flex justify-end gap-2">
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={handleClearAllFilters}
-                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Limpiar Todos los Filtros
-                  </Button>
-                )}
-                <Button
-                  disabled={planConsultado === null}
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  style={{ width: '200px' }}
-                  className={`bg-white hover:bg-gray-50 border-gray-300 ${hasActiveFilters ? 'text-blue-700 border-blue-300' : 'text-gray-700'}`}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                      ) : (
+                        planesDisponibles.map((plan) => (
+                          <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
+                            {plan.nombreCarrera} ({plan.anio})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Fila 2 - Botones */}
+                <div className="flex justify-end gap-2">
                   {hasActiveFilters && (
-                    <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
-                      {
-                        [
-                          filterYear !== '0',
-                          filterCuatrimestre !== '0',
-                          searchTerm !== '',
-                          filterStatus !== '0',
-                          filterHours !== '',
-                          correlativeSearchInput !== '',
-                        ].filter(Boolean).length
-                      }
-                    </Badge>
+                    <Button
+                      variant="outline"
+                      onClick={handleClearAllFilters}
+                      className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Limpiar Todos los Filtros
+                    </Button>
                   )}
-                </Button>
-                <Button
-                  onClick={handleConsultar}
-                  disabled={!selectedPlanId || selectedPlanId === '' || isLoadingPlanes || isLoadingPlanDetails}
-                  style={{ width: '150px' }}
-                >
-                  {isLoadingPlanDetails ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Cargando...
-                    </>
-                  ) : (
-                    'Consultar'
-                  )}
-                </Button>
+                  <Button
+                    disabled={planConsultado === null}
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    style={{ width: '200px' }}
+                    className={`bg-white hover:bg-gray-50 border-gray-300 ${hasActiveFilters ? 'text-blue-700 border-blue-300' : 'text-gray-700'}`}
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+                    {hasActiveFilters && (
+                      <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
+                        {
+                          [
+                            filterYear !== '0',
+                            filterCuatrimestre !== '0',
+                            searchTerm !== '',
+                            filterStatus !== '0',
+                            filterHours !== '',
+                            correlativeSearchInput !== '',
+                          ].filter(Boolean).length
+                        }
+                      </Badge>
+                    )}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={!selectedPlanId || selectedPlanId === '' || isLoadingPlanes || isLoadingPlanDetails}
+                    style={{ width: '150px' }}
+                  >
+                    {isLoadingPlanDetails ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        Cargando...
+                      </>
+                    ) : (
+                      'Consultar'
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-            {showFilters && (
-              <div className="mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {/* Search by Name/Code */}
-                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="col-span-1 sm:col-span-2 md:col-span-2">
-                    <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
-                      Buscar Materia
-                    </Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="search-term"
-                        placeholder="Nombre o código"
-                        value={searchTerm}
-                        onChange={(e) => handleSearchTermChange(e.target.value)}
-                        className="pl-9 bg-white border-gray-300"
-                      />
-                      {searchTerm && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                          onClick={() => handleSearchTermChange('')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filter by Year */}
-                <div>
-                  <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
-                    Año
-                  </Label>
-                  <Select value={filterYear} onValueChange={handleFilterYearChange}>
-                    <SelectTrigger id="filter-year" className="bg-white border-gray-300">
-                      <SelectValue placeholder="Todos los años" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      <SelectItem value="0">Todos los años</SelectItem>
-                      {allYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}° Año
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Filter by Cuatrimestre */}
-                <div>
-                  <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
-                    Cuatrimestre
-                  </Label>
-                  <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
-                    <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
-                      <SelectValue placeholder="Todos los cuatrimestres" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      <SelectItem value="0">Todos los cuatrimestres</SelectItem>
-                      <SelectItem value="anual">Anual</SelectItem>
-                      <SelectItem value="1">1° Cuatrimestre</SelectItem>
-                      <SelectItem value="2">2° Cuatrimestre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Filter by Hours */}
-                <div>
-                  <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
-                    Horas Semanales
-                  </Label>
-                  <Input
-                    id="filter-hours"
-                    type="number"
-                    placeholder="Ej: 4"
-                    value={filterHours}
-                    onChange={(e) => handleFilterHoursChange(e.target.value)}
-                    className="bg-white border-gray-300"
-                  />
-                </div>
-
-                {/* Fila - Filtros Correlativa */}
-                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Search by Name/Code Correlativa*/}
-                  <div className="col-span-1">
-                    <Label htmlFor="search-correlativa" className="block text-sm font-medium text-gray-700 mb-2">
-                      Buscar Correlativa
-                    </Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="search-correlativa"
-                        placeholder="Nombre o código de la materia correlativa"
-                        value={correlativeSearchInput}
-                        onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
-                        className="pl-9 bg-white border-gray-300"
-                      />
-                      {correlativeSearchInput && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                          onClick={() => handleFilterCorrelativaChange('')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Toggle Show Materia Correlativas */}
-                  <div className="col-span-1 flex flex-col justify-end">
-                    <div className="flex items-center space-x-2 h-10">
-                      <Switch
-                        id="show-correlatives"
-                        checked={showCorrelatives}
-                        onCheckedChange={handleShowCorrelativesChange}
-                      />
-                      <Label htmlFor="show-correlatives" className="text-gray-700">
-                        Mostrar Correlativas
+              {showFilters && (
+                <div className="mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Search by Name/Code */}
+                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="col-span-1 sm:col-span-2 md:col-span-2">
+                      <Label htmlFor="search-term" className="block text-sm font-medium text-gray-700 mb-2">
+                        Buscar Materia
                       </Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="search-term"
+                          placeholder="Nombre o código"
+                          value={searchTerm}
+                          onChange={(e) => handleSearchTermChange(e.target.value)}
+                          className="pl-9 bg-white border-gray-300"
+                        />
+                        {searchTerm && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                            onClick={() => handleSearchTermChange('')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Fila - Filtros Estado Materia */}
-                <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Filter by Status */}
-                  <div className="col-span-1">
-                    <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
-                      Estado
-                      {!isLoggedIn && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <User className="h-3 w-3 text-amber-600" />
-                          <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
-                        </div>
-                      )}
+                  {/* Filter by Year */}
+                  <div>
+                    <Label htmlFor="filter-year" className="block text-sm font-medium text-gray-700 mb-2">
+                      Año
                     </Label>
-                    <Select value={filterStatus} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
-                      <SelectTrigger id="filter-status" className="bg-white border-gray-300">
-                        <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
+                    <Select value={filterYear} onValueChange={handleFilterYearChange}>
+                      <SelectTrigger id="filter-year" className="bg-white border-gray-300">
+                        <SelectValue placeholder="Todos los años" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value="0">Todos los estados</SelectItem>
-                        {allStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
+                        <SelectItem value="0">Todos los años</SelectItem>
+                        {allYears.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}° Año
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Toggle Show Materia Status */}
-                  <div className="col-span-1 flex flex-col justify-end">
-                    <div className="flex items-center space-x-2 h-10">
-                      <Switch
-                        id="show-status"
-                        checked={showMateriaStatus && isLoggedIn}
-                        onCheckedChange={handleShowMateriaStatusChange}
-                        disabled={!isLoggedIn}
-                      />
-                      <Label htmlFor="show-status" className="text-gray-700">
-                        Mostrar Estado de Materia
+                  {/* Filter by Cuatrimestre */}
+                  <div>
+                    <Label htmlFor="filter-cuatrimestre" className="block text-sm font-medium text-gray-700 mb-2">
+                      Cuatrimestre
+                    </Label>
+                    <Select value={filterCuatrimestre} onValueChange={handleFilterCuatrimestreChange}>
+                      <SelectTrigger id="filter-cuatrimestre" className="bg-white border-gray-300">
+                        <SelectValue placeholder="Todos los cuatrimestres" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border-gray-300">
+                        <SelectItem value="0">Todos los cuatrimestres</SelectItem>
+                        <SelectItem value="anual">Anual</SelectItem>
+                        <SelectItem value="1">1° Cuatrimestre</SelectItem>
+                        <SelectItem value="2">2° Cuatrimestre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Filter by Hours */}
+                  <div>
+                    <Label htmlFor="filter-hours" className="block text-sm font-medium text-gray-700 mb-2">
+                      Horas Semanales
+                    </Label>
+                    <Input
+                      id="filter-hours"
+                      type="number"
+                      placeholder="Ej: 4"
+                      value={filterHours}
+                      onChange={(e) => handleFilterHoursChange(e.target.value)}
+                      className="bg-white border-gray-300"
+                    />
+                  </div>
+
+                  {/* Fila - Filtros Correlativa */}
+                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Search by Name/Code Correlativa*/}
+                    <div className="col-span-1">
+                      <Label htmlFor="search-correlativa" className="block text-sm font-medium text-gray-700 mb-2">
+                        Buscar Correlativa
                       </Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="search-correlativa"
+                          placeholder="Nombre o código de la materia correlativa"
+                          value={correlativeSearchInput}
+                          onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
+                          className="pl-9 bg-white border-gray-300"
+                        />
+                        {correlativeSearchInput && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
+                            onClick={() => handleFilterCorrelativaChange('')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Toggle Show Materia Correlativas */}
+                    <div className="col-span-1 flex flex-col justify-end">
+                      <div className="flex items-center space-x-2 h-10">
+                        <Switch
+                          id="show-correlatives"
+                          checked={showCorrelatives}
+                          onCheckedChange={handleShowCorrelativesChange}
+                        />
+                        <Label htmlFor="show-correlatives" className="text-gray-700">
+                          Mostrar Correlativas
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fila - Filtros Estado Materia */}
+                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Filter by Status */}
+                    <div className="col-span-1">
+                      <Label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
+                        Estado
+                        {!isLoggedIn && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <User className="h-3 w-3 text-amber-600" />
+                            <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
+                          </div>
+                        )}
+                      </Label>
+                      <Select value={filterStatus} onValueChange={handleFilterStatusChange} disabled={!isLoggedIn}>
+                        <SelectTrigger id="filter-status" className="bg-white border-gray-300">
+                          <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-gray-300">
+                          <SelectItem value="0">Todos los estados</SelectItem>
+                          {allStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Toggle Show Materia Status */}
+                    <div className="col-span-1 flex flex-col justify-end">
+                      <div className="flex items-center space-x-2 h-10">
+                        <Switch
+                          id="show-status"
+                          checked={showMateriaStatus && isLoggedIn}
+                          onCheckedChange={handleShowMateriaStatusChange}
+                          disabled={!isLoggedIn}
+                        />
+                        <Label htmlFor="show-status" className="text-gray-700">
+                          Mostrar Estado de Materia
+                        </Label>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </form>
 
         {/* Loading state para plan details */}
         {isLoadingPlanDetails && (
@@ -901,9 +875,7 @@ export default function PlanesEstudioPage() {
                                                   {materia.horasSemanales}h
                                                 </Badge>
                                                 {showMateriaStatus && isLoggedIn && materia.estado && (
-                                                  <Badge
-                                                    className={`text-xs ${getStatusBadgeColor(materia.estado)}`}
-                                                  >
+                                                  <Badge className={`text-xs ${getStatusBadgeColor(materia.estado)}`}>
                                                     {materia.estado}
                                                   </Badge>
                                                 )}
