@@ -126,7 +126,7 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
         for (const materia of materiasResult.rows as unknown as MateriaDelPlan[]) {
           await query(
             `INSERT INTO prod.usuario_materia_estado 
-             (usuario_id, plan_estudio_id, materia_id, estado, anio_cursada, cuatrimestre, nota)
+             (usuario_id, plan_estudio_id, materia_id, estado, anio_academico, cuatrimestre, nota)
              VALUES ($1, $2, $3, 'Pendiente', NULL, NULL, NULL)`,
             [usuarioId, planEstudioId, materia.materia_id]
           )

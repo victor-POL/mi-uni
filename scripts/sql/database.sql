@@ -117,7 +117,7 @@ CREATE TABLE prod.usuario_materia_estado (
   usuario_id         INT     NOT NULL,
   plan_estudio_id    INT     NOT NULL,
   materia_id         INT     NOT NULL,
-  anio_academico     INT     NOT NULL
+  anio_academico     INT
                        CHECK (anio_academico >= 2000 AND anio_academico <= 2100),
   nota               INT
                        CHECK (nota >= 0 AND nota <= 10),
@@ -134,8 +134,7 @@ CREATE TABLE prod.usuario_materia_estado (
   PRIMARY KEY (
     usuario_id,
     plan_estudio_id,
-    materia_id,
-    anio_academico
+    materia_id
   ),
   -- FK compuesta: el usuario debe estar inscrito en ese plan
   FOREIGN KEY (usuario_id, plan_estudio_id)
