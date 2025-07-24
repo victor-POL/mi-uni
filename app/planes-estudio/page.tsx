@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback, memo } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,7 @@ import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/mate
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 import { Separator } from '@/components/ui/separator'
 import { usePlanesSummary } from '@/hooks/use-planes-estudio'
+import { useDebounce } from '@uidotdev/usehooks'
 
 interface PlanesEstudioFilters {
   year: string
@@ -43,6 +44,106 @@ const initialPlanFilters: PlanesEstudioFilters = {
   searchCorrelativa: '',
 }
 
+// Optimized MateriaCard component using React.memo
+const MateriaCard = memo(({ 
+  materia, 
+  materiaResaltada, 
+  showStatus, 
+  isLoggedIn, 
+  showCorrelatives, 
+  navegarACorrelativa, 
+  getStatusBadgeColor, 
+  getNombreMateriaById 
+}: {
+  materia: MateriaPlanEstudio
+  materiaResaltada: string | null
+  showStatus: boolean
+  isLoggedIn: boolean
+  showCorrelatives: boolean
+  navegarACorrelativa: (codigo: string) => void
+  getStatusBadgeColor: (status: EstadoMateriaPlanEstudio) => string
+  getNombreMateriaById: (codigo: string) => string
+}) => {
+  return (
+    <Card
+      id={`materia-${materia.codigoMateria}`}
+      className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
+        materiaResaltada === materia.codigoMateria
+          ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
+          : ''
+      }`}
+    >
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-base text-gray-900">
+              {materia.nombreMateria}
+            </CardTitle>
+            <CardDescription className="font-mono text-sm text-gray-600">
+              {materia.codigoMateria}
+            </CardDescription>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-1 bg-gray-100 text-gray-800"
+            >
+              <Clock className="h-3 w-3" />
+              {materia.horasSemanales}h
+            </Badge>
+            {showStatus && isLoggedIn && materia.estado && (
+              <Badge className={`text-xs ${getStatusBadgeColor(materia.estado)}`}>
+                {materia.estado}
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        {/* Correlativas */}
+        {showCorrelatives && materia.listaCorrelativas.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Correlativas:
+            </h4>
+            <div className="space-y-1">
+              {materia.listaCorrelativas.map((codigoCorrelativa) => (
+                <Button
+                  key={codigoCorrelativa}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navegarACorrelativa(codigoCorrelativa)}
+                  className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
+                >
+                  {getNombreMateriaById(codigoCorrelativa)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+        {showCorrelatives && materia.listaCorrelativas.length === 0 && (
+          <div className="text-xs text-gray-500 italic">Sin correlativas</div>
+        )}
+        {!showCorrelatives && (
+          <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
+        )}
+
+        {/* Botón Ver Detalles */}
+        <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
+          >
+            <BookOpen className="h-3 w-3 mr-1" />
+            Ver Detalles
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  )
+})
+
 export default function PlanesEstudioPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -64,6 +165,8 @@ export default function PlanesEstudioPage() {
 
   // Filter states - will be synchronized with URL params via useEffect
   const [filtersPlan, setFiltersPlan] = useState(initialPlanFilters)
+  const debouncedSearchTerm = useDebounce(filtersPlan.search, 300)
+  const debouncedCorrelativeSearch = useDebounce(filtersPlan.searchCorrelativa, 300)
 
   // Local UI state for showing/hiding filters section
   const [showFilters, setShowFilters] = useState<boolean>(false)
@@ -235,29 +338,41 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  // Función para obtener el nombre de la materia por ID
-  const getNombreMateriaById = (codigoMateria: string): string => {
-    if (!planConsultado) return ''
-    const materia = planConsultado.materias.find((m) => m.codigoMateria === codigoMateria)
-    return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
-  }
-
-  // Función para agrupar materias por año y cuatrimestre
-  const agruparMaterias = (materias: MateriaPlanEstudio[]) => {
-    const agrupadas: { [anio: number]: { [cuatrimestre: number]: MateriaPlanEstudio[] } } = {}
-
-    materias.forEach((materia) => {
-      if (!agrupadas[materia.anioCursada]) {
-        agrupadas[materia.anioCursada] = {}
-      }
-      if (!agrupadas[materia.anioCursada][materia.cuatrimestreCursada]) {
-        agrupadas[materia.anioCursada][materia.cuatrimestreCursada] = []
-      }
-      agrupadas[materia.anioCursada][materia.cuatrimestreCursada].push(materia)
+  // Función optimizada para obtener el nombre de la materia por ID usando memoización
+  const materiasByCode = useMemo(() => {
+    if (!planConsultado) return new Map()
+    const map = new Map<string, MateriaPlanEstudio>()
+    planConsultado.materias.forEach(materia => {
+      map.set(materia.codigoMateria, materia)
     })
+    return map
+  }, [planConsultado])
 
-    return agrupadas
-  }
+  const getNombreMateriaById = useMemo(() => {
+    return (codigoMateria: string): string => {
+      const materia = materiasByCode.get(codigoMateria)
+      return materia ? `${materia.codigoMateria} - ${materia.nombreMateria}` : `Código: ${codigoMateria}`
+    }
+  }, [materiasByCode])
+
+  // Función optimizada para agrupar materias por año y cuatrimestre
+  const agruparMaterias = useMemo(() => {
+    return (materias: MateriaPlanEstudio[]) => {
+      const agrupadas: { [anio: number]: { [cuatrimestre: number]: MateriaPlanEstudio[] } } = {}
+
+      materias.forEach((materia) => {
+        if (!agrupadas[materia.anioCursada]) {
+          agrupadas[materia.anioCursada] = {}
+        }
+        if (!agrupadas[materia.anioCursada][materia.cuatrimestreCursada]) {
+          agrupadas[materia.anioCursada][materia.cuatrimestreCursada] = []
+        }
+        agrupadas[materia.anioCursada][materia.cuatrimestreCursada].push(materia)
+      })
+
+      return agrupadas
+    }
+  }, [])
 
   const handleClearAllFilters = () => {
     setFiltersPlan(initialPlanFilters)
@@ -279,74 +394,88 @@ export default function PlanesEstudioPage() {
 
   const allStatuses: EstadoMateriaPlanEstudio[] = ['Pendiente', 'En Curso', 'En Final', 'Aprobada', 'Regularizada']
 
-  const filteredMaterias = useMemo(() => {
-    if (!planConsultado) return []
-
-    let currentMaterias = planConsultado.materias
-
-    // Filter by year
-    if (filtersPlan.year !== initialPlanFilters.year) {
-      currentMaterias = currentMaterias.filter((materia) => materia.anioCursada.toString() === filtersPlan.year)
+  // Optimized filtering functions - separated for better performance
+  const filterByYear = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], year: string) => {
+      if (year === initialPlanFilters.year) return materias
+      return materias.filter((materia) => materia.anioCursada.toString() === year)
     }
+  }, [])
 
-    // Filter by cuatrimestre
-    if (filtersPlan.semester !== initialPlanFilters.semester) {
-      if (filtersPlan.semester === 'anual') {
-        currentMaterias = currentMaterias.filter((materia) => materia.cuatrimestreCursada === 0)
-      } else {
-        currentMaterias = currentMaterias.filter(
-          (materia) => materia.cuatrimestreCursada.toString() === filtersPlan.semester
-        )
+  const filterBySemester = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], semester: string) => {
+      if (semester === initialPlanFilters.semester) return materias
+      if (semester === 'anual') {
+        return materias.filter((materia) => materia.cuatrimestreCursada === 0)
       }
+      return materias.filter((materia) => materia.cuatrimestreCursada.toString() === semester)
     }
+  }, [])
 
-    // Filter by search term (name or code)
-    if (filtersPlan.search) {
-      const lowerCaseSearchTerm = filtersPlan.search.toLowerCase()
-      currentMaterias = currentMaterias.filter(
+  const filterBySearch = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], searchTerm: string) => {
+      if (!searchTerm) return materias
+      const lowerCaseSearchTerm = searchTerm.toLowerCase()
+      return materias.filter(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseSearchTerm) ||
           materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm)
       )
     }
+  }, [])
 
-    // Filter by status (solo si está logueado)
-    if (filtersPlan.status !== initialPlanFilters.status && isLoggedIn) {
-      currentMaterias = currentMaterias.filter((materia) => materia.estado === filtersPlan.status)
+  const filterByStatus = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], status: string, isLoggedIn: boolean) => {
+      if (status === initialPlanFilters.status || !isLoggedIn) return materias
+      return materias.filter((materia) => materia.estado === status)
     }
+  }, [])
 
-    // Filter by hours
-    if (filtersPlan.hours) {
-      const hours = Number.parseInt(filtersPlan.hours)
-      if (!Number.isNaN(hours)) {
-        currentMaterias = currentMaterias.filter((materia) => materia.horasSemanales === hours)
-      }
+  const filterByHours = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], hours: string) => {
+      if (!hours) return materias
+      const hoursNum = Number.parseInt(hours)
+      if (Number.isNaN(hoursNum)) return materias
+      return materias.filter((materia) => materia.horasSemanales === hoursNum)
     }
+  }, [])
 
-    // Filter by correlative search - dynamic filtering
-    if (filtersPlan.searchCorrelativa) {
-      const lowerCaseCorrelativeSearch = filtersPlan.searchCorrelativa.toLowerCase()
-
+  const filterByCorrelative = useMemo(() => {
+    return (materias: MateriaPlanEstudio[], correlativeSearch: string, allMaterias: MateriaPlanEstudio[]) => {
+      if (!correlativeSearch) return materias
+      const lowerCaseCorrelativeSearch = correlativeSearch.toLowerCase()
+      
       // Find the correlative materia being searched
-      const foundCorrelativeMateria = planConsultado.materias.find(
+      const foundCorrelativeMateria = allMaterias.find(
         (materia) =>
           materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch) ||
           materia.codigoMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
       )
 
       if (foundCorrelativeMateria) {
-        // Filter to show only materias that have this correlative
-        currentMaterias = currentMaterias.filter((materia) =>
+        return materias.filter((materia) =>
           materia.listaCorrelativas.includes(foundCorrelativeMateria.codigoMateria)
         )
-      } else {
-        // No correlative found, show empty results
-        currentMaterias = []
       }
+      return []
     }
+  }, [])
+
+  const filteredMaterias = useMemo(() => {
+    if (!planConsultado) return []
+
+    let currentMaterias = planConsultado.materias
+
+    // Apply filters in sequence using optimized functions
+    currentMaterias = filterByYear(currentMaterias, filtersPlan.year)
+    currentMaterias = filterBySemester(currentMaterias, filtersPlan.semester)
+    currentMaterias = filterBySearch(currentMaterias, debouncedSearchTerm)
+    currentMaterias = filterByStatus(currentMaterias, filtersPlan.status, isLoggedIn)
+    currentMaterias = filterByHours(currentMaterias, filtersPlan.hours)
+    currentMaterias = filterByCorrelative(currentMaterias, debouncedCorrelativeSearch, planConsultado.materias)
 
     return currentMaterias
-  }, [planConsultado, filtersPlan, isLoggedIn])
+  }, [planConsultado, filtersPlan.year, filtersPlan.semester, debouncedSearchTerm, filtersPlan.status, filtersPlan.hours, debouncedCorrelativeSearch, isLoggedIn, filterByYear, filterBySemester, filterBySearch, filterByStatus, filterByHours, filterByCorrelative])
 
   const materiasAgrupadas = useMemo(() => agruparMaterias(filteredMaterias), [filteredMaterias])
 
@@ -355,27 +484,27 @@ export default function PlanesEstudioPage() {
     return [
       filtersPlan.year !== initialPlanFilters.year,
       filtersPlan.semester !== initialPlanFilters.semester,
-      filtersPlan.search !== initialPlanFilters.search,
+      debouncedSearchTerm !== initialPlanFilters.search,
       filtersPlan.status !== initialPlanFilters.status,
       filtersPlan.hours !== initialPlanFilters.hours,
       !isLoggedIn ? false : filtersPlan.showStatus !== initialPlanFilters.showStatus,
       filtersPlan.showCorrelatives !== initialPlanFilters.showCorrelatives,
-      filtersPlan.searchCorrelativa !== initialPlanFilters.searchCorrelativa,
+      debouncedCorrelativeSearch !== initialPlanFilters.searchCorrelativa,
     ].filter(Boolean).length
-  }, [filtersPlan, isLoggedIn])
+  }, [filtersPlan, debouncedSearchTerm, debouncedCorrelativeSearch, isLoggedIn])
 
   const hasActiveFilters = useMemo(() => cantidadFiltrosActivos > 0, [cantidadFiltrosActivos])
 
-  const navegarACorrelativa = (codigoMateria: string) => {
+  const navegarACorrelativa = useCallback((codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
     const element = document.getElementById(`materia-${codigoMateria}`)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
-  }
+  }, [])
 
-  const getStatusBadgeColor = (status: EstadoMateriaPlanEstudio) => {
+  const getStatusBadgeColor = useCallback((status: EstadoMateriaPlanEstudio) => {
     switch (status) {
       case 'Aprobada':
         return 'bg-green-100 text-green-800'
@@ -390,7 +519,7 @@ export default function PlanesEstudioPage() {
       default:
         return 'bg-gray-100 text-gray-800'
     }
-  }
+  }, [])
 
   // Generate default open values for Accordions
   const defaultOpenYears = useMemo(() => {
@@ -831,87 +960,19 @@ export default function PlanesEstudioPage() {
                                 </AccordionTrigger>
                                 <AccordionContent className="pl-4">
                                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {materiasAgrupadas[anio][cuatrimestre].map((materia) => {
-                                      return (
-                                        <Card
-                                          key={materia.codigoMateria}
-                                          id={`materia-${materia.codigoMateria}`}
-                                          className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
-                                            materiaResaltada === materia.codigoMateria
-                                              ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
-                                              : ''
-                                          }`}
-                                        >
-                                          <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
-                                              <div>
-                                                <CardTitle className="text-base text-gray-900">
-                                                  {materia.nombreMateria}
-                                                </CardTitle>
-                                                <CardDescription className="font-mono text-sm text-gray-600">
-                                                  {materia.codigoMateria}
-                                                </CardDescription>
-                                              </div>
-                                              <div className="flex flex-col items-end gap-1">
-                                                <Badge
-                                                  variant="secondary"
-                                                  className="flex items-center gap-1 bg-gray-100 text-gray-800"
-                                                >
-                                                  <Clock className="h-3 w-3" />
-                                                  {materia.horasSemanales}h
-                                                </Badge>
-                                                {filtersPlan.showStatus && isLoggedIn && materia.estado && (
-                                                  <Badge className={`text-xs ${getStatusBadgeColor(materia.estado)}`}>
-                                                    {materia.estado}
-                                                  </Badge>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </CardHeader>
-                                          <CardContent className="pt-0">
-                                            {/* Correlativas */}
-                                            {filtersPlan.showCorrelatives && materia.listaCorrelativas.length > 0 && (
-                                              <div>
-                                                <h4 className="text-sm font-medium text-gray-700 mb-2">
-                                                  Correlativas:
-                                                </h4>
-                                                <div className="space-y-1">
-                                                  {materia.listaCorrelativas.map((codigoCorrelativa) => (
-                                                    <Button
-                                                      key={codigoCorrelativa}
-                                                      variant="outline"
-                                                      size="sm"
-                                                      onClick={() => navegarACorrelativa(codigoCorrelativa)}
-                                                      className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
-                                                    >
-                                                      {getNombreMateriaById(codigoCorrelativa)}
-                                                    </Button>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                            )}
-                                            {filtersPlan.showCorrelatives && materia.listaCorrelativas.length === 0 && (
-                                              <div className="text-xs text-gray-500 italic">Sin correlativas</div>
-                                            )}
-                                            {!filtersPlan.showCorrelatives && (
-                                              <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
-                                            )}
-
-                                            {/* Botón Ver Detalles */}
-                                            <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                                              >
-                                                <BookOpen className="h-3 w-3 mr-1" />
-                                                Ver Detalles
-                                              </Button>
-                                            </Link>
-                                          </CardContent>
-                                        </Card>
-                                      )
-                                    })}
+                                    {materiasAgrupadas[anio][cuatrimestre].map((materia) => (
+                                      <MateriaCard
+                                        key={materia.codigoMateria}
+                                        materia={materia}
+                                        materiaResaltada={materiaResaltada}
+                                        showStatus={filtersPlan.showStatus}
+                                        isLoggedIn={isLoggedIn}
+                                        showCorrelatives={filtersPlan.showCorrelatives}
+                                        navegarACorrelativa={navegarACorrelativa}
+                                        getStatusBadgeColor={getStatusBadgeColor}
+                                        getNombreMateriaById={getNombreMateriaById}
+                                      />
+                                    ))}
                                   </div>
                                 </AccordionContent>
                               </AccordionItem>
