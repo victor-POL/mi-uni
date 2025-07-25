@@ -317,6 +317,28 @@ export default function PlanesEstudioPage() {
     }
   }
 
+  // Obtener el mensaje de warning segun el estado del loggin o si tiene materias con estado nulo
+  const getWarningFilterEstadoMateriaUsuario = () => {
+    if (!isLoggedIn) {
+      return (
+        <div className="flex items-center gap-1 mt-1">
+          <User className="h-3 w-3 text-amber-600" />
+          <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
+        </div>
+      )
+    } else if (!filtroEstadoHabilitado) {
+      return (
+        <div className="flex items-center gap-1 mt-1">
+          <User className="h-3 w-3 text-amber-600" />
+          <span className="text-xs text-amber-600">
+            No se puede filtrar por estado ya que no esta cargada como carrera en tu cuenta
+          </span>
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
     <AppLayout title="Planes de Estudio">
       <div className="container mx-auto p-6 space-y-6">
@@ -673,12 +695,7 @@ export default function PlanesEstudioPage() {
                         className="block text-sm font-medium text-gray-700 mb-2"
                       >
                         Estado
-                        {!isLoggedIn && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <User className="h-3 w-3 text-amber-600" />
-                            <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
-                          </div>
-                        )}
+                        {getWarningFilterEstadoMateriaUsuario()}
                       </Label>
                       <Select
                         value={filtersPlan.estadoMateriaUsuario}
