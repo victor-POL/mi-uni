@@ -1,158 +1,79 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { planesDeEstudio } from '@/data/planes-estudio.data'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const planId = searchParams.get('id')
-    const carrera = searchParams.get('carrera')
     const summary = searchParams.get('summary')
     const usuarioId = searchParams.get('usuarioId')
 
-    // Si se solicita solo el resumen de planes (para el selector)
+    // Si es summary === true se devuelve un listado básico de planes, sin detalles
     if (summary === 'true') {
       try {
         const planesService = await import('@/lib/database/planes-estudio.service')
-        const planesBasicos = await planesService.getAllPlanesBasicos()
+        const planesBasicos = await planesService.getListadoPlanes()
         return NextResponse.json({
           success: true,
           data: planesBasicos,
           count: planesBasicos.length,
-          source: 'database'
         })
       } catch (error) {
         console.error('Error fetching from database:', error)
 
-        return NextResponse.json({
-          error: 'Internal server error: Unable to fetch basic plans'
-        }, { status: 500 })
-      }
-    }
-
-    // Si se proporciona un ID específico, devolver ese plan completo
-    if (planId) {
-      const id = parseInt(planId, 10)
-
-      if (Number.isNaN(id)) {
         return NextResponse.json(
-          { error: 'Invalid plan ID provided' },
-          { status: 400 }
-        )
-      }
-
-      try {
-        const planesService = await import('@/lib/database/planes-estudio.service')
-        
-        // Parsear usuarioId si está presente
-        const parsedUsuarioId = usuarioId ? Number(usuarioId) : undefined
-
-        if (usuarioId && Number.isNaN(parsedUsuarioId)) {
-          return NextResponse.json(
-            { error: 'Invalid usuario ID provided' },
-            { status: 400 }
-          )
-        }
-        
-        const plan = await planesService.getPlanById(id, parsedUsuarioId)
-        if (!plan) {
-          return NextResponse.json(
-            { error: 'Plan not found' },
-            { status: 404 }
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          data: plan,
-          source: 'database'
-        })
-      } catch (error) {
-        console.error('Error fetching plan from database: ', error)
-        return NextResponse.json(
-          { error: 'Internal server error: Something went wrong'},
+          {
+            error: 'Internal server error: No se pudo obtener el listado de planes de estudio',
+          },
           { status: 500 }
         )
       }
     }
 
-    // Si se proporciona una búsqueda por carrera
-    if (carrera) {
+    // Si se proporciona un ID específico de un plan, devolver el detalle del plan
+    if (planId) {
+      const planIdParsed = parseInt(planId, 10)
+
+      if (Number.isNaN(planIdParsed)) {
+        return NextResponse.json({ error: 'Plan ID invalido' }, { status: 400 })
+      }
+
       try {
         const planesService = await import('@/lib/database/planes-estudio.service')
-        const planes = await planesService.searchPlanesByCarrera(carrera)
+
+        const parsedUsuarioId = usuarioId ? Number(usuarioId) : undefined
+
+        if (usuarioId && Number.isNaN(parsedUsuarioId)) {
+          return NextResponse.json({ error: 'Usuario ID invalido' }, { status: 400 })
+        }
+
+        const planDetalle = await planesService.getDetallePlan(planIdParsed, parsedUsuarioId)
+        if (planDetalle === null) {
+          return NextResponse.json({ error: 'No se pudo obtener el detalle del plan de estudio (id nulo)' }, { status: 404 })
+        }
+
         return NextResponse.json({
           success: true,
-          data: planes,
-          count: planes.length,
-          source: 'database'
+          data: planDetalle,
+          source: 'database',
         })
       } catch (error) {
-        console.error('Error searching plans in database, falling back to static data:', error)
-        
-        // Fallback a datos estáticos
-        const planes = planesDeEstudio.filter(p => 
-          p.nombreCarrera.toLowerCase().includes(carrera.toLowerCase())
-        )
-        return NextResponse.json({
-          success: true,
-          data: planes,
-          count: planes.length,
-          source: 'fallback'
-        })
+        console.error('Error fetching plan from database: ', error)
+        return NextResponse.json({ error: 'Internal server error: Something went wrong' }, { status: 500 })
       }
     }
 
-    // Si no se proporcionan parámetros, devolver todos los planes completos
-    return NextResponse.json({
-      success: true,
-      data: planesDeEstudio,
-      count: planesDeEstudio.length,
-      source: 'static'
-    })
-
+    // Si no se proporcionan parámetros, notificar que se deben indicar parámetros de búsqueda
+    return NextResponse.json({ error: 'Debe proporcionar parametros (id, summary, usuarioId)' }, { status: 400 })
   } catch (error) {
     console.error('API Error:', error)
+
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Something went wrong'
+        message: 'Ha ocurrido un error al procesar la solicitud',
       },
-      { status: 500 }
-    )
-  }
-}
-
-// Para el futuro, si necesitas crear nuevos planes
-export async function POST() {
-  try {
-    // Aquí puedes agregar la lógica para crear nuevos planes
-    return NextResponse.json(
-      { error: 'POST method not implemented yet' },
-      { status: 501 }
-    )
-  } catch (error) {
-    console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-// Para el futuro, si necesitas actualizar planes
-export async function PUT() {
-  try {
-    // Aquí puedes agregar la lógica para actualizar planes
-    return NextResponse.json(
-      { error: 'PUT method not implemented yet' },
-      { status: 501 }
-    )
-  } catch (error) {
-    console.error('API Error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
       { status: 500 }
     )
   }

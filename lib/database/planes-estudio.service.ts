@@ -12,14 +12,12 @@ const pool = new Pool({
 })
 
 /**
- * Obtiene todos los planes de estudio básicos (solo información de resumen)
+ * Obtiene un listado de todos los planes de estudio (solo información basica: idPlan, nombreCarrera, anio)
  */
-export async function getAllPlanesBasicos() {
+export async function getListadoPlanes() {
   try {
-    // Configurar el search_path
     await pool.query(`SET search_path = prod, public`)
     
-    // Consultar los planes de estudio básicos
     const result = await pool.query(`
       SELECT 
         pe.id as plan_id,
@@ -43,15 +41,14 @@ export async function getAllPlanesBasicos() {
 }
 
 /**
- * Obtiene un plan completo con todas las materias desde la base de datos
+ * Obtiene un detalle del plan con todas las materias desde la base de datos (anioCursada, cuatrimestreCursada, horasSemanales, tipo, estado, correlativas, etc)
  */
-export async function getPlanById(planId: number, usuarioId?: number): Promise<PlanDeEstudioDetalle | null> {
+export async function getDetallePlan(planId: number, usuarioId?: number): Promise<PlanDeEstudioDetalle | null> {
   try {
-    // Configurar el search_path
     await pool.query(`SET search_path = prod, public`)
     
     // Primero obtener la información básica del plan
-    const planResult = await pool.query(`
+    const planBasicInfo = await pool.query(`
       SELECT 
         pe.id as plan_id,
         pe.anio,
@@ -61,11 +58,11 @@ export async function getPlanById(planId: number, usuarioId?: number): Promise<P
       WHERE pe.id = $1
     `, [planId])
 
-    if (planResult.rows.length === 0) {
+    if (planBasicInfo.rows.length === 0) {
       return null
     }
 
-    const planInfo = planResult.rows[0]
+    const planInfo = planBasicInfo.rows[0]
 
     // Luego obtener todas las materias del plan con correlativas
     const materiasResult = await pool.query(`
@@ -86,7 +83,13 @@ export async function getPlanById(planId: number, usuarioId?: number): Promise<P
       correlativas_agrupadas AS (
         SELECT 
           c.materia_id,
-          array_agg(m_corr.codigo_materia ORDER BY m_corr.codigo_materia) as correlativas
+          array_agg(
+            json_build_object(
+              'codigoMateria', m_corr.codigo_materia,
+              'nombreMateria', m_corr.nombre_materia
+            ) 
+            ORDER BY m_corr.codigo_materia
+          ) as correlativas
         FROM prod.correlativa c
         JOIN prod.materia m_corr ON c.correlativa_materia_id = m_corr.id
         WHERE c.materia_id IN (SELECT materia_id FROM materias_plan)
@@ -116,7 +119,7 @@ export async function getPlanById(planId: number, usuarioId?: number): Promise<P
           )
           ELSE NULL
         END as estado_materia_usuario,
-        COALESCE(ca.correlativas, ARRAY[]::text[]) as lista_correlativas
+        COALESCE(ca.correlativas, ARRAY[]::json[]) as lista_correlativas
       FROM materias_plan mp
       LEFT JOIN correlativas_agrupadas ca ON mp.materia_id = ca.materia_id
       CROSS JOIN usuario_tiene_plan utp
@@ -144,36 +147,6 @@ export async function getPlanById(planId: number, usuarioId?: number): Promise<P
 
   } catch (error) {
     console.error('Database error getting plan details:', error)
-    throw error
-  }
-}
-
-/**
- * Busca planes por nombre de carrera
- */
-export async function searchPlanesByCarrera(carreraNombre: string) {
-  try {
-    await pool.query(`SET search_path = prod, public`)
-    
-    const result = await pool.query(`
-      SELECT 
-        pe.id as plan_id,
-        pe.anio,
-        c.nombre as nombre_carrera
-      FROM prod.plan_estudio pe
-      JOIN prod.carrera c ON pe.carrera_id = c.id
-      WHERE LOWER(c.nombre) LIKE LOWER($1)
-      ORDER BY c.nombre, pe.anio DESC
-    `, [`%${carreraNombre}%`])
-
-    return result.rows.map(row => ({
-      idPlan: row.plan_id,
-      nombreCarrera: row.nombre_carrera,
-      anio: row.anio
-    }))
-
-  } catch (error) {
-    console.error('Database error searching plans:', error)
     throw error
   }
 }

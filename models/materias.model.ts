@@ -3,21 +3,21 @@ export interface Materia {
   nombreMateria: string
 }
 
-export type EstadoMateriaPlanEstudio = "Aprobada" | "Regularizada" | "Pendiente" | "En Curso" | "En Final"
+export type EstadoMateriaPlanEstudio = 'Aprobada' | 'Pendiente' | 'En Curso' | 'En Final'
 
 export interface MateriaPlanEstudio extends Materia {
-  tipo: "cursable" | "electiva"
+  tipo: 'cursable' | 'electiva'
   anioCursada: number
   cuatrimestreCursada: number
   horasSemanales: number
-  listaCorrelativas: string[]
+  listaCorrelativas: Materia[]
   opcionesElectivas?: string[]
   estado: EstadoMateriaPlanEstudio
 }
 
 export interface MateriaDetalle extends Materia {
   horasSemanales: number
-  correlativas: string[]
+  correlativas: Materia[]
   descripcion: string
   objetivos: string[]
   linksUtiles: {
@@ -29,8 +29,8 @@ export interface MateriaDetalle extends Materia {
   horarios: string
 }
 
-export type CondicionCursadaMateriaEnCurso = "Para promocion/regularizar" | "Para regularizar"
-export type ResultadoCursadaMateriaEnCurso = "Promocionada" | "Regularizada" | "Desaprobada" | "Ausente"
+export type CondicionCursadaMateriaEnCurso = 'Para promocion/regularizar' | 'Para regularizar'
+export type ResultadoCursadaMateriaEnCurso = 'Promocionada' | 'Regularizada' | 'Desaprobada' | 'Ausente'
 
 export interface MateriaCursable extends Materia {
   horasSemanales: number
@@ -44,4 +44,4 @@ export interface MateriaEnCurso extends Materia {
   horasSemanales: number
 }
 
-export type TipoNota = "Por Promocion" | "Por Final"
+export type TipoNota = 'Por Promocion' | 'Por Final'
