@@ -8,7 +8,7 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'miuniversidad',
   password: process.env.DB_PASSWORD || 'victor1234',
   port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: false
+  ssl: false,
 })
 
 /**
@@ -17,23 +17,24 @@ const pool = new Pool({
 export async function getListadoPlanes() {
   try {
     await pool.query(`SET search_path = prod, public`)
-    
+
     const result = await pool.query(`
       SELECT 
-        pe.id as plan_id,
-        pe.anio,
-        c.nombre as nombre_carrera
-      FROM prod.plan_estudio pe
-      JOIN prod.carrera c ON pe.carrera_id = c.id
-      ORDER BY c.nombre, pe.anio DESC
+        plan_estudio.id       as plan_id,
+        plan_estudio.anio,
+        carrera.nombre        as nombre_carrera
+      FROM prod.plan_estudio
+      JOIN prod.carrera       ON plan_estudio.carrera_id = carrera.id
+      ORDER BY 
+        carrera.nombre    ASC, 
+        plan_estudio.anio DESC
     `)
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       idPlan: row.plan_id,
       nombreCarrera: row.nombre_carrera,
-      anio: row.anio
+      anio: row.anio,
     }))
-
   } catch (error) {
     console.error('Database error getting basic plans:', error)
     throw error
@@ -46,17 +47,20 @@ export async function getListadoPlanes() {
 export async function getDetallePlan(planId: number, usuarioId?: number): Promise<PlanDeEstudioDetalle | null> {
   try {
     await pool.query(`SET search_path = prod, public`)
-    
+
     // Primero obtener la información básica del plan
-    const planBasicInfo = await pool.query(`
+    const planBasicInfo = await pool.query(
+      `
       SELECT 
-        pe.id as plan_id,
-        pe.anio,
-        c.nombre as nombre_carrera
-      FROM prod.plan_estudio pe
-      JOIN prod.carrera c ON pe.carrera_id = c.id
-      WHERE pe.id = $1
-    `, [planId])
+        plan_estudio.id       as plan_id,
+        plan_estudio.anio,
+        carrera.nombre        as nombre_carrera
+      FROM prod.plan_estudio
+      JOIN prod.carrera       ON plan_estudio.carrera_id = carrera.id
+      WHERE plan_estudio.id = $1
+    `,
+      [planId]
+    )
 
     if (planBasicInfo.rows.length === 0) {
       return null
@@ -65,69 +69,75 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
     const planInfo = planBasicInfo.rows[0]
 
     // Luego obtener todas las materias del plan con correlativas
-    const materiasResult = await pool.query(`
+    const materiasResult = await pool.query(
+      `
       WITH materias_plan AS (
         SELECT 
-          pm.plan_estudio_id,
-          pm.materia_id,
-          pm.anio_cursada,
-          pm.cuatrimestre,
-          m.codigo_materia,
-          m.nombre_materia,
-          m.tipo,
-          m.horas_semanales
-        FROM prod.plan_materia pm
-        JOIN prod.materia m ON pm.materia_id = m.id
-        WHERE pm.plan_estudio_id = $1
+          plan_materia.plan_estudio_id,
+          plan_materia.materia_id,
+          plan_materia.anio_cursada,
+          plan_materia.cuatrimestre,
+          materia.codigo_materia,
+          materia.nombre_materia,
+          materia.tipo,
+          materia.horas_semanales
+        FROM prod.plan_materia
+        JOIN prod.materia         ON plan_materia.materia_id = materia.id
+        WHERE plan_materia.plan_estudio_id = $1
       ),
       correlativas_agrupadas AS (
         SELECT 
-          c.materia_id,
+          correlativa.materia_id,
           array_agg(
             json_build_object(
-              'codigoMateria', m_corr.codigo_materia,
-              'nombreMateria', m_corr.nombre_materia
+              'codigoMateria', materia.codigo_materia,
+              'nombreMateria', materia.nombre_materia
             ) 
-            ORDER BY m_corr.codigo_materia
+            ORDER BY materia.codigo_materia
           ) as correlativas
-        FROM prod.correlativa c
-        JOIN prod.materia m_corr ON c.correlativa_materia_id = m_corr.id
-        WHERE c.materia_id IN (SELECT materia_id FROM materias_plan)
-          AND c.plan_estudio_id = $1
-        GROUP BY c.materia_id
+        FROM prod.correlativa
+        JOIN prod.materia  ON correlativa.correlativa_materia_id = materia.id
+        WHERE correlativa.materia_id IN (SELECT materia_id FROM materias_plan)
+          AND correlativa.plan_estudio_id = $1
+        GROUP BY correlativa.materia_id
       ),
       usuario_tiene_plan AS (
         SELECT CASE 
           WHEN $2::int IS NULL THEN false
           WHEN EXISTS (
             SELECT 1 
-            FROM prod.usuario_plan_estudio upe 
-            JOIN prod.plan_estudio pe ON upe.plan_estudio_id = pe.id 
-            WHERE upe.usuario_id = $2::int AND pe.id = $1
+            FROM prod.usuario_plan_estudio 
+            JOIN prod.plan_estudio ON usuario_plan_estudio.plan_estudio_id = plan_estudio.id 
+            WHERE usuario_plan_estudio.usuario_id = $2::int AND plan_estudio.id = $1
           ) THEN true
           ELSE false
         END as tiene_acceso
       )
       SELECT 
-        mp.*,
+        materias_plan.*,
         CASE 
-          WHEN utp.tiene_acceso THEN (
-            SELECT ume.estado
-            FROM prod.usuario_materia_estado ume
-            WHERE ume.usuario_id = $2::int
-              AND ume.materia_id = mp.materia_id
+          WHEN usuario_tiene_plan.tiene_acceso THEN (
+            SELECT usuario_materia_estado.estado
+            FROM prod.usuario_materia_estado
+            WHERE usuario_materia_estado.usuario_id = $2::int
+              AND usuario_materia_estado.materia_id = materias_plan.materia_id
           )
           ELSE NULL
         END as estado_materia_usuario,
-        COALESCE(ca.correlativas, ARRAY[]::json[]) as lista_correlativas
-      FROM materias_plan mp
-      LEFT JOIN correlativas_agrupadas ca ON mp.materia_id = ca.materia_id
-      CROSS JOIN usuario_tiene_plan utp
-      ORDER BY mp.anio_cursada, mp.cuatrimestre, mp.codigo_materia
-    `, [planId, usuarioId])
+        COALESCE(correlativas_agrupadas.correlativas, ARRAY[]::json[]) as lista_correlativas
+      FROM materias_plan
+      LEFT JOIN correlativas_agrupadas ON materias_plan.materia_id = correlativas_agrupadas.materia_id
+      CROSS JOIN usuario_tiene_plan
+      ORDER BY 
+        materias_plan.anio_cursada ASC, 
+        materias_plan.cuatrimestre ASC, 
+        materias_plan.codigo_materia ASC
+    `,
+      [planId, usuarioId]
+    )
 
     // Transformar las materias al formato esperado
-    const materias = materiasResult.rows.map(row => ({
+    const materias = materiasResult.rows.map((row) => ({
       codigoMateria: row.codigo_materia,
       nombreMateria: row.nombre_materia,
       anioCursada: row.anio_cursada,
@@ -135,16 +145,15 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       horasSemanales: row.horas_semanales,
       tipo: row.tipo,
       estado: row.estado_materia_usuario,
-      listaCorrelativas: row.lista_correlativas || []
+      listaCorrelativas: row.lista_correlativas || [],
     }))
 
     return {
       idPlan: planInfo.plan_id,
       nombreCarrera: planInfo.nombre_carrera,
       anio: planInfo.anio,
-      materias
+      materias,
     }
-
   } catch (error) {
     console.error('Database error getting plan details:', error)
     throw error
