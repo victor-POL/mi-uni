@@ -58,9 +58,9 @@ export default function MateriaDetallePage() {
                 <CardTitle className="text-2xl">{materia.nombreMateria}</CardTitle>
                 <CardDescription className="text-lg mt-2">{materia.descripcion}</CardDescription>
               </div>
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                {materia.horasSemanales} horas/semana
+              <Badge variant="secondary" className="flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5">
+                <Clock className="h-4 w-4 flex-shrink-0" />
+                <span className="leading-none">{materia.horasSemanales} horas/semana</span>
               </Badge>
             </div>
           </CardHeader>
