@@ -1,10 +1,11 @@
 'use client'
 
 /* ---------------------------------- HOOKS --------------------------------- */
-import { useState, useMemo, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { useAllPlanes, fetchPlanById } from '@/hooks/use-planes-estudio'
+import { usePlanesEstudioFiltros } from '@/hooks/use-planes-estudio-filtros'
 /* ------------------------------ COMPONENTS UI ----------------------------- */
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
@@ -18,34 +19,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
 /* --------------------------------- MODELS --------------------------------- */
-import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
+import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 
 /* --------------------------------- UTILES --------------------------------- */
 import Link from 'next/link'
 import { getNombreCuatrimestre } from '@/utils/utils'
-
-interface PlanesEstudioFilters {
-  anioCursada: string
-  cuatrimestreCursada: string
-  nombreMateria: string
-  estadoMateriaUsuario: string
-  horasSemanales: string
-  showEstadoMateriaUsuario: boolean
-  showCorrelativasMateria: boolean
-  nombreCorrelativa: string
-}
-
-const initialPlanFilters: PlanesEstudioFilters = {
-  anioCursada: '-1',
-  cuatrimestreCursada: '-1',
-  nombreMateria: '',
-  estadoMateriaUsuario: 'Todos',
-  horasSemanales: '',
-  showEstadoMateriaUsuario: true,
-  showCorrelativasMateria: true,
-  nombreCorrelativa: '',
-}
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
@@ -62,55 +41,37 @@ export default function PlanesEstudioPage() {
   // Auxiliar para ir a la materia resaltada
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
-  // Filtros para el detalle del plan
-  const [filtersPlan, setFiltersPlan] = useState(initialPlanFilters)
-  const [showFilters, setShowFilters] = useState<boolean>(false)
+  // Hook para manejar filtros
+  const {
+    filtersPlan,
+    showFilters,
+    setShowFilters,
+    filtroEstadoHabilitado,
+    aniosDisponiblesFiltro,
+    estadosMateriasDisponiblesFiltro,
+    materiasAgrupadas,
+    cantidadFiltrosActivos,
+    hasActiveFilters,
+    handleFilterYearChange,
+    handleFilterCuatrimestreChange,
+    handleSearchTermChange,
+    handleFilterCorrelativaChange,
+    handleFilterStatusChange,
+    handleFilterHoursChange,
+    handleShowMateriaStatusChange,
+    handleShowCorrelativesChange,
+    handleClearAllFilters,
+    resetFilters,
+    initialPlanFilters,
+  } = usePlanesEstudioFiltros({
+    detallePlanConsultado,
+    isLoggedIn,
+  })
 
   // Otros auxiliares
   const { toast } = useToast()
-  const [filtroEstadoHabilitado, setFiltroEstadoHabilitado] = useState<boolean>(false)
 
-  // Handlers cambios filtros
-  const handleFilterYearChange = (value: string) => {
-    setFiltersPlan((prev) => ({ ...prev, anioCursada: value }))
-  }
-
-  const handleFilterCuatrimestreChange = (value: string) => {
-    setFiltersPlan((prev) => ({ ...prev, cuatrimestreCursada: value }))
-  }
-
-  const handleSearchTermChange = (value: string) => {
-    setFiltersPlan((prev) => ({ ...prev, nombreMateria: value }))
-  }
-
-  const handleFilterCorrelativaChange = (value: string) => {
-    setFiltersPlan((prev) => ({ ...prev, nombreCorrelativa: value }))
-  }
-
-  const handleFilterStatusChange = (value: string) => {
-    if (!isLoggedIn) return // No permitir cambios si no está logueado
-    setFiltersPlan((prev) => ({ ...prev, estadoMateriaUsuario: value }))
-  }
-
-  const handleFilterHoursChange = (value: string) => {
-    setFiltersPlan((prev) => ({ ...prev, horasSemanales: value }))
-  }
-
-  const handleShowMateriaStatusChange = (value: boolean) => {
-    if (!filtroEstadoHabilitado) return
-    setFiltersPlan((prev) => ({ ...prev, showEstadoMateriaUsuario: value }))
-  }
-
-  const handleShowCorrelativesChange = (value: boolean) => {
-    setFiltersPlan((prev) => ({ ...prev, showCorrelativasMateria: value }))
-  }
-
-  // Handler para limpiar todos los filtros
-  const handleClearAllFilters = () => {
-    setFiltersPlan(initialPlanFilters)
-  }
-
-  // Handler para el submit del formu lario de selección de plan
+  // Handler para el submit del formulario de selección de plan
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -145,8 +106,7 @@ export default function PlanesEstudioPage() {
         }
 
         setDetallePlanConsultado(planData)
-
-        setFiltersPlan(initialPlanFilters)
+        resetFilters() // Usar la función del hook para resetear filtros
       } catch (error) {
         let errorMessage = 'Error desconocido. Por favor, inténtalo más tarde.'
 
@@ -175,140 +135,7 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  /* ----------------------------- UTILES FILTROS ----------------------------- */
-  useEffect(() => {
-    if (isLoggedIn) {
-      if (detallePlanConsultado === null) {
-        setFiltroEstadoHabilitado(false)
-      } else {
-        const algunaMateriaConEstadoNulo = detallePlanConsultado.materias.some((m) => m.estado === null)
-        if (algunaMateriaConEstadoNulo) {
-          setFiltroEstadoHabilitado(false)
-          setFiltersPlan((prev) => ({ ...prev, estadoMateriaUsuario: 'Todos' }))
-        } else {
-          setFiltroEstadoHabilitado(true)
-        }
-      }
-    } else {
-      setFiltroEstadoHabilitado(false)
-    }
-  }, [isLoggedIn, detallePlanConsultado])
-
-  // Años disponibles para filtrar - Teniendo en cuenta la informacion dentro del plan consultado
-  const aniosDisponiblesFiltro = useMemo(() => {
-    if (!detallePlanConsultado) return []
-    return [...new Set(detallePlanConsultado.materias.map((m) => m.anioCursada))].sort((a, b) => a - b)
-  }, [detallePlanConsultado])
-
-  // Estados disponibles para filtrar - TODOS EXISTENTES
-  const estadosMateriasDisponiblesFiltro: EstadoMateriaPlanEstudio[] = ['Pendiente', 'En Curso', 'En Final', 'Aprobada']
-
-  // Obtener las materias filtradas según los filtros activos
-  const materiasPlanEstudioFiltradas = useMemo(() => {
-    if (!detallePlanConsultado) return []
-
-    let filteredMaterias = detallePlanConsultado.materias
-
-    // Filter by anioCursada
-    if (filtersPlan.anioCursada !== initialPlanFilters.anioCursada) {
-      filteredMaterias = filteredMaterias.filter(
-        (materia) => materia.anioCursada.toString() === filtersPlan.anioCursada
-      )
-    }
-
-    // Filter by cuatrimestreCursada
-    if (filtersPlan.cuatrimestreCursada !== initialPlanFilters.cuatrimestreCursada) {
-      filteredMaterias = filteredMaterias.filter(
-        (materia) => materia.cuatrimestreCursada.toString() === filtersPlan.cuatrimestreCursada
-      )
-    }
-
-    // Filter by nombreMateria
-    if (filtersPlan.nombreMateria) {
-      const lowerCaseSearchTerm = filtersPlan.nombreMateria.toLowerCase()
-      filteredMaterias = filteredMaterias.filter((materia) =>
-        materia.codigoMateria.toLowerCase().includes(lowerCaseSearchTerm)
-      )
-    }
-
-    // Filter by estadoMateriaUsuario (solo si está logueado y el plan es una carrera del usuario)
-    if (filtersPlan.estadoMateriaUsuario !== initialPlanFilters.estadoMateriaUsuario && filtroEstadoHabilitado) {
-      filteredMaterias = filteredMaterias.filter((materia) => materia.estado === filtersPlan.estadoMateriaUsuario)
-    }
-
-    // Filter by horasSemanales
-    if (filtersPlan.horasSemanales) {
-      const horasSemanales = Number.parseInt(filtersPlan.horasSemanales)
-      if (!Number.isNaN(horasSemanales)) {
-        filteredMaterias = filteredMaterias.filter((materia) => materia.horasSemanales === horasSemanales)
-      }
-    }
-
-    // Filter by correlative nombreMateria
-    if (filtersPlan.nombreCorrelativa) {
-      const lowerCaseCorrelativeSearch = filtersPlan.nombreCorrelativa.toLowerCase()
-
-      // Busco la correlativa por el nombre de dicha materia
-      const foundCorrelativeMateria = detallePlanConsultado.materias.find((materia) =>
-        materia.nombreMateria.toLowerCase().includes(lowerCaseCorrelativeSearch)
-      )
-
-      if (foundCorrelativeMateria) {
-        // Filter by correlative codigoMateria
-        filteredMaterias = filteredMaterias.filter((materia) =>
-          materia.listaCorrelativas.some(
-            (correlativa) => correlativa.codigoMateria === foundCorrelativeMateria.codigoMateria
-          )
-        )
-      } else {
-        // Si no se encuentra la correlativa, no mostrar resultados
-        filteredMaterias = []
-      }
-    }
-
-    return filteredMaterias
-  }, [detallePlanConsultado, filtersPlan, isLoggedIn])
-
-  // Cantidad de filtros activos
-  const cantidadFiltrosActivos = useMemo(() => {
-    return [
-      filtersPlan.anioCursada !== initialPlanFilters.anioCursada,
-      filtersPlan.cuatrimestreCursada !== initialPlanFilters.cuatrimestreCursada,
-      filtersPlan.nombreMateria !== initialPlanFilters.nombreMateria,
-      filtersPlan.estadoMateriaUsuario !== initialPlanFilters.estadoMateriaUsuario,
-      filtersPlan.horasSemanales !== initialPlanFilters.horasSemanales,
-      !filtroEstadoHabilitado
-        ? false
-        : filtersPlan.showEstadoMateriaUsuario !== initialPlanFilters.showEstadoMateriaUsuario,
-      filtersPlan.showCorrelativasMateria !== initialPlanFilters.showCorrelativasMateria,
-      filtersPlan.nombreCorrelativa !== initialPlanFilters.nombreCorrelativa,
-    ].filter(Boolean).length
-  }, [filtersPlan, isLoggedIn])
-
-  // Ver si hay filtros activos
-  const hasActiveFilters = useMemo(() => cantidadFiltrosActivos > 0, [cantidadFiltrosActivos])
-
   /* -------------------------------- UTILES UI ------------------------------- */
-  // Función para agrupar materias por año y cuatrimestreCursada - Vista web
-  const agruparMaterias = (materias: MateriaPlanEstudio[]) => {
-    const agrupadas: { [anio: number]: { [cuatrimestreCursada: number]: MateriaPlanEstudio[] } } = {}
-
-    materias.forEach((materia) => {
-      if (!agrupadas[materia.anioCursada]) {
-        agrupadas[materia.anioCursada] = {}
-      }
-      if (!agrupadas[materia.anioCursada][materia.cuatrimestreCursada]) {
-        agrupadas[materia.anioCursada][materia.cuatrimestreCursada] = []
-      }
-      agrupadas[materia.anioCursada][materia.cuatrimestreCursada].push(materia)
-    })
-
-    return agrupadas
-  }
-
-  // Listado materias del detalle del plan agrupadas por año y cuatrimestreCursada - Vista web
-  const materiasAgrupadas = useMemo(() => agruparMaterias(materiasPlanEstudioFiltradas), [materiasPlanEstudioFiltradas])
-
   // Util para navegar a una materia resaltada al clickear en una correlativa
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -317,6 +144,32 @@ export default function PlanesEstudioPage() {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
     }
+  }
+
+  // Componente para renderizar correlativas
+  const renderCorrelativas = (correlativas: { codigoMateria: string; nombreMateria: string }[]) => {
+    if (correlativas.length === 0) {
+      return <div className="text-xs text-gray-500 italic">Sin correlativas</div>
+    }
+
+    return (
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
+        <div className="space-y-1">
+          {correlativas.map((correlativa) => (
+            <Button
+              key={correlativa.codigoMateria}
+              variant="outline"
+              size="sm"
+              onClick={() => navegarACorrelativa(correlativa.codigoMateria)}
+              className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
+            >
+              {`${correlativa.codigoMateria} - ${correlativa.nombreMateria}`}
+            </Button>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   // Obtener el color del badge según el estado de la materia
@@ -825,32 +678,9 @@ export default function PlanesEstudioPage() {
                                           </CardHeader>
                                           <CardContent className="pt-0">
                                             {/* Correlativas */}
-                                            {filtersPlan.showCorrelativasMateria &&
-                                              materia.listaCorrelativas.length > 0 && (
-                                                <div>
-                                                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                                                    Correlativas:
-                                                  </h4>
-                                                  <div className="space-y-1">
-                                                    {materia.listaCorrelativas.map((correlativa) => (
-                                                      <Button
-                                                        key={correlativa.codigoMateria}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => navegarACorrelativa(correlativa.codigoMateria)}
-                                                        className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
-                                                      >
-                                                        {`${correlativa.codigoMateria} - ${correlativa.nombreMateria}`}
-                                                      </Button>
-                                                    ))}
-                                                  </div>
-                                                </div>
-                                              )}
-                                            {filtersPlan.showCorrelativasMateria &&
-                                              materia.listaCorrelativas.length === 0 && (
-                                                <div className="text-xs text-gray-500 italic">Sin correlativas</div>
-                                              )}
-                                            {!filtersPlan.showCorrelativasMateria && (
+                                            {filtersPlan.showCorrelativasMateria ? (
+                                              renderCorrelativas(materia.listaCorrelativas)
+                                            ) : (
                                               <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
                                             )}
 
