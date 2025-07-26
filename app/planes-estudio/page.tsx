@@ -25,6 +25,9 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 /* --------------------------------- UTILES --------------------------------- */
 import Link from 'next/link'
 import { getNombreCuatrimestre } from '@/utils/utils'
+import { getUserIdToPass } from '@/utils/user.util'
+/* -------------------------------- ADAPTERS -------------------------------- */
+import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
@@ -71,67 +74,35 @@ export default function PlanesEstudioPage() {
   // Otros auxiliares
   const { toast } = useToast()
 
-  // Handler para el submit del formulario de selección de plan
+  // Handler para el submit del formulario de selección de plan (refactorizado)
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const formData = new FormData(e.target as HTMLFormElement)
     const selectedPlanId = formData.get('plan-select')
 
-    if (typeof selectedPlanId === 'string' && selectedPlanId !== '') {
-      setIsLoadingPlanDetails(true)
+    if (typeof selectedPlanId !== 'string' || selectedPlanId === '') {
+      return
+    }
 
-      try {
-        const usuarioIdToPass = isLoggedIn && user?.dbId && user.dbId > 0 ? user.dbId : undefined
+    setIsLoadingPlanDetails(true)
 
-        const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), usuarioIdToPass)
+    try {
+      const usuarioIdToPass = getUserIdToPass(isLoggedIn, user)
+      const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), usuarioIdToPass)
+      const planData = transformPlanAPIResponseToLocal(detallePlanAPIResponse)
 
-        const planData: PlanDeEstudioDetalle = {
-          idPlan: detallePlanAPIResponse.plan_id,
-          nombreCarrera: detallePlanAPIResponse.nombre_carrera,
-          anio: detallePlanAPIResponse.anio,
-          materias: detallePlanAPIResponse.materias.map((materia) => ({
-            codigoMateria: materia.codigo_materia,
-            nombreMateria: materia.nombre_materia,
-            anioCursada: materia.anio_cursada,
-            cuatrimestreCursada: materia.cuatrimestre_cursada,
-            horasSemanales: materia.horas_semanales,
-            tipo: materia.tipo as 'cursable' | 'electiva',
-            estado: materia.estado_materia_usuario as EstadoMateriaPlanEstudio | null,
-            listaCorrelativas: materia.lista_correlativas.map((correlativa) => ({
-              codigoMateria: correlativa.codigo_materia,
-              nombreMateria: correlativa.nombre_materia,
-            })),
-          })),
-        }
-
-        setDetallePlanConsultado(planData)
-        resetFilters() // Usar la función del hook para resetear filtros
-      } catch (error) {
-        let errorMessage = 'Error desconocido. Por favor, inténtalo más tarde.'
-
-        if (error instanceof Error) {
-          if (error.message.includes('fetch') || error.message.includes('network') || error.name === 'NetworkError') {
-            errorMessage = 'Error de conexión. Verifica tu conexión a internet e inténtalo nuevamente.'
-          } else if (error.message.includes('timeout') || error.name === 'TimeoutError') {
-            errorMessage = 'La solicitud tardó demasiado tiempo. Por favor, inténtalo más tarde.'
-          } else if (error.message.includes('500') || error.message.includes('server')) {
-            errorMessage = 'Error del servidor. Por favor, inténtalo más tarde.'
-          } else if (error.message.includes('404') || error.message.includes('not found')) {
-            errorMessage = 'Plan de estudio no encontrado. Verifica que el plan seleccionado sea válido.'
-          } else if (error.message.length > 0) {
-            errorMessage = `Error: ${error.message}`
-          }
-        }
-
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        })
-      } finally {
-        setIsLoadingPlanDetails(false)
-      }
+      setDetallePlanConsultado(planData)
+      resetFilters()
+    } catch (error) {
+      const errorMessage = getPlanesEstudioErrorMessage(error)
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoadingPlanDetails(false)
     }
   }
 
