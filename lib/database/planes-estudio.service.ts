@@ -1,44 +1,31 @@
-import { Pool } from 'pg'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
-import type { PlanEstudioAPIResponse } from '@/models/api/carreras.model'
-import type { PlanEstudioDB } from '@/models/database/carreras.model'
-
-// Configuración de base de datos
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'miuniversidad',
-  password: process.env.DB_PASSWORD || 'victor1234',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: false,
-})
+import { query } from '@/connection'
+import type { DetalleMateriaAPIResponse, PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
+import type { PlanEstudioDB, MateriaPlanEstudioDetalleDB } from '@/models/database/planes-estudio.model'
 
 /**
- * Obtiene un listado de todos los planes de estudio (solo información básica: idPlan, nombreCarrera, anio)
+ * Obtiene un listado de todos los planes de estudio desde la base de datos (solo información básica: idPlan, nombreCarrera, anio)
  * @param idCarrera - ID de la carrera para filtrar los planes. Si no se proporciona, devuelve todos los planes
  * @returns Promise con array de planes de estudio con información básica
  */
-export async function getListadoPlanes(idCarrea?: number): Promise<PlanEstudioAPIResponse[]> {
+export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioAPIResponse[]> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
 
-    const result = await pool.query(
+    const result = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
         plan_estudio.anio,
         carrera.nombre        as nombre_carrera
       FROM prod.plan_estudio
-      JOIN prod.carrera       ON plan_estudio.carrera_id = carrera.id
-      ${idCarrea ? 'WHERE carrera.id = $1' : ''}
-      ORDER BY 
-        carrera.nombre    ASC, 
-        plan_estudio.anio DESC
-    `,
-      [idCarrea]
+      JOIN prod.carrera ON plan_estudio.carrera_id = carrera.id
+      WHERE (COALESCE($1::int, 0) = 0 OR carrera.id = $1::int)
+      ORDER BY carrera.nombre ASC, plan_estudio.anio DESC
+      `,
+      [idCarrera || null]
     )
 
-    const rows: PlanEstudioDB[] = result.rows
+    const rows: PlanEstudioDB[] = result.rows as unknown as PlanEstudioDB[]
 
     return rows.map((row) => ({
       plan_id: row.plan_id,
@@ -46,20 +33,23 @@ export async function getListadoPlanes(idCarrea?: number): Promise<PlanEstudioAP
       anio: row.anio,
     }))
   } catch (error) {
-    console.error('Database error getting basic plans:', error)
+    console.error('Error DB listado planes')
     throw error
   }
 }
 
 /**
  * Obtiene un detalle del plan con todas las materias desde la base de datos (anioCursada, cuatrimestreCursada, horasSemanales, tipo, estado, correlativas, etc)
+ * @param planId - ID del plan de estudio a obtener
+ * @param usuarioId - ID del usuario (opcional) para obtener el estado de las materias
+ * @returns Promise con el detalle del plan de estudio o null si no se encuentra
  */
-export async function getDetallePlan(planId: number, usuarioId?: number): Promise<PlanDeEstudioDetalle | null> {
+export async function getDetallePlan(planId: number, usuarioId?: number): Promise<PlanEstudioDetalleAPIResponse | null> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
 
     // Primero obtener la información básica del plan
-    const planBasicInfo = await pool.query(
+    const resultQueryDatosPlan = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
@@ -72,14 +62,14 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       [planId]
     )
 
-    if (planBasicInfo.rows.length === 0) {
+    if (resultQueryDatosPlan.rows.length === 0) {
       return null
     }
 
-    const planInfo = planBasicInfo.rows[0]
+    const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0] as any
 
     // Luego obtener todas las materias del plan con correlativas
-    const materiasResult = await pool.query(
+    const resultQueryDetallePlan = await query(
       `
       WITH materias_plan AS (
         SELECT 
@@ -100,8 +90,8 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
           correlativa.materia_id,
           array_agg(
             json_build_object(
-              'codigoMateria', materia.codigo_materia,
-              'nombreMateria', materia.nombre_materia
+              'codigo_materia', materia.codigo_materia,
+              'nombre_materia', materia.nombre_materia
             ) 
             ORDER BY materia.codigo_materia
           ) as correlativas
@@ -146,33 +136,33 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       [planId, usuarioId]
     )
 
+    const detallePlanDB: MateriaPlanEstudioDetalleDB[] = resultQueryDetallePlan.rows as unknown as MateriaPlanEstudioDetalleDB[]
+
+    console.log(detallePlanDB)
+
     // Transformar las materias al formato esperado
-    const materias = materiasResult.rows.map((row) => ({
-      codigoMateria: row.codigo_materia,
-      nombreMateria: row.nombre_materia,
-      anioCursada: row.anio_cursada,
-      cuatrimestreCursada: row.cuatrimestre,
-      horasSemanales: row.horas_semanales,
-      tipo: row.tipo,
-      estado: row.estado_materia_usuario,
-      listaCorrelativas: row.lista_correlativas || [],
+    const materias: DetalleMateriaAPIResponse[] = detallePlanDB.map((materia) => ({
+      codigo_materia: materia.codigo_materia,
+      nombre_materia: materia.nombre_materia,
+      anio_cursada: materia.anio_cursada,
+      cuatrimestre_cursada: materia.cuatrimestre,
+      horas_semanales: materia.horas_semanales,
+      tipo: materia.tipo,
+      estado_materia_usuario: materia.estado_materia_usuario,
+      lista_correlativas: materia.lista_correlativas.map(correlativa => ({
+        codigo_materia: correlativa.codigo_materia,
+        nombre_materia: correlativa.nombre_materia
+      })),
     }))
 
     return {
-      idPlan: planInfo.plan_id,
-      nombreCarrera: planInfo.nombre_carrera,
-      anio: planInfo.anio,
+      plan_id: planEstudioDB.plan_id,
+      nombre_carrera: planEstudioDB.nombre_carrera,
+      anio: planEstudioDB.anio,
       materias,
     }
   } catch (error) {
-    console.error('Database error getting plan details:', error)
+    console.error('Error DB detalle plan')
     throw error
   }
-}
-
-/**
- * Cierra la conexión del pool (útil para testing)
- */
-export async function closeConnection() {
-  await pool.end()
 }

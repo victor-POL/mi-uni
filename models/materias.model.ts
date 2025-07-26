@@ -12,7 +12,7 @@ export interface MateriaPlanEstudio extends Materia {
   horasSemanales: number
   listaCorrelativas: Materia[]
   opcionesElectivas?: string[]
-  estado: EstadoMateriaPlanEstudio
+  estado: EstadoMateriaPlanEstudio | null
 }
 
 export interface MateriaDetalle extends Materia {

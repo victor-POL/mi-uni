@@ -1,78 +1,32 @@
-import type { NextRequest } from 'next/server'
+import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
+/**
+ * GET /api/planes-estudio
+ * Obtiene un listado básico de todos los planes de estudio
+ */
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const planId = searchParams.get('id')
-    const summary = searchParams.get('summary')
-    const usuarioId = searchParams.get('usuarioId')
-
-    // Si es summary === true se devuelve un listado básico de planes, sin detalles
-    if (summary === 'true') {
-      try {
-        const planesService = await import('@/lib/database/planes-estudio.service')
-        const planesBasicos = await planesService.getListadoPlanes()
-        return NextResponse.json({
-          success: true,
-          data: planesBasicos,
-          count: planesBasicos.length,
-        })
-      } catch (error) {
-        console.error('Error fetching from database:', error)
-
-        return NextResponse.json(
-          {
-            error: 'Internal server error: No se pudo obtener el listado de planes de estudio',
-          },
-          { status: 500 }
-        )
-      }
-    }
-
-    // Si se proporciona un ID específico de un plan, devolver el detalle del plan
-    if (planId) {
-      const planIdParsed = parseInt(planId, 10)
-
-      if (Number.isNaN(planIdParsed)) {
-        return NextResponse.json({ error: 'Plan ID invalido' }, { status: 400 })
-      }
-
-      try {
-        const planesService = await import('@/lib/database/planes-estudio.service')
-
-        const parsedUsuarioId = usuarioId ? Number(usuarioId) : undefined
-
-        if (usuarioId && Number.isNaN(parsedUsuarioId)) {
-          return NextResponse.json({ error: 'Usuario ID invalido' }, { status: 400 })
-        }
-
-        const planDetalle = await planesService.getDetallePlan(planIdParsed, parsedUsuarioId)
-        if (planDetalle === null) {
-          return NextResponse.json({ error: 'No se pudo obtener el detalle del plan de estudio (id nulo)' }, { status: 404 })
-        }
-
-        return NextResponse.json({
-          success: true,
-          data: planDetalle,
-          source: 'database',
-        })
-      } catch (error) {
-        console.error('Error fetching plan from database: ', error)
-        return NextResponse.json({ error: 'Internal server error: Something went wrong' }, { status: 500 })
-      }
-    }
-
-    // Si no se proporcionan parámetros, notificar que se deben indicar parámetros de búsqueda
-    return NextResponse.json({ error: 'Debe proporcionar parametros (id, summary, usuarioId)' }, { status: 400 })
+    const planesService = await import('@/lib/database/planes-estudio.service')
+    const listadoPlanes: PlanEstudioAPIResponse[] = await planesService.getListadoPlanes()
+    
+    return NextResponse.json({
+      success: true,
+      data: listadoPlanes,
+      count: listadoPlanes.length,
+    })
   } catch (error) {
-    console.error('API Error:', error)
-
+    console.error('Error GET planes de estudio')
+    
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+    }
+    
     return NextResponse.json(
       {
         success: false,
-        error: 'Internal server error',
-        message: 'Ha ocurrido un error al procesar la solicitud',
+        error: 'No se pudo obtener el listado de planes de estudio',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )

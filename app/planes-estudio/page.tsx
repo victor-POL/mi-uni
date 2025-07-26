@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { usePlanesSummary } from '@/hooks/use-planes-estudio'
+import { useAllPlanes, fetchPlanById } from '@/hooks/use-planes-estudio'
 /* ------------------------------ COMPONENTS UI ----------------------------- */
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,6 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 /* --------------------------------- UTILES --------------------------------- */
 import Link from 'next/link'
 import { getNombreCuatrimestre } from '@/utils/utils'
-import { set } from 'react-hook-form'
 
 interface PlanesEstudioFilters {
   anioCursada: string
@@ -54,7 +53,7 @@ export default function PlanesEstudioPage() {
   const isLoggedIn: boolean = user !== null && isUserInitialized
 
   // Planes para el input select
-  const { planes: planesDisponibles, loading: isLoadingPlanesDisponible, fetchPlanById } = usePlanesSummary()
+  const { planes: planesDisponibles, loading: isLoadingPlanesDisponible } = useAllPlanes()
 
   // Detalles de planes
   const [detallePlanConsultado, setDetallePlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
@@ -124,7 +123,26 @@ export default function PlanesEstudioPage() {
       try {
         const usuarioIdToPass = isLoggedIn && user?.dbId && user.dbId > 0 ? user.dbId : undefined
 
-        const planData = await fetchPlanById(parseInt(selectedPlanId), usuarioIdToPass)
+        const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), usuarioIdToPass)
+
+        const planData: PlanDeEstudioDetalle = {
+          idPlan: detallePlanAPIResponse.plan_id,
+          nombreCarrera: detallePlanAPIResponse.nombre_carrera,
+          anio: detallePlanAPIResponse.anio,
+          materias: detallePlanAPIResponse.materias.map((materia) => ({
+            codigoMateria: materia.codigo_materia,
+            nombreMateria: materia.nombre_materia,
+            anioCursada: materia.anio_cursada,
+            cuatrimestreCursada: materia.cuatrimestre_cursada,
+            horasSemanales: materia.horas_semanales,
+            tipo: materia.tipo as 'cursable' | 'electiva',
+            estado: materia.estado_materia_usuario as EstadoMateriaPlanEstudio | null,
+            listaCorrelativas: materia.lista_correlativas.map((correlativa) => ({
+              codigoMateria: correlativa.codigo_materia,
+              nombreMateria: correlativa.nombre_materia,
+            })),
+          })),
+        }
 
         setDetallePlanConsultado(planData)
 
