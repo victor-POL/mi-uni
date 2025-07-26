@@ -14,7 +14,9 @@ const pool = new Pool({
 })
 
 /**
- * Obtiene un listado de todos los planes de estudio (solo información basica: idPlan, nombreCarrera, anio)
+ * Obtiene un listado de todos los planes de estudio (solo información básica: idPlan, nombreCarrera, anio)
+ * @param idCarrera - ID de la carrera para filtrar los planes. Si no se proporciona, devuelve todos los planes
+ * @returns Promise con array de planes de estudio con información básica
  */
 export async function getListadoPlanes(idCarrea?: number): Promise<PlanEstudioAPIResponse[]> {
   try {
