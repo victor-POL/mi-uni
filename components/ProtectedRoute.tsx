@@ -1,19 +1,19 @@
-"use client"
+'use client'
 
 import type React from 'react'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { LoadingPage } from '@/components/ui/loading-spinner'
+import { OverlayVerificandoAutenticacion } from '@/components/OverlayVerificandoAutenticacion'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
   fallback?: React.ReactNode
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  fallback = <LoadingPage text="Verificando autenticación..." variant="dots" />
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  fallback = <OverlayVerificandoAutenticacion loading={true} />,
 }) => {
   const { user, isUserInitialized } = useAuth()
   const router = useRouter()

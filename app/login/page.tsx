@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
 import { signInWithEmailAdvanced, signInWithGitHubAdvanced } from '@/lib/firebase/auth'
 import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
+import { OverlayVerificandoAutenticacion } from '@/components/OverlayVerificandoAutenticacion'
 
 function LoginContent() {
   const router = useRouter()
@@ -35,12 +36,12 @@ function LoginContent() {
       router.push('/')
     } catch (error) {
       console.error('Error al iniciar sesión con GitHub:', error)
-      
+
       let errorMessage = 'Error al iniciar sesión con GitHub'
       if (error instanceof Error) {
         errorMessage = error.message
       }
-      
+
       setError(errorMessage)
     } finally {
       setIsGithubLoading(false)
@@ -49,7 +50,7 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email || !password) {
       setError('Por favor, completa todos los campos')
       return
@@ -58,12 +59,12 @@ function LoginContent() {
     try {
       setIsEmailLoading(true)
       setError('')
-      
+
       await signInWithEmailAdvanced(email, password)
       router.push('/')
     } catch (error) {
       console.error('Error al iniciar sesión:', error)
-      
+
       // Manejo de errores específicos de Firebase
       let errorMessage = 'Error al iniciar sesión'
       if (error instanceof Error) {
@@ -77,7 +78,7 @@ function LoginContent() {
           errorMessage = 'Demasiados intentos. Intenta más tarde'
         }
       }
-      
+
       setError(errorMessage)
     } finally {
       setIsEmailLoading(false)
@@ -115,7 +116,7 @@ function LoginContent() {
               ¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <fieldset disabled={isGithubLoading} className="space-y-4">
               <div className="space-y-2">
@@ -151,14 +152,12 @@ function LoginContent() {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Mensaje de error */}
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
               )}
-              
+
               <Button type="submit" className="w-full" disabled={isEmailLoading}>
                 {isEmailLoading ? (
                   <>
@@ -234,25 +233,20 @@ export default function LoginPage() {
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
   if (loading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{loading ? 'Verificando autenticación...' : 'Redirigiendo...'}</p>
-        </div>
-      </div>
-    )
+    return <OverlayVerificandoAutenticacion loading={loading} />
   }
 
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Cargando...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <LoginContent />
     </Suspense>
   )

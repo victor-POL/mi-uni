@@ -1,20 +1,21 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
-import { useRedirectIfAuthenticated } from "@/components/ProtectedRoute"
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft } from 'lucide-react'
+import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
+import { OverlayVerificandoAutenticacion } from '@/components/OverlayVerificandoAutenticacion'
 
 export default function VerifyCodePage() {
-  const [code, setCode] = useState("")
-  const [email, setEmail] = useState("")
+  const [code, setCode] = useState('')
+  const [email, setEmail] = useState('')
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -22,7 +23,7 @@ export default function VerifyCodePage() {
   const { user, loading } = useRedirectIfAuthenticated()
 
   useEffect(() => {
-    const emailParam = searchParams.get("email")
+    const emailParam = searchParams.get('email')
     if (emailParam) {
       setEmail(emailParam)
     }
@@ -30,30 +31,21 @@ export default function VerifyCodePage() {
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
   if (loading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {loading ? "Verificando autenticación..." : "Redirigiendo..."}
-          </p>
-        </div>
-      </div>
-    )
+    return <OverlayVerificandoAutenticacion loading={loading} />
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica para verificar el código
-    console.log("Verify code:", { email, code })
+    console.log('Verify code:', { email, code })
     // Simular verificación exitosa
     router.push(`/reset-password?email=${encodeURIComponent(email)}&code=${code}`)
   }
 
   const handleResendCode = () => {
     // Aquí iría la lógica para reenviar el código
-    console.log("Resend code to:", email)
-    alert("Código reenviado")
+    console.log('Resend code to:', email)
+    alert('Código reenviado')
   }
 
   return (

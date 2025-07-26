@@ -1,21 +1,20 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
+import { useState } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft } from 'lucide-react'
 import { resetPassword } from '@/lib/firebase/auth'
-import { useRedirectIfAuthenticated } from "@/components/ProtectedRoute"
+import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
+import { OverlayVerificandoAutenticacion } from '@/components/OverlayVerificandoAutenticacion'
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -25,21 +24,12 @@ export default function ForgotPasswordPage() {
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
   if (loading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {loading ? "Verificando autenticación..." : "Redirigiendo..."}
-          </p>
-        </div>
-      </div>
-    )
+    return <OverlayVerificandoAutenticacion loading={loading} />
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email) {
       setError('Por favor, ingresa tu email')
       return
@@ -48,12 +38,12 @@ export default function ForgotPasswordPage() {
     try {
       setIsLoading(true)
       setError('')
-      
+
       await resetPassword(email)
       setSuccess(true)
     } catch (error) {
       console.error('Error al enviar email de recuperación:', error)
-      
+
       let errorMessage = 'Error al enviar el email de recuperación'
       if (error instanceof Error) {
         if (error.message.includes('user-not-found')) {
@@ -62,7 +52,7 @@ export default function ForgotPasswordPage() {
           errorMessage = 'Email no válido'
         }
       }
-      
+
       setError(errorMessage)
     } finally {
       setIsLoading(false)
@@ -90,11 +80,7 @@ export default function ForgotPasswordPage() {
                 <p className="font-semibold">Email enviado correctamente</p>
                 <p>Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.</p>
               </div>
-              <Button 
-                onClick={() => setSuccess(false)} 
-                variant="outline" 
-                className="w-full"
-              >
+              <Button onClick={() => setSuccess(false)} variant="outline" className="w-full">
                 Enviar otro email
               </Button>
             </div>
@@ -112,14 +98,12 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                 />
               </div>
-              
+
               {/* Mensaje de error */}
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-                  {error}
-                </div>
+                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
               )}
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>

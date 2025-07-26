@@ -1,33 +1,34 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, ArrowLeft } from "lucide-react"
-import { useRedirectIfAuthenticated } from "@/components/ProtectedRoute"
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { useRedirectIfAuthenticated } from '@/components/ProtectedRoute'
+import { OverlayVerificandoAutenticacion } from '@/components/OverlayVerificandoAutenticacion'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
+    password: '',
+    confirmPassword: '',
   })
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState('')
   const searchParams = useSearchParams()
 
   // Redirigir si ya está autenticado
   const { user, loading } = useRedirectIfAuthenticated()
 
   useEffect(() => {
-    const emailParam = searchParams.get("email")
+    const emailParam = searchParams.get('email')
     if (emailParam) {
       setEmail(emailParam)
     }
@@ -35,29 +36,20 @@ export default function ResetPasswordPage() {
 
   // Mostrar carga mientras se verifica la autenticación O si el usuario está autenticado
   if (loading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {loading ? "Verificando autenticación..." : "Redirigiendo..."}
-          </p>
-        </div>
-      </div>
-    )
+    return <OverlayVerificandoAutenticacion loading={loading} />
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.password !== formData.confirmPassword) {
-      alert("Las contraseñas no coinciden")
+      alert('Las contraseñas no coinciden')
       return
     }
     // Aquí iría la lógica para cambiar la contraseña
-    console.log("Reset password for:", email)
+    console.log('Reset password for:', email)
     // Simular cambio exitoso
-    alert("Contraseña cambiada exitosamente")
-    router.push("/login")
+    alert('Contraseña cambiada exitosamente')
+    router.push('/login')
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +81,7 @@ export default function ResetPasswordPage() {
                 <Input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
@@ -112,7 +104,7 @@ export default function ResetPasswordPage() {
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
