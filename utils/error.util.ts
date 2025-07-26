@@ -22,6 +22,10 @@ export const getGenericErrorMessage = (error: unknown): string => {
     return 'Error del servidor. Por favor, inténtalo más tarde.'
   }
   
+  if (message.includes('obtener el listado') || message.includes('database') || message.includes('conexión')) {
+    return 'La base de datos no está disponible. Verifica que el servicio esté funcionando correctamente.'
+  }
+  
   if (message.includes('404') || message.includes('not found')) {
     return 'Recurso no encontrado. Verifica que la información solicitada sea válida.'
   }
@@ -36,6 +40,7 @@ export enum ErrorType {
   NETWORK = 'network',
   TIMEOUT = 'timeout',
   SERVER = 'server',
+  DATABASE = 'database',
   NOT_FOUND = 'not_found',
   UNKNOWN = 'unknown'
 }
@@ -62,6 +67,10 @@ export const getErrorType = (error: unknown): ErrorType => {
   
   if (message.includes('500') || message.includes('server')) {
     return ErrorType.SERVER
+  }
+  
+  if (message.includes('obtener el listado') || message.includes('database') || message.includes('conexión')) {
+    return ErrorType.DATABASE
   }
   
   if (message.includes('404') || message.includes('not found')) {
