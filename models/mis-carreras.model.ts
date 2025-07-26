@@ -1,5 +1,10 @@
 import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 
+export interface Carrera {
+  idCarrera: number
+  nombreCarrera: string
+}
+
 export interface CarreraResumen {
   id: number
   nombre: string

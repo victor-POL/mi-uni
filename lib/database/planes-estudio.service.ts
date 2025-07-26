@@ -1,5 +1,7 @@
 import { Pool } from 'pg'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import type { PlanEstudioAPIResponse } from '@/models/api/carreras.model'
+import type { PlanEstudioDB } from '@/models/database/carreras.model'
 
 // Configuración de base de datos
 const pool = new Pool({
@@ -14,25 +16,31 @@ const pool = new Pool({
 /**
  * Obtiene un listado de todos los planes de estudio (solo información basica: idPlan, nombreCarrera, anio)
  */
-export async function getListadoPlanes() {
+export async function getListadoPlanes(idCarrea?: number): Promise<PlanEstudioAPIResponse[]> {
   try {
     await pool.query(`SET search_path = prod, public`)
 
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT 
         plan_estudio.id       as plan_id,
         plan_estudio.anio,
         carrera.nombre        as nombre_carrera
       FROM prod.plan_estudio
       JOIN prod.carrera       ON plan_estudio.carrera_id = carrera.id
+      ${idCarrea ? 'WHERE carrera.id = $1' : ''}
       ORDER BY 
         carrera.nombre    ASC, 
         plan_estudio.anio DESC
-    `)
+    `,
+      [idCarrea]
+    )
 
-    return result.rows.map((row) => ({
-      idPlan: row.plan_id,
-      nombreCarrera: row.nombre_carrera,
+    const rows: PlanEstudioDB[] = result.rows
+
+    return rows.map((row) => ({
+      plan_id: row.plan_id,
+      nombre_carrera: row.nombre_carrera,
       anio: row.anio,
     }))
   } catch (error) {
