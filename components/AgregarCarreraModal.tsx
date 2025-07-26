@@ -10,7 +10,7 @@ import { GraduationCap, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { Carrera } from '@/models/mis-carreras.model'
 import type { PlanEstudio } from '@/models/plan-estudio.model'
-import type { PlanEstudioAPIResponse } from '@/models/api/carreras.model'
+import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 
 // Interfaces para las respuestas de la API
 interface CarreraApiResponse {
