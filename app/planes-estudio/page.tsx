@@ -3,6 +3,7 @@
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { CardMateriaPlanEstudio } from '@/components/planes-estudio/CardMateriaPlanEstudio'
 import { useToast } from '@/hooks/use-toast'
 import { useAllPlanes, fetchPlanById } from '@/hooks/use-planes-estudio'
 import { usePlanesEstudioFiltros } from '@/hooks/use-planes-estudio-filtros'
@@ -17,22 +18,26 @@ import { Separator } from '@/components/ui/separator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
+import { Filter, Search, X, User } from 'lucide-react'
 /* --------------------------------- MODELS --------------------------------- */
-import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 /* --------------------------------- UTILES --------------------------------- */
-import Link from 'next/link'
 import { getNombreCuatrimestre } from '@/utils/utils'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
+import { SkeletonSelectorPlanEstudio } from '@/components/planes-estudio/SkeletonSelectorPlanEstudio'
+import { ErrorMsgPlanEstudioData } from '@/components/planes-estudio/ErrorMsgPlanEstudioData'
+import { SkeletonEstadisticasPlanEstudio } from '@/components/planes-estudio/SkeletonEstadisticasPlanEstudio'
+import { SkeletonMateriasPlanEstudio } from '@/components/planes-estudio/SkeletonMateriasPlanEstudio'
+import { WarningMsgNoPlanesDisponibles } from '@/components/planes-estudio/WarningMsgNoPlanesDisponibles'
+import { planesDeEstudio } from '@/data/planes-estudio.data'
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
   const { isLoggedIn, userId } = useAuth()
 
   // Planes para el input select
-  const { planes: planesDisponibles, loading: isLoadingPlanesDisponible } = useAllPlanes()
+  const { planes, loading: isLoadingPlanes } = useAllPlanes()
 
   // Detalles de planes
   const [detallePlanConsultado, setDetallePlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
@@ -71,7 +76,6 @@ export default function PlanesEstudioPage() {
   // Otros auxiliares
   const { toast } = useToast()
 
-  // Handler para el submit del formulario de selección de plan
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -102,7 +106,6 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  /* -------------------------------- UTILES UI ------------------------------- */
   // Util para navegar a una materia resaltada al clickear en una correlativa
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
@@ -110,48 +113,6 @@ export default function PlanesEstudioPage() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => setMateriaResaltada(null), 3000)
-    }
-  }
-
-  // Componente para renderizar correlativas
-  const renderCorrelativas = (correlativas: { codigoMateria: string; nombreMateria: string }[]) => {
-    if (correlativas.length === 0) {
-      return <div className="text-xs text-gray-500 italic">Sin correlativas</div>
-    }
-
-    return (
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Correlativas:</h4>
-        <div className="space-y-1">
-          {correlativas.map((correlativa) => (
-            <Button
-              key={correlativa.codigoMateria}
-              variant="outline"
-              size="sm"
-              onClick={() => navegarACorrelativa(correlativa.codigoMateria)}
-              className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
-            >
-              {`${correlativa.codigoMateria} - ${correlativa.nombreMateria}`}
-            </Button>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // Obtener el color del badge según el estado de la materia
-  const getStatusBadgeColor = (estadoMateriaUsuario: EstadoMateriaPlanEstudio) => {
-    switch (estadoMateriaUsuario) {
-      case 'Aprobada':
-        return 'bg-green-100 text-green-800'
-      case 'En Final':
-        return 'bg-purple-100 text-purple-800'
-      case 'En Curso':
-        return 'bg-blue-100 text-blue-800'
-      case 'Pendiente':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -175,6 +136,66 @@ export default function PlanesEstudioPage() {
       )
     }
     return null
+  }
+
+  if (isLoadingPlanes) {
+    return (
+      <AppLayout title="Planes de Estudio">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
+              <p className="text-gray-600">
+                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
+              </p>
+            </div>
+          </div>
+
+          <SkeletonSelectorPlanEstudio />
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (planes === null) {
+    return (
+      <AppLayout title="Planes de Estudio">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
+              <p className="text-gray-600">
+                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
+              </p>
+            </div>
+          </div>
+
+          <ErrorMsgPlanEstudioData />
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (planesDeEstudio.length === 0) {
+    return (
+      <AppLayout title="Planes de Estudio">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
+              <p className="text-gray-600">
+                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
+              </p>
+            </div>
+          </div>
+
+          <WarningMsgNoPlanesDisponibles />
+        </div>
+      </AppLayout>
+    )
   }
 
   return (
@@ -207,34 +228,30 @@ export default function PlanesEstudioPage() {
                   <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
                     Plan de Estudio
                   </Label>
-                  <Select disabled={isLoadingPlanesDisponible} name="plan-select">
+                  <Select disabled={isLoadingPlanes} name="plan-select">
                     <SelectTrigger className="bg-white border-gray-300">
                       <SelectValue
-                        placeholder={isLoadingPlanesDisponible ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
+                        placeholder={isLoadingPlanes ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
                       />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-300">
-                      {isLoadingPlanesDisponible ? (
+                      {isLoadingPlanes ? (
                         <SelectItem value="loading" disabled>
                           Cargando planes de estudio...
                         </SelectItem>
                       ) : (
-                        planesDisponibles.map((plan) => (
+                        planes?.map((plan) => (
                           <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
                             {plan.nombreCarrera} ({plan.anio})
                           </SelectItem>
-                        ))
+                        )) || []
                       )}
                     </SelectContent>
                   </Select>
                 </div>
                 {/* Fila 2 - Botones */}
                 <div className="flex justify-end gap-2">
-                  <Button
-                    type="submit"
-                    disabled={isLoadingPlanesDisponible || isLoadingPlanDetails}
-                    style={{ width: '150px' }}
-                  >
+                  <Button type="submit" disabled={isLoadingPlanes || isLoadingPlanDetails} style={{ width: '150px' }}>
                     {isLoadingPlanDetails ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
@@ -250,84 +267,16 @@ export default function PlanesEstudioPage() {
           </Card>
         </form>
 
-        {/* Loading state para plan details */}
+        {/* Detalle del Plan Consultado */}
+        {/* Placeholder detalle */}
         {isLoadingPlanDetails && (
           <div className="space-y-6">
-            {/* Skeleton para Estadísticas del Plan */}
-            <Card className="bg-white shadow-sm">
-              <CardHeader>
-                <div className="h-8 bg-gray-200 rounded animate-pulse w-80"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i}>
-                      <div className="h-8 bg-gray-200 rounded animate-pulse mb-2 w-16 mx-auto"></div>
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mx-auto"></div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Skeleton para Materias por Año */}
-            {[1, 2, 3].map((anio) => (
-              <div key={anio} className="space-y-4">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-1 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pl-4 space-y-4">
-                    {[0, 1, 2].map((cuatrimestreCursada) => (
-                      <div key={cuatrimestreCursada} className="space-y-4">
-                        <div className="flex items-center gap-2 pl-4">
-                          <div className="h-6 w-1 bg-gray-200 rounded animate-pulse"></div>
-                          <div className="h-6 bg-gray-200 rounded animate-pulse w-48"></div>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pl-4">
-                          {[1, 2, 3, 4, 5, 6].map((materia) => (
-                            <Card
-                              key={materia}
-                              className="border-l-4 border-l-gray-200 bg-white shadow-sm animate-pulse"
-                            >
-                              <CardHeader className="pb-3">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <div className="h-5 bg-gray-200 rounded w-full mb-2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-1">
-                                    <div className="h-6 bg-gray-200 rounded w-12"></div>
-                                    <div className="h-5 bg-gray-200 rounded w-16"></div>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <div className="space-y-2">
-                                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                                  <div className="space-y-1">
-                                    <div className="h-6 bg-gray-200 rounded w-full"></div>
-                                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                                  </div>
-                                  <div className="h-8 bg-gray-200 rounded w-full mt-3"></div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+            <SkeletonEstadisticasPlanEstudio />
+            <SkeletonMateriasPlanEstudio />
           </div>
         )}
 
-        {/* Resultado del Plan */}
+        {/* Detalle real */}
         {detallePlanConsultado && !isLoadingPlanDetails && (
           <div className="space-y-6">
             {/* Estadísticas del Plan */}
@@ -604,68 +553,16 @@ export default function PlanesEstudioPage() {
                                 </AccordionTrigger>
                                 <AccordionContent className="pl-4">
                                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {materiasAgrupadas[anio][cuatrimestreCursada].map((materia) => {
-                                      return (
-                                        <Card
-                                          key={materia.codigoMateria}
-                                          id={`materia-${materia.codigoMateria}`}
-                                          className={`border-l-4 border-l-blue-200 transition-all duration-500 bg-white shadow-sm ${
-                                            materiaResaltada === materia.codigoMateria
-                                              ? 'ring-2 ring-blue-500 shadow-lg bg-blue-50'
-                                              : ''
-                                          }`}
-                                        >
-                                          <CardHeader className="pb-3">
-                                            <div className="flex justify-between items-start">
-                                              <div>
-                                                <CardTitle className="text-base text-gray-900">
-                                                  {materia.nombreMateria}
-                                                </CardTitle>
-                                                <CardDescription className="font-mono text-sm text-gray-600">
-                                                  {materia.codigoMateria}
-                                                </CardDescription>
-                                              </div>
-                                              <div className="flex flex-col items-end gap-1">
-                                                <Badge
-                                                  variant="secondary"
-                                                  className="flex items-center gap-1 bg-gray-100 text-gray-800"
-                                                >
-                                                  <Clock className="h-3 w-3" />
-                                                  {materia.horasSemanales}h
-                                                </Badge>
-                                                {filtersPlan.showEstadoMateriaUsuario &&
-                                                  isLoggedIn &&
-                                                  materia.estado && (
-                                                    <Badge className={`text-xs ${getStatusBadgeColor(materia.estado)}`}>
-                                                      {materia.estado}
-                                                    </Badge>
-                                                  )}
-                                              </div>
-                                            </div>
-                                          </CardHeader>
-                                          <CardContent className="pt-0">
-                                            {/* Correlativas */}
-                                            {filtersPlan.showCorrelativasMateria ? (
-                                              renderCorrelativas(materia.listaCorrelativas)
-                                            ) : (
-                                              <div className="text-xs text-gray-500 italic">Correlativas ocultas</div>
-                                            )}
-
-                                            {/* Botón Ver Detalles */}
-                                            <Link href={`/materias/${materia.codigoMateria}`} className="block mt-3">
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full text-xs bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                                              >
-                                                <BookOpen className="h-3 w-3 mr-1" />
-                                                Ver Detalles
-                                              </Button>
-                                            </Link>
-                                          </CardContent>
-                                        </Card>
-                                      )
-                                    })}
+                                    {materiasAgrupadas[anio][cuatrimestreCursada].map((materia) => (
+                                      <CardMateriaPlanEstudio
+                                        key={materia.codigoMateria}
+                                        materia={materia}
+                                        resaltar={materiaResaltada === materia.codigoMateria}
+                                        showEstado={filtersPlan.showEstadoMateriaUsuario && isLoggedIn}
+                                        showCorrelativas={filtersPlan.showCorrelativasMateria}
+                                        onClickCorrelativa={navegarACorrelativa}
+                                      />
+                                    ))}
                                   </div>
                                 </AccordionContent>
                               </AccordionItem>

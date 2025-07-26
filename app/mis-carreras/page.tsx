@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { GraduationCap } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { resumenesCarreras } from '@/data/mis-carreras.data'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 
 // Componente para skeleton de carrera
@@ -122,8 +121,6 @@ export default function MisCarrerasPage() {
         description: "No se pudieron cargar las carreras. Mostrando datos de ejemplo.",
         variant: "destructive",
       })
-      // Fallback a datos mock en caso de error
-      setCarreras(resumenesCarreras)
     } finally {
       setIsLoadingCarreras(false)
     }

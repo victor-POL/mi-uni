@@ -20,11 +20,15 @@ interface UsePlanesBasicosOptions {
 }
 
 /**
- * Hook para obtener planes de estudio con información detallada
+ * Hook para obtener el detalle de un paln de estudio
+ * @param options - Opciones del hook
+ * @param options.planId - ID del plan de estudio a obtener
+ * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
+ * @returns Hook con el plan de estudio, loading, error y métodos de refetch
  */
-export function usePlanesEstudio(options: UsePlanesEstudioOptions = {}) {
-  const [planes, setPlanes] = useState<PlanDeEstudioDetalle[]>([])
-  const [loading, setLoading] = useState(false)
+export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = {}) {
+  const [detallePlan, setDetallePlan] = useState<PlanDeEstudioDetalle | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
@@ -50,7 +54,7 @@ export function usePlanesEstudio(options: UsePlanesEstudioOptions = {}) {
       }
 
       // Siempre es un plan específico, convertir a array para consistencia
-      setPlanes([result.data])
+      setDetallePlan(result.data)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)
@@ -67,20 +71,22 @@ export function usePlanesEstudio(options: UsePlanesEstudioOptions = {}) {
   }, [options.planId, options.autoFetch])
 
   return {
-    planes,
+    detallePlan,
     loading,
     error,
     refetch: fetchPlanes,
-    getPlan: (id: number) => planes.find((plan) => plan.idPlan === id),
   }
 }
 
 /**
- * Hook para obtener listado básico de planes de estudio
+ * Hook para obtener listado de planes de estudio
+ * @param options - Opciones del hook
+ * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
+ * @return Hook con la lista de planes, loading, error y métodos de refetch
  */
-export function usePlanesBasicos(options: UsePlanesBasicosOptions = {}) {
-  const [planes, setPlanes] = useState<PlanEstudio[]>([])
-  const [loading, setLoading] = useState(false)
+export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
+  const [planes, setPlanes] = useState<PlanEstudio[] | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
@@ -127,8 +133,7 @@ export function usePlanesBasicos(options: UsePlanesBasicosOptions = {}) {
     planes,
     loading,
     error,
-    refetch: fetchPlanes,
-    getPlan: (id: number) => planes.find((plan) => plan.idPlan === id),
+    refetch: fetchPlanes
   }
 }
 
@@ -138,7 +143,7 @@ export function usePlanesBasicos(options: UsePlanesBasicosOptions = {}) {
  * @returns Hook con el plan específico, loading, error y métodos de refetch
  */
 export function usePlanById(planId: number) {
-  return usePlanesEstudio({ planId, autoFetch: true })
+  return useDetallePlanEstudio({ planId, autoFetch: true })
 }
 
 /**
@@ -146,7 +151,7 @@ export function usePlanById(planId: number) {
  * @returns Hook con lista básica de planes, loading, error y métodos de refetch
  */
 export function useAllPlanes() {
-  return usePlanesBasicos({ autoFetch: true })
+  return usePlanesEstudio({ autoFetch: true })
 }
 
 /**
