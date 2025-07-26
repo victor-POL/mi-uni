@@ -21,18 +21,15 @@ import { BookOpen, Clock, Filter, Search, X, User } from 'lucide-react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
-
 /* --------------------------------- UTILES --------------------------------- */
 import Link from 'next/link'
 import { getNombreCuatrimestre } from '@/utils/utils'
-import { getUserIdToPass } from '@/utils/user.util'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
-  const { user, isUserInitialized } = useAuth()
-  const isLoggedIn: boolean = user !== null && isUserInitialized
+  const { isLoggedIn, userId } = useAuth()
 
   // Planes para el input select
   const { planes: planesDisponibles, loading: isLoadingPlanesDisponible } = useAllPlanes()
@@ -74,7 +71,7 @@ export default function PlanesEstudioPage() {
   // Otros auxiliares
   const { toast } = useToast()
 
-  // Handler para el submit del formulario de selección de plan (refactorizado)
+  // Handler para el submit del formulario de selección de plan
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -88,8 +85,7 @@ export default function PlanesEstudioPage() {
     setIsLoadingPlanDetails(true)
 
     try {
-      const usuarioIdToPass = getUserIdToPass(isLoggedIn, user)
-      const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), usuarioIdToPass)
+      const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), userId)
       const planData = transformPlanAPIResponseToLocal(detallePlanAPIResponse)
 
       setDetallePlanConsultado(planData)

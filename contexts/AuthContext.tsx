@@ -13,6 +13,8 @@ interface AuthContextType {
   user: UnifiedUser | null     // Usuario unificado
   loading: boolean
   isUserInitialized: boolean
+  isLoggedIn: boolean         // Nueva propiedad calculada
+  userId: number | undefined  // ID del usuario para API calls
   signOut: () => Promise<void>
 }
 
@@ -20,6 +22,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isUserInitialized: false,
+  isLoggedIn: false,
+  userId: undefined,
   signOut: async () => {},
 })
 
@@ -149,12 +153,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const value = useMemo(() => ({
-    user,
-    loading,
-    isUserInitialized,
-    signOut,
-  }), [user, loading, isUserInitialized])
+  const value = useMemo(() => {
+    const isLoggedIn = user !== null && isUserInitialized
+    const userId = isLoggedIn && user?.dbId && user.dbId > 0 ? user.dbId : undefined
+
+    return {
+      user,
+      loading,
+      isUserInitialized,
+      isLoggedIn,
+      userId,
+      signOut,
+    }
+  }, [user, loading, isUserInitialized])
 
   return (
     <AuthContext.Provider value={value}>

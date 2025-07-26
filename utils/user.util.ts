@@ -20,12 +20,11 @@ export const hasValidUserId = (user: any): boolean => {
 
 /**
  * Verifica si el usuario está autenticado y tiene un ID válido
- * @param isLoggedIn - Si el usuario está autenticado
  * @param user - Datos del usuario
  * @returns true si el usuario está autenticado y tiene ID válido
  */
-export const isAuthenticatedWithValidId = (isLoggedIn: boolean, user: any): boolean => {
-  return isLoggedIn && hasValidUserId(user)
+export const isAuthenticatedWithValidId = (user: any): boolean => {
+  return user !== null && hasValidUserId(user)
 }
 
 /**
@@ -39,12 +38,11 @@ export const extractUserId = (user: any): number => {
 
 /**
  * Determina el ID de usuario a pasar a la API
- * @param isLoggedIn - Si el usuario está autenticado
- * @param user - Datos del usuario
+ * @param user - Datos del usuario (puede ser null si no está autenticado)
  * @returns ID del usuario o undefined si no está disponible
  */
-export const getUserIdToPass = (isLoggedIn: boolean, user: any): number | undefined => {
-  if (!isAuthenticatedWithValidId(isLoggedIn, user)) {
+export const getUserIdToPass = (user: any): number | undefined => {
+  if (!isAuthenticatedWithValidId(user)) {
     return undefined
   }
   
