@@ -1,18 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import type { PlanEstudio } from '@/models/plan-estudio.model'
-import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 import { useAuth } from '@/contexts/AuthContext'
 import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
 import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
 import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
+import { usePlanesCarrera } from '@/hooks/use-planes-carrera'
 
 export const AgregarCarreraModal = () => {
   const { userId } = useAuth()
@@ -22,12 +21,15 @@ export const AgregarCarreraModal = () => {
     userID: userId,
     autoFetch: isOpen,
   })
-  const [planesCarrera, setPlanesCarrera] = useState<PlanEstudio[]>([])
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
   const [selectedPlan, setSelectedPlan] = useState<string>('')
 
-  const [isLoadingPlanes, setIsLoadingPlanes] = useState(false)
+  const { planes: planesCarrera, loading: isLoadingPlanes } = usePlanesCarrera({
+    carreraId: parseInt(selectedCarrera),
+    autoFetch: selectedCarrera !== '',
+  })
+
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
@@ -35,51 +37,11 @@ export const AgregarCarreraModal = () => {
   const resetSelections = () => {
     setSelectedCarrera('')
     setSelectedPlan('')
-    setPlanesCarrera([])
   }
-
-  // Cargar planesCarrera cuando cambia la carrera seleccionada
-  useEffect(() => {
-    if (selectedCarrera) {
-      cargarPlanes(parseInt(selectedCarrera))
-    } else {
-      setPlanesCarrera([])
-    }
-  }, [selectedCarrera])
 
   const handleSelectCarrera = (carreraId: string) => {
     setSelectedPlan('')
     setSelectedCarrera(carreraId)
-  }
-
-  const cargarPlanes = async (carreraId: number) => {
-    setIsLoadingPlanes(true)
-    try {
-      const response = await fetch(`/api/carreras/${carreraId}/planes`)
-
-      if (!response.ok) throw new Error('Error cargando planes de estudio')
-
-      const data = await response.json()
-
-      const listadoPlanesCarreraResponse: PlanEstudioAPIResponse[] = data
-
-      const formattedPlanes: PlanEstudio[] = listadoPlanesCarreraResponse.map((plan) => ({
-        idPlan: plan.plan_id,
-        anio: plan.anio,
-        nombreCarrera: plan.nombre_carrera,
-      }))
-
-      setPlanesCarrera(formattedPlanes)
-    } catch (error) {
-      console.error('Error:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Error cargando planes de estudio',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingPlanes(false)
-    }
   }
 
   const handleSubmit = async () => {
@@ -186,6 +148,15 @@ export const AgregarCarreraModal = () => {
                 if (isLoadingPlanes)
                   return <SelectorNuevoPlan planes={[]} disabled={true} msgPlaceHolder="Cargando planes..." />
 
+                if (planesCarrera === null)
+                  return (
+                    <SelectorNuevoPlan
+                      planes={[]}
+                      disabled={true}
+                      msgPlaceHolder="No hay planes de estudio disponibles para esta carrera"
+                    />
+                  )
+
                 if (planesCarrera.length > 0)
                   return (
                     <SelectorNuevoPlan
@@ -194,14 +165,6 @@ export const AgregarCarreraModal = () => {
                       onValueChange={setSelectedPlan}
                     />
                   )
-
-                return (
-                  <SelectorNuevoPlan
-                    planes={[]}
-                    disabled={true}
-                    msgPlaceHolder="No hay planes de estudio disponibles para esta carrera"
-                  />
-                )
               })()}
             </div>
           )}
