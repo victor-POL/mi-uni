@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCarrerasUsuario } from '@/hooks/use-carreras'
+import { useToast } from '@/hooks/use-toast'
 /* ------------------------------ COMPONENTS ----------------------------- */
 import { CarreraDetalle } from '@/components/CarreraDetalle'
 import { DetalleSkeleton } from '@/components/mis-carreras/SkeletonDetalleCarrera'
@@ -13,6 +14,9 @@ import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Trash2 } from 'lucide-react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 /* -------------------------------- ADAPTERS -------------------------------- */
@@ -22,11 +26,16 @@ export default function MisCarrerasPage() {
   const { userId } = useAuth()
 
   // Lista de carreras del usuario
-  const { carreras, loading: isLoadingCarreras } = useCarrerasUsuario({ userID: userId })
+  const { carreras, loading: isLoadingCarreras, refetch: refetchCarreras } = useCarrerasUsuario({ userID: userId })
 
   // Detalle de carrera consultada
   const [detalleCarreraConsultada, setDetalleCarreraConsultada] = useState<CarreraResumen | null>(null)
   const [isLoadingDetalleCarrera, setIsLoadingDetalleCarrera] = useState(false)
+
+  // Estado para eliminación de carreras
+  const [carreraEliminandose, setCarreraEliminandose] = useState<number | null>(null)
+
+  const { toast } = useToast()
 
   // Simular carga de detalle cuando se selecciona una carrera
   const handleSelectCarrera = async (carrera: CarreraResumen) => {
@@ -39,6 +48,53 @@ export default function MisCarrerasPage() {
     await new Promise((resolve) => setTimeout(resolve, 800))
     setDetalleCarreraConsultada(carrera)
     setIsLoadingDetalleCarrera(false)
+  }
+
+  // Handler para eliminar carrera
+  const handleEliminarCarrera = async (planEstudioId: number, event: React.MouseEvent) => {
+    event.stopPropagation() // Evitar que se active el onClick del Card
+
+    setCarreraEliminandose(planEstudioId)
+    
+    try {
+      const response = await fetch(`/api/user/carreras/${planEstudioId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Error eliminando carrera')
+      }
+
+      toast({
+        title: '¡Éxito!',
+        description: 'Carrera eliminada correctamente',
+      })
+
+      // Si la carrera eliminada era la que estaba seleccionada, limpiar detalle
+      if (detalleCarreraConsultada?.planEstudioId === planEstudioId) {
+        setDetalleCarreraConsultada(null)
+      }
+
+      // Refrescar la lista de carreras
+      await refetchCarreras()
+      
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo eliminar la carrera',
+        variant: 'destructive',
+      })
+    } finally {
+      setCarreraEliminandose(null)
+    }
   }
 
   const getEstadoBadgeColor = (estado: string) => {
@@ -80,7 +136,22 @@ export default function MisCarrerasPage() {
                 <div className="space-y-2">
                   <CardTitle className="text-xl">{carrera.nombre}</CardTitle>
                 </div>
-                <Badge className={getEstadoBadgeColor(carrera.estado)}>{carrera.estado}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className={getEstadoBadgeColor(carrera.estado)}>{carrera.estado}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                    onClick={(e) => handleEliminarCarrera(carrera.planEstudioId, e)}
+                    disabled={carreraEliminandose === carrera.planEstudioId}
+                  >
+                    {carreraEliminandose === carrera.planEstudioId ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

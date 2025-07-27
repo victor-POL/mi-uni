@@ -179,6 +179,30 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
   }
 }
 
+/**
+ *  Elimina una carrera del usuario
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio
+ */
+export async function eliminarCarreraUsuario(usuarioId: number, planEstudioId: number): Promise<void> {
+  try {
+    const result = await query('DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2', [
+      usuarioId,
+      planEstudioId,
+    ])
+
+    if (result.rowCount === 0) {
+      throw new Error('No se encontró la carrera para eliminar')
+    }
+  } catch (error) {
+    console.error('Error eliminando carrera del usuario:', error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('No se pudo eliminar la carrera')
+  }
+}
+
 // Obtener progreso de materias del usuario en un plan específico
 export async function obtenerProgresoUsuarioPlan(
   usuarioId: number,
@@ -263,26 +287,6 @@ export async function obtenerEstadisticasProgreso(
   } catch (error) {
     console.error('Error obteniendo estadísticas de progreso:', error)
     throw new Error('No se pudieron obtener las estadísticas de progreso')
-  }
-}
-
-// Eliminar carrera del usuario
-export async function eliminarCarreraUsuario(usuarioId: number, planEstudioId: number): Promise<void> {
-  try {
-    const result = await query('DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2', [
-      usuarioId,
-      planEstudioId,
-    ])
-
-    if (result.rowCount === 0) {
-      throw new Error('No se encontró la carrera para eliminar')
-    }
-  } catch (error) {
-    console.error('Error eliminando carrera del usuario:', error)
-    if (error instanceof Error) {
-      throw error
-    }
-    throw new Error('No se pudo eliminar la carrera')
   }
 }
 
