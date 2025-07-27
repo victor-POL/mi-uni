@@ -29,3 +29,9 @@ export interface CarreraUsuarioConEstadisticasAPIResponse {
   anio_ingreso: number
   anio_estimado_ingreso: number
 }
+
+/* ----------------------------- AGREGAR CARRERA ---------------------------- */
+export interface BodyPostNuevaCarreraEnUsuario {
+  usuario_id: number
+  plan_estudio_id: number
+}

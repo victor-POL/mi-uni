@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
-import { set } from 'react-hook-form'
+import type { BodyPostNuevaCarreraEnUsuario } from '@/models/api/carreras.model'
 
 export const AgregarCarreraModal = () => {
   // Para obtener el ID del usuario autenticado y consultar informacion de carreras y planes
@@ -70,21 +70,24 @@ export const AgregarCarreraModal = () => {
     }
 
     setIsSubmitting(true)
+    
     try {
+      const bodyPost: BodyPostNuevaCarreraEnUsuario = {
+        usuario_id: userId as number,
+        plan_estudio_id: parseInt(selectedPlan),
+      }
+
       const response = await fetch('/api/user/carreras', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId,
-          planEstudioId: parseInt(selectedPlan),
-        }),
+        body: JSON.stringify(bodyPost),
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.message || 'Error agregando carrera')
+        throw new Error(error.error || 'Error agregando carrera')
       }
 
       toast({

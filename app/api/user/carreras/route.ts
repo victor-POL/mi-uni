@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server'
 import { agregarCarreraUsuario } from '@/lib/database/carreras.service'
+import type { BodyPostNuevaCarreraEnUsuario } from '@/models/api/carreras.model'
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { usuarioId, planEstudioId } = body
+    const { usuario_id, plan_estudio_id } = body as BodyPostNuevaCarreraEnUsuario
 
-    if (!usuarioId || !planEstudioId) {
+    if (!usuario_id || !plan_estudio_id) {
       return NextResponse.json(
-        { error: 'Usuario ID y Plan de Estudio ID son requeridos' },
+        { error: 'Parametros "usuario_id" y "plan_estudio_id" son requeridos' },
         { status: 400 }
       )
     }
 
-    await agregarCarreraUsuario(usuarioId, planEstudioId)
+    await agregarCarreraUsuario(usuario_id, plan_estudio_id)
     
     return NextResponse.json({ 
       message: 'Carrera agregada exitosamente' 

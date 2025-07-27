@@ -18,3 +18,8 @@ export interface CarreraEstadisticasDB {
 export interface CarreraEstadisticaCursandoDB {
   materias_en_curso: number
 }
+
+/* ----------------------------- AGREGAR CARRERA ---------------------------- */
+export interface MateriaDelPlanDB {
+  materia_id: number
+}

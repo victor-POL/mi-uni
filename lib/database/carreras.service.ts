@@ -14,6 +14,7 @@ import type {
   CarreraEstadisticaCursandoDB,
   CarreraEstadisticasDB,
   CarreraUsuarioDB,
+  MateriaDelPlanDB,
 } from '@/models/database/carreras.model'
 
 export interface Carrera {
@@ -110,17 +111,20 @@ export async function obtenerCarrerasUsuario(usuarioId: number): Promise<Carrera
   }
 }
 
-// Agregar carrera al usuario
+/**
+ * Agrega una carrera al usuario
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio a agregar
+ */
 export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
-    // Verificar si ya existe la relación
-    const existeResult = await query(
+    const planAsociadoAUsuario = await query(
       'SELECT 1 FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
       [usuarioId, planEstudioId]
     )
 
-    if (existeResult.rows.length > 0) {
-      throw new Error('Ya estás inscrito en este plan de estudio')
+    if (planAsociadoAUsuario.rows.length > 0) {
+      throw new Error('Ya estás anotado en esta carera y plan de estudio')
     }
 
     // Iniciar transacción para asegurar consistencia
@@ -134,17 +138,19 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
       ])
 
       // 2. Obtener todas las materias del plan de estudio
-      const materiasResult = await query(
-        `SELECT pm.materia_id 
-         FROM prod.plan_materia pm 
-         WHERE pm.plan_estudio_id = $1`,
+      const materiasPlanResult = await query(
+        `SELECT plan_materia.materia_id 
+         FROM prod.plan_materia 
+         WHERE plan_materia.plan_estudio_id = $1`,
         [planEstudioId]
       )
 
+      const materiasPlan: MateriaDelPlanDB[] = materiasPlanResult.rows as unknown as MateriaDelPlanDB[]
+
       // 3. Crear registros de estado inicial para todas las materias
-      if (materiasResult.rows.length > 0) {
+      if (materiasPlan.length > 0) {
         // Insertar cada materia con estado 'Pendiente'
-        for (const materia of materiasResult.rows as unknown as MateriaDelPlan[]) {
+        for (const materia of materiasPlan) {
           await query(
             `INSERT INTO prod.usuario_materia_estado 
              (usuario_id, plan_estudio_id, materia_id, estado, anio_academico, cuatrimestre, nota)
@@ -152,6 +158,9 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
             [usuarioId, planEstudioId, materia.materia_id]
           )
         }
+      }
+      else {
+        throw new Error('El plan de estudio no tiene materias asociadas. Por favor, espere a que se carguen las materias o contacte a soporte.')
       }
 
       // Confirmar transacción
