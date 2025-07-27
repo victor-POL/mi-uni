@@ -3,34 +3,22 @@
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { CardMateriaPlanEstudio } from '@/components/planes-estudio/CardMateriaPlanEstudio'
 import { useToast } from '@/hooks/use-toast'
 import { useAllPlanes, fetchPlanById } from '@/hooks/use-planes-estudio'
-import { usePlanesEstudioFiltros } from '@/hooks/use-planes-estudio-filtros'
-/* ------------------------------ COMPONENTS UI ----------------------------- */
-import { AppLayout } from '@/components/AppLayout'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Filter, Search, X, User } from 'lucide-react'
-/* --------------------------------- MODELS --------------------------------- */
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
-/* --------------------------------- UTILES --------------------------------- */
-import { getNombreCuatrimestre } from '@/utils/utils'
-/* -------------------------------- ADAPTERS -------------------------------- */
-import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
-import { SkeletonSelectorPlanEstudio } from '@/components/planes-estudio/SkeletonSelectorPlanEstudio'
-import { ErrorMsgPlanEstudioData } from '@/components/planes-estudio/ErrorMsgPlanEstudioData'
+/* ------------------------------ COMPONENTS ----------------------------- */
+import { PlanesEstudioLayout } from '@/components/planes-estudio/PlanesEstudioLayout'
+import { SelectorPlanEstudio } from '@/components/planes-estudio/SelectorPlanEstudio'
+import { ListadoMaterias } from '@/components/planes-estudio/ListadoMaterias'
 import { SkeletonEstadisticasPlanEstudio } from '@/components/planes-estudio/SkeletonEstadisticasPlanEstudio'
 import { SkeletonMateriasPlanEstudio } from '@/components/planes-estudio/SkeletonMateriasPlanEstudio'
-import { WarningMsgNoPlanesDisponibles } from '@/components/planes-estudio/WarningMsgNoPlanesDisponibles'
+import { PlanesEstudioFiltrosProvider } from '@/contexts/PlanesEstudioFiltrosContext'
+/* --------------------------------- MODELS --------------------------------- */
+import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+/* -------------------------------- ADAPTERS -------------------------------- */
+import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
 import { planesDeEstudio } from '@/data/planes-estudio.data'
+import { EstadisticasPlan } from '@/components/planes-estudio/EstadisticasPlan'
+import { SeccionFiltros } from '@/components/planes-estudio/SeccionFiltros'
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
@@ -46,54 +34,18 @@ export default function PlanesEstudioPage() {
   // Auxiliar para ir a la materia resaltada
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
 
-  // Hook para manejar filtros
-  const {
-    filtersPlan,
-    showFilters,
-    setShowFilters,
-    filtroEstadoHabilitado,
-    aniosDisponiblesFiltro,
-    estadosMateriasDisponiblesFiltro,
-    materiasAgrupadas,
-    cantidadFiltrosActivos,
-    hasActiveFilters,
-    handleFilterYearChange,
-    handleFilterCuatrimestreChange,
-    handleSearchTermChange,
-    handleFilterCorrelativaChange,
-    handleFilterStatusChange,
-    handleFilterHoursChange,
-    handleShowMateriaStatusChange,
-    handleShowCorrelativesChange,
-    handleClearAllFilters,
-    resetFilters,
-    initialPlanFilters,
-  } = usePlanesEstudioFiltros({
-    detallePlanConsultado,
-    isLoggedIn,
-  })
-
   // Otros auxiliares
   const { toast } = useToast()
 
-  const handleSubmitPlan = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target as HTMLFormElement)
-    const selectedPlanId = formData.get('plan-select')
-
-    if (typeof selectedPlanId !== 'string' || selectedPlanId === '') {
-      return
-    }
-
+  const handleSubmitPlan = async (planId: string) => {
+    setDetallePlanConsultado(null)
     setIsLoadingPlanDetails(true)
 
     try {
-      const detallePlanAPIResponse = await fetchPlanById(parseInt(selectedPlanId), userId)
+      const detallePlanAPIResponse = await fetchPlanById(parseInt(planId), userId)
       const planData = transformPlanAPIResponseToLocal(detallePlanAPIResponse)
 
       setDetallePlanConsultado(planData)
-      resetFilters()
     } catch (error) {
       const errorMessage = getPlanesEstudioErrorMessage(error)
       toast({
@@ -116,467 +68,50 @@ export default function PlanesEstudioPage() {
     }
   }
 
-  // Obtener el mensaje de warning segun el estado del loggin o si tiene materias con estado nulo
-  const getWarningFilterEstadoMateriaUsuario = () => {
-    if (!isLoggedIn) {
-      return (
-        <div className="flex items-center gap-1 mt-1">
-          <User className="h-3 w-3 text-amber-600" />
-          <span className="text-xs text-amber-600">Inicia sesión para filtrar por estado</span>
-        </div>
-      )
-    } else if (!filtroEstadoHabilitado) {
-      return (
-        <div className="flex items-center gap-1 mt-1">
-          <User className="h-3 w-3 text-amber-600" />
-          <span className="text-xs text-amber-600">
-            No se puede filtrar por estado ya que no esta cargada como carrera en tu cuenta
-          </span>
-        </div>
-      )
-    }
-    return null
-  }
-
   if (isLoadingPlanes) {
-    return (
-      <AppLayout title="Planes de Estudio">
-        <div className="container mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
-              <p className="text-gray-600">
-                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
-              </p>
-            </div>
-          </div>
-
-          <SkeletonSelectorPlanEstudio />
-        </div>
-      </AppLayout>
-    )
+    return <PlanesEstudioLayout loading />
   }
 
   if (planes === null) {
-    return (
-      <AppLayout title="Planes de Estudio">
-        <div className="container mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
-              <p className="text-gray-600">
-                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
-              </p>
-            </div>
-          </div>
-
-          <ErrorMsgPlanEstudioData />
-        </div>
-      </AppLayout>
-    )
+    return <PlanesEstudioLayout forError />
   }
 
   if (planesDeEstudio.length === 0) {
-    return (
-      <AppLayout title="Planes de Estudio">
-        <div className="container mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Planes de Estudio</h1>
-              <p className="text-gray-600">
-                Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
-              </p>
-            </div>
-          </div>
-
-          <WarningMsgNoPlanesDisponibles />
-        </div>
-      </AppLayout>
-    )
+    return <PlanesEstudioLayout emptyPlanes />
   }
 
   return (
-    <AppLayout title="Planes de Estudio">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Planes de Estudio</h1>
-            <p className="text-gray-600">
-              Consulta todos los planes existentes junto a sus materias, correlativas, horas semanales, etc.
-            </p>
-          </div>
+    <PlanesEstudioLayout>
+      {/* Selector de Plan */}
+      <SelectorPlanEstudio
+        planes={planes}
+        disabled={isLoadingPlanDetails}
+        onSubmitPlan={handleSubmitPlan}
+        msgPlaceHolder="Selecciona un plan de estudio"
+      />
+
+      {/* Detalle del Plan Consultado */}
+      {/* Placeholder detalle */}
+      {isLoadingPlanDetails && (
+        <div className="space-y-6">
+          <SkeletonEstadisticasPlanEstudio />
+          <SkeletonMateriasPlanEstudio />
         </div>
+      )}
 
-        {/* Selector de Plan */}
-        <form onSubmit={handleSubmitPlan}>
-          <Card className="mb-8 bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-gray-900">Búsqueda</CardTitle>
-              <CardDescription className="text-gray-600">
-                Luego de consultar un plan, podrás filtrar las materias por año, cuatrimestreCursada, nombre, estado u
-                horas.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Fila 1  - Label y Select*/}
-              <div className="grid gap-2">
-                <div>
-                  <Label htmlFor="plan-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    Plan de Estudio
-                  </Label>
-                  <Select disabled={isLoadingPlanes} name="plan-select">
-                    <SelectTrigger className="bg-white border-gray-300">
-                      <SelectValue
-                        placeholder={isLoadingPlanes ? 'Cargando planes...' : 'Selecciona un plan de estudio'}
-                      />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-300">
-                      {isLoadingPlanes ? (
-                        <SelectItem value="loading" disabled>
-                          Cargando planes de estudio...
-                        </SelectItem>
-                      ) : (
-                        planes?.map((plan) => (
-                          <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
-                            {plan.nombreCarrera} ({plan.anio})
-                          </SelectItem>
-                        )) || []
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Fila 2 - Botones */}
-                <div className="flex justify-end gap-2">
-                  <Button type="submit" disabled={isLoadingPlanes || isLoadingPlanDetails} style={{ width: '150px' }}>
-                    {isLoadingPlanDetails ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                        Cargando...
-                      </>
-                    ) : (
-                      'Consultar'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </form>
-
-        {/* Detalle del Plan Consultado */}
-        {/* Placeholder detalle */}
-        {isLoadingPlanDetails && (
+      {/* Detalle real */}
+      {!isLoadingPlanDetails && detallePlanConsultado !== null && (
+        <PlanesEstudioFiltrosProvider plan={detallePlanConsultado} isLoggedIn={isLoggedIn}>
           <div className="space-y-6">
-            <SkeletonEstadisticasPlanEstudio />
-            <SkeletonMateriasPlanEstudio />
+            <div className="space-y-6">
+              <EstadisticasPlan plan={detallePlanConsultado} />
+              <SeccionFiltros />
+            </div>
+
+            <ListadoMaterias materiaResaltada={materiaResaltada} onClickCorrelativa={navegarACorrelativa} />
           </div>
-        )}
-
-        {/* Detalle real */}
-        {detallePlanConsultado && !isLoadingPlanDetails && (
-          <div className="space-y-6">
-            {/* Estadísticas del Plan */}
-            <Card className="bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-2xl text-gray-900">{`${detallePlanConsultado.nombreCarrera} - Año ${detallePlanConsultado.anio}`}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-blue-600">{detallePlanConsultado.materias.length}</div>
-                    <div className="text-sm text-gray-600">Total Materias</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">
-                      {detallePlanConsultado.materias.reduce((sum, m) => sum + (m.horasSemanales || 0), 0)}
-                    </div>
-                    <div className="text-sm text-gray-600">Horas Totales</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {Math.max(...detallePlanConsultado.materias.map((m) => m.anioCursada))}
-                    </div>
-                    <div className="text-sm text-gray-600">Años de Duración</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {detallePlanConsultado.materias.filter((m) => m.listaCorrelativas.length === 0).length}
-                    </div>
-                    <div className="text-sm text-gray-600">Sin Correlativas</div>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  {hasActiveFilters && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClearAllFilters}
-                      className="bg-white hover:bg-gray-50 text-gray-700 border-gray-300"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Limpiar Todos los Filtros
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    disabled={detallePlanConsultado === null}
-                    variant="outline"
-                    onClick={() => setShowFilters(!showFilters)}
-                    style={{ width: '200px' }}
-                    className={`bg-white hover:bg-gray-50 border-gray-300 ${hasActiveFilters ? 'text-blue-700 border-blue-300' : 'text-gray-700'}`}
-                  >
-                    <Filter className="h-4 w-4 mr-2" />
-                    {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-                    {hasActiveFilters && (
-                      <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800">
-                        {cantidadFiltrosActivos}
-                      </Badge>
-                    )}
-                  </Button>
-                </div>
-                <div
-                  className={`mt-4 pt-4 grid border-t border-gray-200 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 transition-all duration-300 ${showFilters ? 'block' : 'hidden'}`}
-                >
-                  {/* Search by Name/Code */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="col-span-1 sm:col-span-2 md:col-span-2">
-                      <Label htmlFor="nombreMateria-term" className="block text-sm font-medium text-gray-700 mb-2">
-                        Buscar Materia
-                      </Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="nombreMateria-term"
-                          placeholder="Nombre materia"
-                          value={filtersPlan.nombreMateria}
-                          onChange={(e) => handleSearchTermChange(e.target.value)}
-                          className="pl-9 bg-white border-gray-300"
-                        />
-                        {filtersPlan.nombreMateria && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                            onClick={() => handleSearchTermChange('')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Filter by Year */}
-                  <div>
-                    <Label htmlFor="filter-anioCursada" className="block text-sm font-medium text-gray-700 mb-2">
-                      Año
-                    </Label>
-                    <Select value={filtersPlan.anioCursada} onValueChange={handleFilterYearChange}>
-                      <SelectTrigger id="filter-anioCursada" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los años" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value={initialPlanFilters.anioCursada}>Todos los años</SelectItem>
-                        {aniosDisponiblesFiltro.map((anioCursada) => (
-                          <SelectItem key={anioCursada} value={anioCursada.toString()}>
-                            {anioCursada}° Año
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Filter by Cuatrimestre */}
-                  <div>
-                    <Label
-                      htmlFor="filter-cuatrimestreCursada"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Cuatrimestre
-                    </Label>
-                    <Select value={filtersPlan.cuatrimestreCursada} onValueChange={handleFilterCuatrimestreChange}>
-                      <SelectTrigger id="filter-cuatrimestreCursada" className="bg-white border-gray-300">
-                        <SelectValue placeholder="Todos los cuatrimestres" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border-gray-300">
-                        <SelectItem value={initialPlanFilters.cuatrimestreCursada}>Todos los cuatrimestres</SelectItem>
-                        <SelectItem value="0">Anual</SelectItem>
-                        <SelectItem value="1">1° Cuatrimestre</SelectItem>
-                        <SelectItem value="2">2° Cuatrimestre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Filter by Hours */}
-                  <div>
-                    <Label htmlFor="filter-horasSemanales" className="block text-sm font-medium text-gray-700 mb-2">
-                      Horas Semanales
-                    </Label>
-                    <Input
-                      id="filter-horasSemanales"
-                      type="number"
-                      placeholder="Ej: 4"
-                      value={filtersPlan.horasSemanales}
-                      onChange={(e) => handleFilterHoursChange(e.target.value)}
-                      className="bg-white border-gray-300"
-                    />
-                  </div>
-
-                  {/* Fila - Filtros Correlativa */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Search by Name/Code Correlativa*/}
-                    <div className="col-span-1">
-                      <Label
-                        htmlFor="nombreMateria-correlativa"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Buscar Correlativa
-                      </Label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="nombreMateria-correlativa"
-                          placeholder="Nombre de la materia correlativa"
-                          value={filtersPlan.nombreCorrelativa}
-                          onChange={(e) => handleFilterCorrelativaChange(e.target.value)}
-                          className="pl-9 bg-white border-gray-300"
-                        />
-                        {filtersPlan.nombreCorrelativa && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-400 hover:bg-transparent"
-                            onClick={() => handleFilterCorrelativaChange('')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Toggle Show Materia Correlativas */}
-                    <div className="col-span-1 flex flex-col justify-end">
-                      <div className="flex items-center space-x-2 h-10">
-                        <Switch
-                          id="show-correlatives"
-                          checked={filtersPlan.showCorrelativasMateria}
-                          onCheckedChange={handleShowCorrelativesChange}
-                        />
-                        <Label htmlFor="show-correlatives" className="text-gray-700">
-                          Mostrar Correlativas
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fila - Filtros Estado Materia */}
-                  <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Filter by Status */}
-                    <div className="col-span-1">
-                      <Label
-                        htmlFor="filter-estadoMateriaUsuario"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Estado
-                        {getWarningFilterEstadoMateriaUsuario()}
-                      </Label>
-                      <Select
-                        value={filtersPlan.estadoMateriaUsuario}
-                        onValueChange={handleFilterStatusChange}
-                        disabled={!filtroEstadoHabilitado}
-                      >
-                        <SelectTrigger id="filter-estadoMateriaUsuario" className="bg-white border-gray-300">
-                          <SelectValue placeholder={!isLoggedIn ? 'Requiere autenticación' : 'Todos los estados'} />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-gray-300">
-                          <SelectItem value={initialPlanFilters.estadoMateriaUsuario}>Todos los estados</SelectItem>
-                          {estadosMateriasDisponiblesFiltro.map((estadoMateriaUsuario) => (
-                            <SelectItem key={estadoMateriaUsuario} value={estadoMateriaUsuario}>
-                              {estadoMateriaUsuario}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Toggle Show Materia Status */}
-                    <div className="col-span-1 flex flex-col justify-end">
-                      <div className="flex items-center space-x-2 h-10">
-                        <Switch
-                          id="show-estadoMateriaUsuario"
-                          checked={filtersPlan.showEstadoMateriaUsuario}
-                          onCheckedChange={handleShowMateriaStatusChange}
-                          disabled={!filtroEstadoHabilitado}
-                        />
-                        <Label htmlFor="show-estadoMateriaUsuario" className="text-gray-700">
-                          Mostrar Estado de Materia
-                        </Label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Materias por Año y Cuatrimestre */}
-            <Accordion type="multiple" className="w-full">
-              {Object.keys(materiasAgrupadas)
-                .map(Number)
-                .sort((a, b) => a - b)
-                .map((anio) => (
-                  <div key={anio}>
-                    <AccordionItem value={`anio-${anio}`} className="border-none">
-                      <AccordionTrigger className="flex items-center gap-2 text-2xl font-bold text-gray-900 hover:no-underline">
-                        <div className="h-8 w-1 bg-blue-600 rounded"></div>
-                        {`${anio}°`} Año
-                        {/* Removed redundant ChevronDown */}
-                      </AccordionTrigger>
-                      <AccordionContent className="pl-4 space-y-4">
-                        <Accordion type="multiple" className="w-full">
-                          {Object.keys(materiasAgrupadas[anio])
-                            .map(Number)
-                            .sort((a, b) => a - b)
-                            .map((cuatrimestreCursada) => (
-                              <AccordionItem
-                                key={`${anio}-${cuatrimestreCursada}`}
-                                value={`cuatrimestreCursada-${anio}-${cuatrimestreCursada}`}
-                                className="border-none"
-                              >
-                                <AccordionTrigger className="flex items-center gap-2 text-lg font-semibold text-gray-800 hover:no-underline">
-                                  <div className="h-6 w-1 bg-green-500 rounded"></div>
-                                  {getNombreCuatrimestre(cuatrimestreCursada)}
-                                  {/* Removed redundant ChevronDown */}
-                                </AccordionTrigger>
-                                <AccordionContent className="pl-4">
-                                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {materiasAgrupadas[anio][cuatrimestreCursada].map((materia) => (
-                                      <CardMateriaPlanEstudio
-                                        key={materia.codigoMateria}
-                                        materia={materia}
-                                        resaltar={materiaResaltada === materia.codigoMateria}
-                                        showEstado={filtersPlan.showEstadoMateriaUsuario && isLoggedIn}
-                                        showCorrelativas={filtersPlan.showCorrelativasMateria}
-                                        onClickCorrelativa={navegarACorrelativa}
-                                      />
-                                    ))}
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
-                            ))}
-                        </Accordion>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <Separator className="bg-gray-200" />
-                  </div>
-                ))}
-            </Accordion>
-          </div>
-        )}
-      </div>
-    </AppLayout>
+        </PlanesEstudioFiltrosProvider>
+      )}
+    </PlanesEstudioLayout>
   )
 }
