@@ -91,7 +91,7 @@ export const useNuevasCarrerasUsuario = (options: UseNuevasCarrerasUsuarioOption
     setError(null)
 
     try {
-      const url = `/api/carreras`
+      const url = `/api/user/carreras/disponibles?usuarioId=${options.userID}`
       const response = await fetch(url)
 
       if (!response.ok) {

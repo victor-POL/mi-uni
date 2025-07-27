@@ -1,3 +1,8 @@
+export interface CarreraUsuarioDisponibleAPIResponse {
+  carrera_id: number
+  nombre_carrera: string
+}
+
 export interface CarreraUsuarioAPIResponse {
   usuario_id: number
   plan_estudio_id: number

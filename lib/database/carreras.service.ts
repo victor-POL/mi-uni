@@ -3,7 +3,7 @@ import {
   adaptEstadisticaCarreraDBToAPIResponse,
 } from '@/adapters/carreras.adapter'
 import { query } from '@/connection'
-import type { CarreraEstadisticasAPIResponse, CarreraUsuarioAPIResponse } from '@/models/api/carreras.model'
+import type { CarreraEstadisticasAPIResponse, CarreraUsuarioAPIResponse, CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
 import type {
   MateriaEnCurso,
   MateriaHistorial,
@@ -35,10 +35,6 @@ export interface UsuarioPlanEstudio {
   carrera_id: number
   carrera_nombre: string
   anio: number
-}
-
-interface MateriaDelPlan {
-  materia_id: number
 }
 
 export interface EstadoMateriaUsuario {
@@ -108,6 +104,35 @@ export async function obtenerCarrerasUsuario(usuarioId: number): Promise<Carrera
   } catch (error) {
     console.error('Error DB carreras usuario')
     throw error
+  }
+}
+
+/**
+ * Obtiene las carreras disponibles para un usuario (carreras en las que no está inscrito)
+ * @param usuarioId - ID del usuario
+ * @returns Promise<CarreraUsuarioDisponibleAPIResponse[]> - Lista de carreras disponibles
+ */
+export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): Promise<CarreraUsuarioDisponibleAPIResponse[]> {
+  try {
+    const result = await query(
+      `SELECT DISTINCT
+              carrera.id      as carrera_id, 
+              carrera.nombre  as nombre_carrera
+       FROM prod.carrera 
+       WHERE carrera.id NOT IN (
+         SELECT DISTINCT plan_estudio.carrera_id
+         FROM prod.usuario_plan_estudio
+         JOIN prod.plan_estudio ON usuario_plan_estudio.plan_estudio_id = plan_estudio.id
+         WHERE usuario_plan_estudio.usuario_id = $1
+       )
+       ORDER BY carrera.nombre ASC`,
+      [usuarioId]
+    )
+    
+    return result.rows as unknown as CarreraUsuarioDisponibleAPIResponse[]
+  } catch (error) {
+    console.error('Error obteniendo carreras disponibles para usuario:', error)
+    throw new Error('No se pudieron obtener las carreras disponibles')
   }
 }
 
