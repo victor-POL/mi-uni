@@ -29,7 +29,7 @@ export default function PlanesEstudioPage() {
 
   // Detalles de planes
   const [detallePlanConsultado, setDetallePlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
-  const [isLoadingPlanDetails, setIsLoadingPlanDetails] = useState<boolean>(false)
+  const [isLoadingPlanDetalle, setIsLoadingPlanDetalle] = useState<boolean>(false)
 
   // Auxiliar para ir a la materia resaltada
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
@@ -38,8 +38,10 @@ export default function PlanesEstudioPage() {
   const { toast } = useToast()
 
   const handleSubmitPlan = async (planId: string) => {
+    if (planId === detallePlanConsultado?.idPlan.toString()) return
+
     setDetallePlanConsultado(null)
-    setIsLoadingPlanDetails(true)
+    setIsLoadingPlanDetalle(true)
 
     try {
       const detallePlanAPIResponse = await fetchPlanById(parseInt(planId), userId)
@@ -54,7 +56,7 @@ export default function PlanesEstudioPage() {
         variant: 'destructive',
       })
     } finally {
-      setIsLoadingPlanDetails(false)
+      setIsLoadingPlanDetalle(false)
     }
   }
 
@@ -85,14 +87,14 @@ export default function PlanesEstudioPage() {
       {/* Selector de Plan */}
       <SelectorPlanEstudio
         planes={planes}
-        disabled={isLoadingPlanDetails}
+        disabled={isLoadingPlanDetalle}
         onSubmitPlan={handleSubmitPlan}
         msgPlaceHolder="Selecciona un plan de estudio"
       />
 
       {/* Detalle del Plan Consultado */}
       {/* Placeholder detalle */}
-      {isLoadingPlanDetails && (
+      {isLoadingPlanDetalle && (
         <div className="space-y-6">
           <SkeletonEstadisticasPlanEstudio />
           <SkeletonMateriasPlanEstudio />
@@ -100,7 +102,7 @@ export default function PlanesEstudioPage() {
       )}
 
       {/* Detalle real */}
-      {!isLoadingPlanDetails && detallePlanConsultado !== null && (
+      {!isLoadingPlanDetalle && detallePlanConsultado !== null && (
         <PlanesEstudioFiltrosProvider plan={detallePlanConsultado} isLoggedIn={isLoggedIn}>
           <div className="space-y-6">
             <div className="space-y-6">
