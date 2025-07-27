@@ -1,14 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
 import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
-
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-  count?: number
-  error?: string
-  message?: string
-}
+import type { ApiResponse } from '@/models/api/api.model'
 
 interface UsePlanesEstudioOptions {
   planId?: number
