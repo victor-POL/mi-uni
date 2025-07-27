@@ -47,12 +47,15 @@ export const AgregarCarreraModal = () => {
   useEffect(() => {
     if (selectedCarrera) {
       cargarPlanes(parseInt(selectedCarrera))
-      setSelectedPlan('')
     } else {
       setPlanesCarrera([])
-      setSelectedPlan('')
     }
   }, [selectedCarrera])
+
+  const handleSelectCarrera = (carreraId: string) => {
+    setSelectedPlan('')
+    setSelectedCarrera(carreraId)
+  }
 
   const cargarCarreras = async () => {
     setIsLoadingCarreras(true)
@@ -205,7 +208,7 @@ export const AgregarCarreraModal = () => {
                   <SelectorNuevaCarrera
                     carreras={carrerasDisponibles}
                     msgPlaceHolder="Selecciona una carrera"
-                    onValueChange={setSelectedCarrera}
+                    onValueChange={handleSelectCarrera}
                   />
                 )
 
