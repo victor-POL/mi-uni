@@ -1,10 +1,20 @@
+import {
+  adaptCarrerasUsuarioDBToAPIResponse,
+  adaptEstadisticaCarreraDBToAPIResponse,
+} from '@/adapters/carreras.adapter'
 import { query } from '@/connection'
+import type { CarreraEstadisticasAPIResponse, CarreraUsuarioAPIResponse } from '@/models/api/carreras.model'
 import type {
   MateriaEnCurso,
   MateriaHistorial,
   EstadisticasMateriasEnCurso,
   EstadisticasHistorial,
 } from '@/models/carrera-detalle.model'
+import type {
+  CarreraEstadisticaCursandoDB,
+  CarreraEstadisticasDB,
+  CarreraUsuarioDB,
+} from '@/models/database/carreras.model'
 
 export interface Carrera {
   id: number
@@ -65,23 +75,38 @@ export async function obtenerCarreras() {
   }
 }
 
-// Obtener carreras del usuario
-export async function obtenerCarrerasUsuario(usuarioId: number): Promise<UsuarioPlanEstudio[]> {
+/**
+ * Obtiene un listado de todas las carreras del usuario
+ * @param usuarioId - ID del usuario
+ * @returns Promise<CarreraUsuarioAPIResponse[]> - Promise con array de carreras del usuario
+ */
+export async function obtenerCarrerasUsuario(usuarioId: number): Promise<CarreraUsuarioAPIResponse[]> {
   try {
     const result = await query(
-      `SELECT ups.usuario_id, ups.plan_estudio_id, 
-              pe.carrera_id, c.nombre as carrera_nombre, pe.anio
-       FROM prod.usuario_plan_estudio ups
-       JOIN prod.plan_estudio pe ON ups.plan_estudio_id = pe.id
-       JOIN prod.carrera c ON pe.carrera_id = c.id
-       WHERE ups.usuario_id = $1
-       ORDER BY c.nombre, pe.anio DESC`,
+      `SELECT 
+              usuario_plan_estudio.usuario_id, 
+              usuario_plan_estudio.plan_estudio_id, 
+              plan_estudio.carrera_id, 
+              plan_estudio.anio,
+              carrera.nombre as carrera_nombre
+       FROM prod.usuario_plan_estudio
+       JOIN prod.plan_estudio    ON usuario_plan_estudio.plan_estudio_id = plan_estudio.id
+       JOIN prod.carrera         ON plan_estudio.carrera_id = carrera.id
+       WHERE usuario_plan_estudio.usuario_id = $1
+       ORDER BY 
+              carrera.nombre    ASC, 
+              plan_estudio.anio DESC`,
       [usuarioId]
     )
-    return result.rows as unknown as UsuarioPlanEstudio[]
+
+    const rowsCarreras: CarreraUsuarioDB[] = result.rows as unknown as CarreraUsuarioDB[]
+
+    const carreras: CarreraUsuarioAPIResponse[] = adaptCarrerasUsuarioDBToAPIResponse(rowsCarreras)
+
+    return carreras
   } catch (error) {
-    console.error('Error obteniendo carreras del usuario:', error)
-    throw new Error('No se pudieron obtener las carreras del usuario')
+    console.error('Error DB carreras usuario')
+    throw error
   }
 }
 
@@ -179,44 +204,53 @@ export async function obtenerProgresoUsuarioPlan(
   }
 }
 
-// Obtener estadísticas de progreso del usuario
-export async function obtenerEstadisticasProgreso(usuarioId: number, planEstudioId: number) {
+/**
+ * Obtiene estadisticas de progreso del usuario en un plan de estudio
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio
+ * @returns Promise<CarreraEstadisticasAPIResponse> - Promise con estadísticas de progreso
+ */
+export async function obtenerEstadisticasProgreso(
+  usuarioId: number,
+  planEstudioId: number
+): Promise<CarreraEstadisticasAPIResponse> {
   try {
-    const result = await query(
+    const estadisticasResult = await query(
       `SELECT 
-         (SELECT COUNT(*) FROM prod.plan_materia WHERE plan_estudio_id = $2) as total_materias_plan,
-         COUNT(CASE WHEN ume.estado = 'Aprobada' THEN 1 END) as materias_aprobadas,
-         COUNT(CASE WHEN ume.estado = 'En Final' THEN 1 END) as materias_en_final,
-         COUNT(CASE WHEN ume.estado = 'Pendiente' THEN 1 END) as materias_pendientes,
-         AVG(CASE WHEN ume.nota IS NOT NULL THEN ume.nota END) as promedio_general
-       FROM prod.usuario_materia_estado ume
-       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2`,
+         (SELECT COUNT(*) FROM prod.plan_materia WHERE plan_estudio_id = $2)      as total_materias_plan,
+         COUNT(CASE WHEN usuario_materia_estado.estado = 'Aprobada' THEN 1 END)   as materias_aprobadas,
+         COUNT(CASE WHEN usuario_materia_estado.estado = 'En Final' THEN 1 END)   as materias_en_final,
+         COUNT(CASE WHEN usuario_materia_estado.estado = 'Pendiente' THEN 1 END)  as materias_pendientes,
+         AVG(CASE WHEN usuario_materia_estado.nota IS NOT NULL THEN usuario_materia_estado.nota END) as promedio_general
+       FROM prod.usuario_materia_estado
+       WHERE usuario_materia_estado.usuario_id = $1 AND usuario_materia_estado.plan_estudio_id = $2`,
       [usuarioId, planEstudioId]
     )
 
-    const stats = result.rows[0] as any
-    const totalMaterias = parseInt(stats.total_materias_plan)
-    const materiasAprobadas = parseInt(stats.materias_aprobadas) || 0
+    const estadisticaCarrera: CarreraEstadisticasDB = estadisticasResult.rows[0] as unknown as CarreraEstadisticasDB
 
     // Para "En Curso" consultamos la tabla usuario_materia_estado
     const cursandoResult = await query(
-      `SELECT COUNT(DISTINCT materia_id) as materias_en_curso
-       FROM prod.usuario_materia_estado ume
-       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2 AND ume.estado = 'Cursando'`,
+      `SELECT 
+          COUNT(DISTINCT materia_id) as materias_en_curso
+       FROM prod.usuario_materia_estado
+       WHERE 
+          usuario_materia_estado.usuario_id = $1 
+          AND usuario_materia_estado.plan_estudio_id = $2 
+          AND usuario_materia_estado.estado = 'Cursando'`,
       [usuarioId, planEstudioId]
     )
 
-    const materiasEnCurso = parseInt((cursandoResult.rows[0] as any)?.materias_en_curso || '0') || 0
+    const estadisticaEnCurso: CarreraEstadisticaCursandoDB = cursandoResult
+      .rows[0] as unknown as CarreraEstadisticaCursandoDB
 
-    return {
-      totalMaterias: totalMaterias,
-      materiasAprobadas: materiasAprobadas,
-      materiasEnCurso: materiasEnCurso,
-      materiasEnFinal: parseInt(stats.materias_en_final) || 0,
-      materiasPendientes: parseInt(stats.materias_pendientes) || 0,
-      promedioGeneral: stats.promedio_general ? parseFloat(stats.promedio_general) : null,
-      porcentajeProgreso: totalMaterias > 0 ? Math.round((materiasAprobadas / totalMaterias) * 100) : 0,
-    }
+    const estadisticasCompletaCarrera: CarreraEstadisticasAPIResponse = adaptEstadisticaCarreraDBToAPIResponse(
+      planEstudioId,
+      estadisticaCarrera,
+      estadisticaEnCurso.materias_en_curso
+    )
+
+    return estadisticasCompletaCarrera
   } catch (error) {
     console.error('Error obteniendo estadísticas de progreso:', error)
     throw new Error('No se pudieron obtener las estadísticas de progreso')

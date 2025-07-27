@@ -1,64 +1,44 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { CarreraDetalle } from '@/components/CarreraDetalle'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
+/* ---------------------------------- HOOKS --------------------------------- */
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
-import type { CarreraResumen } from '@/models/mis-carreras.model'
+import { useCarrerasUsuario } from '@/hooks/use-carreras'
+/* ------------------------------ COMPONENTS ----------------------------- */
+import { CarreraDetalle } from '@/components/CarreraDetalle'
 import { DetalleSkeleton } from '@/components/mis-carreras/SkeletonDetalleCarrera'
 import { MisCarrerasLayout } from '@/components/mis-carreras/MisCarrerasLayout'
 import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
+/* ------------------------------ COMPONENTS UI ----------------------------- */
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+/* --------------------------------- MODELS --------------------------------- */
+import type { CarreraResumen } from '@/models/mis-carreras.model'
+/* -------------------------------- ADAPTERS -------------------------------- */
 
 export default function MisCarrerasPage() {
+  // Para consultar las carreras del usuario
   const { userId } = useAuth()
-  const { toast } = useToast()
-  const [selectedCarrera, setSelectedCarrera] = useState<CarreraResumen | null>(null)
-  const [isLoadingCarreras, setIsLoadingCarreras] = useState(true)
-  const [isLoadingDetalle, setIsLoadingDetalle] = useState(false)
-  const [carreras, setCarreras] = useState<CarreraResumen[]>([])
 
-  useEffect(() => {
-    if (userId) {
-      fetchCarreras()
-    }
-  }, [userId])
+  // Lista de carreras del usuario
+  const { carreras, loading: isLoadingCarreras } = useCarrerasUsuario({ userID: userId })
 
-  const fetchCarreras = async () => {
-    if (!userId) return
-
-    setIsLoadingCarreras(true)
-    try {
-      const response = await fetch(`/api/user/carreras/resumen?usuarioId=${userId}`)
-      if (!response.ok) {
-        throw new Error('Error cargando carreras')
-      }
-
-      const carrerasData = await response.json()
-      setCarreras(carrerasData)
-    } catch (error) {
-      console.error('Error cargando carreras:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar las carreras. Mostrando datos de ejemplo.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingCarreras(false)
-    }
-  }
+  // Detalle de carrera consultada
+  const [detalleCarreraConsultada, setDetalleCarreraConsultada] = useState<CarreraResumen | null>(null)
+  const [isLoadingDetalleCarrera, setIsLoadingDetalleCarrera] = useState(false)
 
   // Simular carga de detalle cuando se selecciona una carrera
   const handleSelectCarrera = async (carrera: CarreraResumen) => {
-    if (selectedCarrera?.id === carrera.id) return
+    if (carrera.planEstudioId === detalleCarreraConsultada?.planEstudioId) return
 
-    setIsLoadingDetalle(true)
+    setIsLoadingDetalleCarrera(true)
+    setDetalleCarreraConsultada(null)
+
     // Simular delay de API para cargar detalles
     await new Promise((resolve) => setTimeout(resolve, 800))
-    setSelectedCarrera(carrera)
-    setIsLoadingDetalle(false)
+    setDetalleCarreraConsultada(carrera)
+    setIsLoadingDetalleCarrera(false)
   }
 
   const getEstadoBadgeColor = (estado: string) => {
@@ -82,13 +62,16 @@ export default function MisCarrerasPage() {
 
   return (
     <MisCarrerasLayout>
+      {/* Boton para abrir modal y agregar carreras */}
       <AgregarCarreraModal />
+
+      {/* Lista de Carreras */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {carreras.map((carrera) => (
           <Card
-            key={carrera.id}
+            key={carrera.planEstudioId}
             className={`cursor-pointer transition-all hover:shadow-lg ${
-              selectedCarrera?.id === carrera.id ? 'ring-2 ring-blue-500' : ''
+              detalleCarreraConsultada?.planEstudioId === carrera.planEstudioId ? 'ring-2 ring-blue-500' : ''
             }`}
             onClick={() => handleSelectCarrera(carrera)}
           >
@@ -126,12 +109,17 @@ export default function MisCarrerasPage() {
         ))}
       </div>
 
-      {/* Detailed View */}
-      {(selectedCarrera || isLoadingDetalle) && (
-        <>
-          {isLoadingDetalle && <DetalleSkeleton />}
-          {!isLoadingDetalle && selectedCarrera && <CarreraDetalle carrera={selectedCarrera} usuarioId={userId ?? 1} />}
-        </>
+      {/* Detalle de Carrera Seleccionada */}
+      {/* Placeholder detalle */}
+      {isLoadingDetalleCarrera && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DetalleSkeleton />
+        </div>
+      )}
+
+      {/* Detalle real */}
+      {!isLoadingDetalleCarrera && detalleCarreraConsultada !== null && (
+        <CarreraDetalle carrera={detalleCarreraConsultada} usuarioId={userId ?? 1} />
       )}
     </MisCarrerasLayout>
   )

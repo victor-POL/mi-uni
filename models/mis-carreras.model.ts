@@ -6,7 +6,6 @@ export interface Carrera {
 }
 
 export interface CarreraResumen {
-  id: number
   nombre: string
   progreso: number
   estado: string

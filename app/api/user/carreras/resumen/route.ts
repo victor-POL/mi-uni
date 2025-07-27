@@ -1,58 +1,60 @@
 import { NextResponse } from 'next/server'
 import { obtenerCarrerasUsuario, obtenerEstadisticasProgreso } from '@/lib/database/carreras.service'
+import type {
+  CarreraUsuarioAPIResponse,
+  CarreraUsuarioConEstadisticasAPIResponse,
+  CarreraEstadisticasAPIResponse,
+} from '@/models/api/carreras.model'
+import { joinEstadisticaToCarreraAPIResponse } from '@/adapters/carreras.adapter'
 
+/**
+ *
+ * GET /api/user/carreras/resumen
+ * Obtiene un resumen de las carreras del usuario
+ * Parameters:
+ * - usuarioId: ID del usuario para obtener sus carreras
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const usuarioId = searchParams.get('usuarioId')
 
     if (!usuarioId) {
-      return NextResponse.json(
-        { error: 'Usuario ID es requerido' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Usuario ID es requerido' }, { status: 400 })
     }
 
     const usuarioIdNum = parseInt(usuarioId)
     if (Number.isNaN(usuarioIdNum)) {
-      return NextResponse.json(
-        { error: 'Usuario ID debe ser un número válido' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Usuario ID debe ser un número válido' }, { status: 400 })
     }
 
     // Obtener carreras del usuario
-    const carrerasUsuario = await obtenerCarrerasUsuario(usuarioIdNum)
-    
+    const carrerasUsuario: CarreraUsuarioAPIResponse[] = await obtenerCarrerasUsuario(usuarioIdNum)
+
     // Obtener estadísticas para cada carrera
-    const carrerasConEstadisticas = await Promise.all(
-      carrerasUsuario.map(async (carrera) => {
-        const estadisticas = await obtenerEstadisticasProgreso(usuarioIdNum, carrera.plan_estudio_id)
-        
-        return {
-          id: carrera.plan_estudio_id,
-          nombre: carrera.carrera_nombre,
-          codigo: `${carrera.carrera_nombre.substring(0, 2).toUpperCase()}-${carrera.anio}`,
-          estado: estadisticas.porcentajeProgreso === 100 ? 'Completada' : 'En Curso',
-          progreso: estadisticas.porcentajeProgreso,
-          materiasAprobadas: estadisticas.materiasAprobadas,
-          materiasTotal: estadisticas.totalMaterias,
-          promedioGeneral: estadisticas.promedioGeneral || 0,
-          añoIngreso: carrera.anio, // TODO: Agregar fecha real de ingreso del usuario
-          añoEstimadoEgreso: carrera.anio + 5, // TODO: Calcular basado en progreso real
-          planEstudioId: carrera.plan_estudio_id,
-          planEstudioAnio: carrera.anio,
-          carreraId: carrera.carrera_id
-        }
+    const carrerasConEstadisticas: CarreraUsuarioConEstadisticasAPIResponse[] = await Promise.all(
+      carrerasUsuario.map(async (carrera): Promise<CarreraUsuarioConEstadisticasAPIResponse> => {
+        const estadisticas: CarreraEstadisticasAPIResponse = await obtenerEstadisticasProgreso(
+          usuarioIdNum,
+          carrera.plan_estudio_id
+        )
+
+        const carreraConEstadisticas: CarreraUsuarioConEstadisticasAPIResponse = joinEstadisticaToCarreraAPIResponse(
+          carrera,
+          estadisticas
+        )
+
+        return carreraConEstadisticas
       })
     )
 
-    return NextResponse.json(carrerasConEstadisticas)
+    return NextResponse.json({
+      success: true,
+      data: carrerasConEstadisticas,
+      count: carrerasConEstadisticas.length,
+    })
   } catch (error) {
     console.error('Error en API carreras usuario:', error)
-    return NextResponse.json(
-      { error: 'No se pudieron obtener las carreras del usuario' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'No se pudieron obtener las carreras del usuario' }, { status: 500 })
   }
 }
