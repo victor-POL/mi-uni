@@ -1,3 +1,4 @@
+// Listado planes
 export interface PlanEstudioAPIResponse {
   plan_id: number
   anio: number

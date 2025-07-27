@@ -1,3 +1,4 @@
+// Listado planes
 export interface PlanEstudioDB {
   plan_id: number
   anio: number

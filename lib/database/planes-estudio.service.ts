@@ -20,7 +20,7 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioA
   try {
     await query(`SET search_path = prod, public`)
 
-    const result = await query(
+    const planesResult = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
@@ -34,13 +34,9 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioA
       [idCarrera || null]
     )
 
-    const rows: PlanEstudioDB[] = result.rows as unknown as PlanEstudioDB[]
+    const planesDB: PlanEstudioDB[] = planesResult.rows as unknown as PlanEstudioDB[]
 
-    return rows.map((row) => ({
-      plan_id: row.plan_id,
-      nombre_carrera: row.nombre_carrera,
-      anio: row.anio,
-    }))
+    return planesDB
   } catch (error) {
     console.error('Error DB listado planes')
     throw error
