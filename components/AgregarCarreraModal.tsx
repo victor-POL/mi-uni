@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast'
 import type { Carrera } from '@/models/mis-carreras.model'
 import type { PlanEstudio } from '@/models/plan-estudio.model'
 import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Interfaces para las respuestas de la API
 interface CarreraApiResponse {
@@ -18,12 +19,9 @@ interface CarreraApiResponse {
   nombre_carrera: string
 }
 
-interface AgregarCarreraModalProps {
-  onCarreraAgregada: () => void
-  usuarioId: number
-}
+export const AgregarCarreraModal = () => {
+  const { userId } = useAuth()
 
-export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCarreraModalProps) => {
   const [carrerasDisponibles, setCarrerasDisponibles] = useState<Carrera[]>([])
   const [planesCarrera, setPlanesCarrera] = useState<PlanEstudio[]>([])
 
@@ -143,7 +141,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usuarioId,
+          userId,
           planEstudioId: parseInt(selectedPlan),
         }),
       })
@@ -164,7 +162,6 @@ export const AgregarCarreraModal = ({ onCarreraAgregada, usuarioId }: AgregarCar
       setCarrerasDisponibles([])
       setPlanesCarrera([])
       setIsOpen(false)
-      onCarreraAgregada()
     } catch (error) {
       console.error('Error:', error)
       toast({

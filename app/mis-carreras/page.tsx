@@ -1,41 +1,37 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AppLayout } from '@/components/AppLayout'
-import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
 import { CarreraDetalle } from '@/components/CarreraDetalle'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { GraduationCap } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
-import { CarreraSkeleton } from '@/components/mis-carreras/SkeletonCarrera'
 import { DetalleSkeleton } from '@/components/mis-carreras/SkeletonDetalleCarrera'
+import { MisCarrerasLayout } from '@/components/mis-carreras/MisCarrerasLayout'
+import { AgregarCarreraModal } from '@/components/AgregarCarreraModal'
 
 export default function MisCarrerasPage() {
-  const { user } = useAuth()
+  const { userId } = useAuth()
   const { toast } = useToast()
   const [selectedCarrera, setSelectedCarrera] = useState<CarreraResumen | null>(null)
   const [isLoadingCarreras, setIsLoadingCarreras] = useState(true)
   const [isLoadingDetalle, setIsLoadingDetalle] = useState(false)
   const [carreras, setCarreras] = useState<CarreraResumen[]>([])
 
-  // Cargar carreras del usuario desde la BD
   useEffect(() => {
-    if (user?.dbId) {
+    if (userId) {
       fetchCarreras()
     }
-  }, [user?.dbId])
+  }, [userId])
 
   const fetchCarreras = async () => {
-    if (!user?.dbId) return
+    if (!userId) return
 
     setIsLoadingCarreras(true)
     try {
-      const response = await fetch(`/api/user/carreras/resumen?usuarioId=${user.dbId}`)
+      const response = await fetch(`/api/user/carreras/resumen?usuarioId=${userId}`)
       if (!response.ok) {
         throw new Error('Error cargando carreras')
       }
@@ -52,11 +48,6 @@ export default function MisCarrerasPage() {
     } finally {
       setIsLoadingCarreras(false)
     }
-  }
-
-  // Función para recargar carreras después de agregar una nueva
-  const handleCarreraAgregada = () => {
-    fetchCarreras()
   }
 
   // Simular carga de detalle cuando se selecciona una carrera
@@ -83,96 +74,65 @@ export default function MisCarrerasPage() {
     }
   }
 
+  if (isLoadingCarreras) return <MisCarrerasLayout loading />
+
+  if (carreras === null) return <MisCarrerasLayout forError />
+
+  if (carreras.length === 0) return <MisCarrerasLayout emptyCarreras />
+
   return (
-    <ProtectedRoute>
-      <AppLayout title="Mis Carreras">
-        <div className="container mx-auto p-6 space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Mis Carreras</h1>
-              <p className="text-gray-600">Gestiona tus carreras y seguimiento académico</p>
-            </div>
-            <AgregarCarreraModal onCarreraAgregada={handleCarreraAgregada} usuarioId={user?.dbId ?? 1} />
-          </div>
-
-          {/* Carreras Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {isLoadingCarreras ? (
-              // Mostrar skeletons mientras carga
-              <>
-                <CarreraSkeleton />
-                <CarreraSkeleton />
-              </>
-            ) : carreras.length > 0 ? (
-              // Mostrar carreras reales
-              carreras.map((carrera) => (
-                <Card
-                  key={carrera.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
-                    selectedCarrera?.id === carrera.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  onClick={() => handleSelectCarrera(carrera)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <CardTitle className="text-xl">{carrera.nombre}</CardTitle>
-                      </div>
-                      <Badge className={getEstadoBadgeColor(carrera.estado)}>{carrera.estado}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progreso General</span>
-                        <span>{carrera.progreso}%</span>
-                      </div>
-                      <Progress value={carrera.progreso} className="h-2" />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="space-y-1">
-                        <p className="text-gray-600">Materias</p>
-                        <p className="font-medium">
-                          {carrera.materiasAprobadas}/{carrera.materiasTotal}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-gray-600">Promedio</p>
-                        <p className="font-medium">{carrera.promedioGeneral}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              // Mostrar mensaje cuando no hay carreras
-              <div className="col-span-full">
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes carreras agregadas</h3>
-                    <p className="text-gray-500 mb-6">
-                      Comienza agregando tu primera carrera para ver tu progreso académico
-                    </p>
-                  </CardContent>
-                </Card>
+    <MisCarrerasLayout>
+      <AgregarCarreraModal />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {carreras.map((carrera) => (
+          <Card
+            key={carrera.id}
+            className={`cursor-pointer transition-all hover:shadow-lg ${
+              selectedCarrera?.id === carrera.id ? 'ring-2 ring-blue-500' : ''
+            }`}
+            onClick={() => handleSelectCarrera(carrera)}
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <CardTitle className="text-xl">{carrera.nombre}</CardTitle>
+                </div>
+                <Badge className={getEstadoBadgeColor(carrera.estado)}>{carrera.estado}</Badge>
               </div>
-            )}
-          </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progreso General</span>
+                  <span>{carrera.progreso}%</span>
+                </div>
+                <Progress value={carrera.progreso} className="h-2" />
+              </div>
 
-          {/* Detailed View */}
-          {(selectedCarrera || isLoadingDetalle) && (
-            <>
-              {isLoadingDetalle && <DetalleSkeleton />}
-              {!isLoadingDetalle && selectedCarrera && (
-                <CarreraDetalle carrera={selectedCarrera} usuarioId={user?.dbId ?? 1} />
-              )}
-            </>
-          )}
-        </div>
-      </AppLayout>
-    </ProtectedRoute>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-gray-600">Materias</p>
+                  <p className="font-medium">
+                    {carrera.materiasAprobadas}/{carrera.materiasTotal}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-gray-600">Promedio</p>
+                  <p className="font-medium">{carrera.promedioGeneral}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Detailed View */}
+      {(selectedCarrera || isLoadingDetalle) && (
+        <>
+          {isLoadingDetalle && <DetalleSkeleton />}
+          {!isLoadingDetalle && selectedCarrera && <CarreraDetalle carrera={selectedCarrera} usuarioId={userId ?? 1} />}
+        </>
+      )}
+    </MisCarrerasLayout>
   )
 }
