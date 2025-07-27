@@ -11,6 +11,7 @@ import type {
   EstadisticasHistorial,
 } from '@/models/carrera-detalle.model'
 import type {
+  CarreraDB,
   CarreraEstadisticaCursandoDB,
   CarreraEstadisticasDB,
   CarreraUsuarioDB,
@@ -55,17 +56,20 @@ export interface EstadoMateriaUsuario {
 /**
  * Obtiene un listado de todas las carreras (solo información basica: carrera_id, nombre_carrera)
  */
-export async function obtenerCarreras() {
+export async function obtenerCarreras(): Promise<CarreraDB[]> {
   try {
-    const result = await query(`
+    const carrerasResult = await query(`
       SELECT 
         carrera.id      as carrera_id, 
-        carrera.nombre  as nombre_carrera
+        carrera.nombre  as carrera_nombre
       FROM prod.carrera 
       ORDER BY 
-        nombre ASC
+        carrera.nombre ASC
     `)
-    return result.rows
+
+    const carrerasDB: CarreraDB[] = carrerasResult.rows as unknown as CarreraDB[]
+
+    return carrerasDB
   } catch (error) {
     console.error('Error obteniendo carreras:', error)
     throw new Error('No se pudieron obtener las carreras')

@@ -1,3 +1,9 @@
+// Listado carreras
+export interface CarreraDB {
+  carrera_id: number
+  carrera_nombre: string
+}
+
 export interface CarreraUsuarioDB {
   usuario_id: number
   plan_estudio_id: number

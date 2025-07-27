@@ -1,3 +1,8 @@
+// Listado carreras
+export interface CarreraAPIResponse {
+  carrera_id: number
+  carrera_nombre: string
+}
 export interface CarreraUsuarioDisponibleAPIResponse {
   carrera_id: number
   nombre_carrera: string
