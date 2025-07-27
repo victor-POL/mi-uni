@@ -1,28 +1,37 @@
 'use client'
 
+/* ---------------------------------- HOOKS --------------------------------- */
 import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
+import { usePlanesCarrera } from '@/hooks/use-planes-carrera'
+/* ------------------------------ COMPONENTS ----------------------------- */
+import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
+import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
+/* ------------------------------ COMPONENTS UI ----------------------------- */
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/contexts/AuthContext'
-import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
-import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
-import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
-import { usePlanesCarrera } from '@/hooks/use-planes-carrera'
 
 export const AgregarCarreraModal = () => {
+  // Para obtener el ID del usuario autenticado y consultar informacion de carreras y planes
   const { userId } = useAuth()
+
+  // Control del modal
   const [isOpen, setIsOpen] = useState(false)
 
+  // Carreras disponibles para el usuario
   const { carreras: carrerasDisponibles, loading: isLoadingCarreras } = useNuevasCarrerasUsuario({
     userID: userId as number,
     autoFetch: isOpen,
   })
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
+
+  // Planes disponibles para el usuario según la carrera seleccionada
   const [selectedPlan, setSelectedPlan] = useState<string>('')
 
   const { planes: planesCarrera, loading: isLoadingPlanes } = usePlanesCarrera({
@@ -30,6 +39,7 @@ export const AgregarCarreraModal = () => {
     autoFetch: selectedCarrera !== '',
   })
 
+  // Estado de envío del formulario para agregar carrera
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
