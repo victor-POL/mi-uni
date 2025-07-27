@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
+import { set } from 'react-hook-form'
 
 export const AgregarCarreraModal = () => {
   // Para obtener el ID del usuario autenticado y consultar informacion de carreras y planes
@@ -110,9 +111,13 @@ export const AgregarCarreraModal = () => {
 
   const handleChangeModal = (open: boolean) => {
     setIsOpen(open)
-    if (!open) {
+    if (open) {
       resetSelections()
     }
+  }
+
+  const handleOnClickCancelar = () => {
+    setIsOpen(false)
   }
 
   return (
@@ -206,7 +211,7 @@ export const AgregarCarreraModal = () => {
 
           {/* Botones de acción */}
           <DialogFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => setIsOpen(false)}>
+            <Button type="button" variant="outline" disabled={isSubmitting} onClick={handleOnClickCancelar}>
               Cancelar
             </Button>
             <Button onClick={handleSubmit} disabled={!selectedPlan || isSubmitting}>
