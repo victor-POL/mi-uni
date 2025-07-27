@@ -119,7 +119,7 @@ export default function MisCarrerasPage() {
   return (
     <MisCarrerasLayout>
       {/* Boton para abrir modal y agregar carreras */}
-      <AgregarCarreraModal />
+      <AgregarCarreraModal onCarreraAgregada={refetchCarreras} />
 
       {/* Lista de Carreras */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

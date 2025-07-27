@@ -17,7 +17,11 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
 import type { BodyPostNuevaCarreraEnUsuario } from '@/models/api/carreras.model'
 
-export const AgregarCarreraModal = () => {
+interface AgregarCarreraModalProps {
+  onCarreraAgregada?: () => void
+}
+
+export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalProps) => {
   // Para obtener el ID del usuario autenticado y consultar informacion de carreras y planes
   const { userId } = useAuth()
 
@@ -94,6 +98,9 @@ export const AgregarCarreraModal = () => {
         title: '¡Éxito!',
         description: 'Carrera agregada correctamente',
       })
+
+      // Llamar al callback para refrescar la lista en el componente padre
+      onCarreraAgregada?.()
 
       resetSelections()
       setIsOpen(false)
