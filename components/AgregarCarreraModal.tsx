@@ -18,7 +18,7 @@ export const AgregarCarreraModal = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   const { carreras: carrerasDisponibles, loading: isLoadingCarreras } = useNuevasCarrerasUsuario({
-    userID: userId,
+    userID: userId as number,
     autoFetch: isOpen,
   })
 
