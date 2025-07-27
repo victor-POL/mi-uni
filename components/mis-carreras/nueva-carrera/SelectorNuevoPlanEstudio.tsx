@@ -6,6 +6,7 @@ interface SelectorNuevoPlanProps {
   readonly planes: PlanEstudio[]
   readonly disabled?: boolean
   readonly msgPlaceHolder: string
+  readonly value?: string
   onValueChange?: (value: string) => void
 }
 
@@ -13,12 +14,13 @@ export const SelectorNuevoPlan = ({
   planes,
   disabled = false,
   msgPlaceHolder,
+  value,
   onValueChange,
 }: SelectorNuevoPlanProps) => {
   return (
     <>
       <Label htmlFor="nuevo-plan-select">Plan</Label>
-      <Select disabled={disabled} onValueChange={onValueChange}>
+      <Select disabled={disabled} onValueChange={onValueChange} value={value}>
         <SelectTrigger id="nuevo-plan-select">
           <SelectValue placeholder={msgPlaceHolder} />
         </SelectTrigger>

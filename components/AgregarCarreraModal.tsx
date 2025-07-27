@@ -175,6 +175,7 @@ export const AgregarCarreraModal = () => {
                   return (
                     <SelectorNuevoPlan
                       planes={planesCarrera}
+                      value={selectedPlan}
                       msgPlaceHolder="Seleccione un plan de estudio"
                       onValueChange={handleSelectPlan}
                     />
