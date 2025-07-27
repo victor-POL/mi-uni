@@ -1,24 +1,9 @@
 'use client'
 
 import { AppLayout } from '@/components/AppLayout'
+import { HeaderPage } from '@/components/HeaderPage'
 import { ErrorMsgPlanEstudioData } from '@/components/planes-estudio/ErrorMsgPlanEstudioData'
 import { SelectorPlanEstudio } from '@/components/planes-estudio/SelectorPlanEstudio'
-
-interface HeaderPageProps {
-  readonly title: string
-  readonly description: string
-}
-
-function HeaderPage({ title, description }: HeaderPageProps) {
-  return (
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
-        <p className="text-gray-600">{description}</p>
-      </div>
-    </div>
-  )
-}
 
 interface PlanesEstudioLayoutProps {
   readonly loading?: boolean
