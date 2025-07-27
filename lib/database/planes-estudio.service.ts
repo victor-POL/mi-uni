@@ -1,6 +1,15 @@
 import { query } from '@/connection'
-import type { DetalleMateriaAPIResponse, PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
-import type { PlanEstudioDB, MateriaPlanEstudioDetalleDB } from '@/models/database/planes-estudio.model'
+import type {
+  DetalleMateriaAPIResponse,
+  EstadisticasPlanAPIResponse,
+  PlanEstudioAPIResponse,
+  PlanEstudioDetalleAPIResponse,
+} from '@/models/api/planes-estudio.model'
+import type {
+  PlanEstudioDB,
+  MateriaPlanEstudioDetalleDB,
+  EstadisticasPlanDB,
+} from '@/models/database/planes-estudio.model'
 
 /**
  * Obtiene un listado de todos los planes de estudio desde la base de datos (solo información básica: idPlan, nombreCarrera, anio)
@@ -44,7 +53,10 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioA
  * @param usuarioId - ID del usuario (opcional) para obtener el estado de las materias
  * @returns Promise con el detalle del plan de estudio o null si no se encuentra
  */
-export async function getDetallePlan(planId: number, usuarioId?: number): Promise<PlanEstudioDetalleAPIResponse | null> {
+export async function getDetallePlan(
+  planId: number,
+  usuarioId?: number
+): Promise<PlanEstudioDetalleAPIResponse | null> {
   try {
     await query(`SET search_path = prod, public`)
 
@@ -68,7 +80,7 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
 
     const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0] as any
 
-    // Luego obtener todas las materias del plan con correlativas
+    // Luego obtener todas las materias del plan con correlativas y estadísticas
     const resultQueryDetallePlan = await query(
       `
       WITH materias_plan AS (
@@ -84,6 +96,28 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
         FROM prod.plan_materia
         JOIN prod.materia         ON plan_materia.materia_id = materia.id
         WHERE plan_materia.plan_estudio_id = $1
+      ),
+      estadisticas_plan AS (
+        SELECT
+          plan_materia.plan_estudio_id,
+          COUNT(*)                                  AS total_materias,
+          SUM(materia.horas_semanales)                    AS horas_totales,
+          MAX(plan_materia.anio_cursada)                      AS duracion_plan,
+          SUM(
+            CASE 
+              WHEN NOT EXISTS (
+                SELECT 1 
+                FROM prod.correlativa c
+                WHERE c.plan_estudio_id = plan_materia.plan_estudio_id
+                  AND c.materia_id      = plan_materia.materia_id
+              ) THEN 1 
+              ELSE 0 
+            END
+          ) 										AS materias_sin_correlativas
+        FROM prod.plan_materia
+        INNER JOIN prod.materia  					ON materia.id = plan_materia.materia_id
+        WHERE plan_materia.plan_estudio_id = $1
+        GROUP BY plan_materia.plan_estudio_id
       ),
       correlativas_agrupadas AS (
         SELECT 
@@ -115,6 +149,7 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       )
       SELECT 
         materias_plan.*,
+        estadisticas_plan.*,
         CASE 
           WHEN usuario_tiene_plan.tiene_acceso THEN (
             SELECT usuario_materia_estado.estado
@@ -128,6 +163,7 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       FROM materias_plan
       LEFT JOIN correlativas_agrupadas ON materias_plan.materia_id = correlativas_agrupadas.materia_id
       CROSS JOIN usuario_tiene_plan
+      CROSS JOIN estadisticas_plan
       ORDER BY 
         materias_plan.anio_cursada ASC, 
         materias_plan.cuatrimestre ASC, 
@@ -136,9 +172,10 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       [planId, usuarioId]
     )
 
-    const detallePlanDB: MateriaPlanEstudioDetalleDB[] = resultQueryDetallePlan.rows as unknown as MateriaPlanEstudioDetalleDB[]
+    const detallePlanDB: MateriaPlanEstudioDetalleDB[] =
+      resultQueryDetallePlan.rows as unknown as MateriaPlanEstudioDetalleDB[]
 
-    console.log(detallePlanDB)
+    const estadisticasPlanDB: EstadisticasPlanDB = detallePlanDB[0]
 
     // Transformar las materias al formato esperado
     const materias: DetalleMateriaAPIResponse[] = detallePlanDB.map((materia) => ({
@@ -149,16 +186,25 @@ export async function getDetallePlan(planId: number, usuarioId?: number): Promis
       horas_semanales: materia.horas_semanales,
       tipo: materia.tipo,
       estado_materia_usuario: materia.estado_materia_usuario,
-      lista_correlativas: materia.lista_correlativas.map(correlativa => ({
+      lista_correlativas: materia.lista_correlativas.map((correlativa) => ({
         codigo_materia: correlativa.codigo_materia,
-        nombre_materia: correlativa.nombre_materia
+        nombre_materia: correlativa.nombre_materia,
       })),
     }))
+
+    // Transformar las estadisticas al formato esperado
+    const estadisticas: EstadisticasPlanAPIResponse = {
+      total_materias: estadisticasPlanDB.total_materias,
+      horas_totales: estadisticasPlanDB.horas_totales,
+      duracion_plan: estadisticasPlanDB.duracion_plan,
+      materias_sin_correlativas: estadisticasPlanDB.materias_sin_correlativas,
+    }
 
     return {
       plan_id: planEstudioDB.plan_id,
       nombre_carrera: planEstudioDB.nombre_carrera,
       anio: planEstudioDB.anio,
+      estadisticas,
       materias,
     }
   } catch (error) {

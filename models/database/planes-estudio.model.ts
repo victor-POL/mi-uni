@@ -24,6 +24,14 @@ export interface CorrelativaMateriaDB {
   }
 }
 
+export interface EstadisticasPlanDB {
+  plan_estudio_id: number
+  total_materias: number
+  horas_totales: number
+  duracion_plan: number
+  materias_sin_correlativas: number
+}
+
 
 export interface MateriaPlanEstudioDetalleDB {
   plan_estudio_id: number
@@ -34,6 +42,10 @@ export interface MateriaPlanEstudioDetalleDB {
   nombre_materia: string
   tipo: string
   horas_semanales: number
+  total_materias: number
+  horas_totales: number
+  duracion_plan: number
+  materias_sin_correlativas: number
   estado_materia_usuario: string | null
   lista_correlativas: {
     codigo_materia: string

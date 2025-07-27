@@ -20,9 +20,17 @@ export interface DetalleMateriaAPIResponse {
   lista_correlativas: CorrelativaMateriaAPIResponse[]
 }
 
+export interface EstadisticasPlanAPIResponse {
+  total_materias: number
+  horas_totales: number
+  duracion_plan: number
+  materias_sin_correlativas: number
+}
+
 export interface PlanEstudioDetalleAPIResponse {
   plan_id: number
   nombre_carrera: string
   anio: number
+  estadisticas: EstadisticasPlanAPIResponse
   materias: DetalleMateriaAPIResponse[]
 }

@@ -17,7 +17,7 @@ import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
 import { planesDeEstudio } from '@/data/planes-estudio.data'
-import { EstadisticasPlan } from '@/components/planes-estudio/EstadisticasPlan'
+import { EstadisticasPlanComponent } from '@/components/planes-estudio/EstadisticasPlan'
 import { SeccionFiltros } from '@/components/planes-estudio/SeccionFiltros'
 
 export default function PlanesEstudioPage() {
@@ -104,7 +104,11 @@ export default function PlanesEstudioPage() {
         <PlanesEstudioFiltrosProvider plan={detallePlanConsultado} isLoggedIn={isLoggedIn}>
           <div className="space-y-6">
             <div className="space-y-6">
-              <EstadisticasPlan plan={detallePlanConsultado} />
+              <EstadisticasPlanComponent
+                nombreCarrera={detallePlanConsultado.nombreCarrera}
+                anioPlan={detallePlanConsultado.anio}
+                estadisticas={detallePlanConsultado.estadisticas}
+              />
               <SeccionFiltros />
             </div>
 

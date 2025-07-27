@@ -12,6 +12,12 @@ export const transformPlanAPIResponseToLocal = (detallePlanAPIResponse: any): Pl
     idPlan: detallePlanAPIResponse.plan_id,
     nombreCarrera: detallePlanAPIResponse.nombre_carrera,
     anio: detallePlanAPIResponse.anio,
+    estadisticas: {
+      totalMaterias: detallePlanAPIResponse.estadisticas.total_materias,
+      horasTotales: detallePlanAPIResponse.estadisticas.horas_totales,
+      duracion: detallePlanAPIResponse.estadisticas.duracion_plan,
+      materiasSinCorrelativas: detallePlanAPIResponse.estadisticas.materias_sin_correlativas,
+    },
     materias: detallePlanAPIResponse.materias.map((materia: any) => ({
       codigoMateria: materia.codigo_materia,
       nombreMateria: materia.nombre_materia,
