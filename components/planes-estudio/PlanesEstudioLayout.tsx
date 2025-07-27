@@ -1,8 +1,8 @@
 'use client'
 
 import { AppLayout } from '@/components/AppLayout'
+import { ErrorAlert } from '@/components/ErrorAlert'
 import { HeaderPage } from '@/components/HeaderPage'
-import { ErrorMsgPlanEstudioData } from '@/components/planes-estudio/ErrorMsgPlanEstudioData'
 import { SelectorPlanEstudio } from '@/components/planes-estudio/SelectorPlanEstudio'
 
 interface PlanesEstudioLayoutProps {
@@ -29,7 +29,7 @@ export function PlanesEstudioLayout({
         {loading && (
           <SelectorPlanEstudio planes={[]} disabled={true} onSubmitPlan={() => {}} msgPlaceHolder="Cargando planes" />
         )}
-        {forError && <ErrorMsgPlanEstudioData />}
+        {forError && <ErrorAlert title="Error al obtener los planes de estudios disponibles" />}
         {emptyPlanes && (
           <SelectorPlanEstudio
             planes={[]}
