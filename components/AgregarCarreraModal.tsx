@@ -7,41 +7,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import type { Carrera } from '@/models/mis-carreras.model'
 import type { PlanEstudio } from '@/models/plan-estudio.model'
 import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 import { useAuth } from '@/contexts/AuthContext'
 import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
 import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
-
-// Interfaces para las respuestas de la API
-interface CarreraApiResponse {
-  carrera_id: number
-  nombre_carrera: string
-}
+import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
 
 export const AgregarCarreraModal = () => {
   const { userId } = useAuth()
+  const [isOpen, setIsOpen] = useState(false)
 
-  const [carrerasDisponibles, setCarrerasDisponibles] = useState<Carrera[]>([])
+  const { carreras: carrerasDisponibles, loading: isLoadingCarreras } = useNuevasCarrerasUsuario({
+    userID: userId,
+    autoFetch: isOpen,
+  })
   const [planesCarrera, setPlanesCarrera] = useState<PlanEstudio[]>([])
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
   const [selectedPlan, setSelectedPlan] = useState<string>('')
 
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoadingCarreras, setIsLoadingCarreras] = useState(false)
   const [isLoadingPlanes, setIsLoadingPlanes] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
-
-  // Cargar carrerasDisponibles cuando se abre el modal
-  useEffect(() => {
-    if (isOpen && carrerasDisponibles.length === 0) {
-      cargarCarreras()
-    }
-  }, [isOpen, carrerasDisponibles.length])
 
   // Cargar planesCarrera cuando cambia la carrera seleccionada
   useEffect(() => {
@@ -55,46 +44,6 @@ export const AgregarCarreraModal = () => {
   const handleSelectCarrera = (carreraId: string) => {
     setSelectedPlan('')
     setSelectedCarrera(carreraId)
-  }
-
-  const cargarCarreras = async () => {
-    setIsLoadingCarreras(true)
-    try {
-      const response = await fetch('/api/carreras')
-
-      if (!response.ok) throw new Error('Error cargando carreras')
-
-      const listadoCarrerasResponse: CarreraApiResponse[] = await response.json()
-
-      const formattedCarreras: Carrera[] = listadoCarrerasResponse.map((carrera) => ({
-        idCarrera: carrera.carrera_id,
-        nombreCarrera: carrera.nombre_carrera,
-      }))
-
-      setCarrerasDisponibles(formattedCarreras)
-    } catch (error) {
-      let errorMessage = 'Error desconocido. Por favor, inténtalo más tarde.'
-
-      if (error instanceof Error) {
-        if (error.message.includes('fetch') || error.message.includes('network') || error.name === 'NetworkError') {
-          errorMessage = 'Error de conexión. Verifica tu conexión a internet e inténtalo nuevamente.'
-        } else if (error.message.includes('timeout') || error.name === 'TimeoutError') {
-          errorMessage = 'La solicitud tardó demasiado tiempo. Por favor, inténtalo más tarde.'
-        } else if (error.message.includes('500') || error.message.includes('server')) {
-          errorMessage = 'Error del servidor. Por favor, inténtalo más tarde.'
-        } else if (error.message.length > 0) {
-          errorMessage = `Error: ${error.message}`
-        }
-      }
-
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingCarreras(false)
-    }
   }
 
   const cargarPlanes = async (carreraId: number) => {
@@ -163,7 +112,6 @@ export const AgregarCarreraModal = () => {
       // Reset form y cerrar modal
       setSelectedCarrera('')
       setSelectedPlan('')
-      setCarrerasDisponibles([])
       setPlanesCarrera([])
       setIsOpen(false)
     } catch (error) {
@@ -178,8 +126,8 @@ export const AgregarCarreraModal = () => {
     }
   }
 
-  const selectedCarreraData = carrerasDisponibles.find((carrera) => carrera.idCarrera.toString() === selectedCarrera)
-  const selectedPlanData = planesCarrera.find((planEstudio) => planEstudio.idPlan.toString() === selectedPlan)
+  const selectedCarreraData = carrerasDisponibles?.find((carrera) => carrera.idCarrera.toString() === selectedCarrera)
+  const selectedPlanData = planesCarrera?.find((planEstudio) => planEstudio.idPlan.toString() === selectedPlan)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -203,6 +151,9 @@ export const AgregarCarreraModal = () => {
             {(() => {
               if (isLoadingCarreras) return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="Cargando carreras..." />
 
+              if (carrerasDisponibles === null)
+                return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="No se encontraron carreras" />
+
               if (carrerasDisponibles.length > 0)
                 return (
                   <SelectorNuevaCarrera
@@ -211,8 +162,6 @@ export const AgregarCarreraModal = () => {
                     onValueChange={handleSelectCarrera}
                   />
                 )
-
-              return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="No se encontraron carreras" />
             })()}
           </div>
 

@@ -77,7 +77,7 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
 }
 
 interface UseNuevasCarrerasUsuarioOptions {
-  userID: number
+  userID: number | undefined
   autoFetch?: boolean
 }
 
