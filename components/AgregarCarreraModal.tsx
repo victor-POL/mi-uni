@@ -74,7 +74,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
     }
 
     setIsSubmitting(true)
-    
+
     try {
       const bodyPost: BodyPostNuevaCarreraEnUsuario = {
         usuario_id: userId as number,
@@ -155,18 +155,31 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
 
               if (carrerasDisponibles === null)
                 return (
-                  <SelectorNuevaCarrera carreras={[]} disabled={true} msgPlaceHolder="No se encontraron carreras" />
+                  <SelectorNuevaCarrera
+                    carreras={[]}
+                    disabled={true}
+                    msgPlaceHolder="No se pudo obtener las carreras"
+                  />
                 )
 
-              if (carrerasDisponibles.length > 0)
+              if (carrerasDisponibles.length === 0)
                 return (
                   <SelectorNuevaCarrera
-                    carreras={carrerasDisponibles}
-                    disabled={isLoadingPlanes}
-                    msgPlaceHolder="Selecciona una carrera"
+                    carreras={[]}
+                    disabled={true}
+                    msgPlaceHolder="No hay carreras disponibles"
                     onValueChange={handleSelectCarrera}
                   />
                 )
+
+              return (
+                <SelectorNuevaCarrera
+                  carreras={carrerasDisponibles}
+                  disabled={isLoadingPlanes}
+                  msgPlaceHolder="Selecciona una carrera"
+                  onValueChange={handleSelectCarrera}
+                />
+              )
             })()}
           </div>
 
