@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
@@ -12,6 +11,8 @@ import type { Carrera } from '@/models/mis-carreras.model'
 import type { PlanEstudio } from '@/models/plan-estudio.model'
 import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 import { useAuth } from '@/contexts/AuthContext'
+import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
+import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
 
 // Interfaces para las respuestas de la API
 interface CarreraApiResponse {
@@ -196,75 +197,42 @@ export const AgregarCarreraModal = () => {
         <div className="space-y-6">
           {/* Selección de Carrera */}
           <div className="space-y-2">
-            <label htmlFor="carrera-select" className="text-sm font-medium">
-              Carrera
-            </label>
             {(() => {
-              if (isLoadingCarreras) {
-                return (
-                  <div className="flex items-center justify-center py-4">
-                    <LoadingSpinner size="sm" text="Cargando carreras..." />
-                  </div>
-                )
-              }
+              if (isLoadingCarreras) return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="Cargando carreras..." />
 
-              if (carrerasDisponibles.length > 0) {
+              if (carrerasDisponibles.length > 0)
                 return (
-                  <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
-                    <SelectTrigger id="carrera-select">
-                      <SelectValue placeholder="Selecciona una carrera" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {carrerasDisponibles.map((carrera) => (
-                        <SelectItem key={carrera.idCarrera} value={carrera.idCarrera.toString()}>
-                          {carrera.nombreCarrera}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectorNuevaCarrera
+                    carreras={carrerasDisponibles}
+                    msgPlaceHolder="Selecciona una carrera"
+                    onValueChange={setSelectedCarrera}
+                  />
                 )
-              }
 
-              return <div className="text-center py-4 text-gray-500">No se encontraron carreras.</div>
+              return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="No se encontraron carreras" />
             })()}
           </div>
 
           {/* Selección de Plan de Estudio */}
           {selectedCarrera && (
             <div className="space-y-2">
-              <label htmlFor="plan-select" className="text-sm font-medium">
-                Plan de Estudio
-              </label>
               {(() => {
-                if (isLoadingPlanes) {
-                  return (
-                    <div className="flex items-center justify-center py-4">
-                      <LoadingSpinner size="sm" text="Cargando planesCarrera..." />
-                    </div>
-                  )
-                }
+                if (isLoadingPlanes) return <SelectorNuevoPlan planes={[]} msgPlaceHolder="Cargando planes..." />
 
-                if (planesCarrera.length > 0) {
+                if (planesCarrera.length > 0)
                   return (
-                    <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-                      <SelectTrigger id="plan-select">
-                        <SelectValue placeholder="Selecciona un plan de estudio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {planesCarrera.map((plan) => (
-                          <SelectItem key={plan.idPlan} value={plan.idPlan.toString()}>
-                            <div className="flex items-center gap-2">Plan {plan.anio}</div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SelectorNuevoPlan
+                      planes={planesCarrera}
+                      msgPlaceHolder="Seleccione un plan de estudio"
+                      onValueChange={setSelectedPlan}
+                    />
                   )
-                }
 
                 return (
-                  <div className="text-center py-4 text-gray-500">
-                    No hay planesCarrera de estudio disponibles para esta carrera
-                  </div>
+                  <SelectorNuevoPlan
+                    planes={[]}
+                    msgPlaceHolder="No hay planes de estudio disponibles para esta carrera"
+                  />
                 )
               })()}
             </div>
