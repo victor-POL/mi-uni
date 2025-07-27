@@ -141,7 +141,11 @@ export default function MisCarrerasPage() {
 
   if (carreras === null) return <MisCarrerasLayout forError />
 
-  if (carreras.length === 0) return <MisCarrerasLayout emptyCarreras />
+  if (carreras.length === 0) return (
+    <MisCarrerasLayout emptyCarreras>
+      <AgregarCarreraModal onCarreraAgregada={refetchCarreras} />
+    </MisCarrerasLayout>
+  )
 
   return (
     <MisCarrerasLayout>
