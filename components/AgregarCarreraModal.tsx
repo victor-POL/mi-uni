@@ -54,6 +54,10 @@ export const AgregarCarreraModal = () => {
     setSelectedCarrera(carreraId)
   }
 
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlan(planId)
+  }
+
   const handleSubmit = async () => {
     if (!selectedPlan) {
       toast({
@@ -172,7 +176,7 @@ export const AgregarCarreraModal = () => {
                     <SelectorNuevoPlan
                       planes={planesCarrera}
                       msgPlaceHolder="Seleccione un plan de estudio"
-                      onValueChange={setSelectedPlan}
+                      onValueChange={handleSelectPlan}
                     />
                   )
               })()}
