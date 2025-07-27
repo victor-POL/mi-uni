@@ -149,15 +149,19 @@ export const AgregarCarreraModal = () => {
           {/* Selección de Carrera */}
           <div className="space-y-2">
             {(() => {
-              if (isLoadingCarreras) return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="Cargando carreras..." />
+              if (isLoadingCarreras)
+                return <SelectorNuevaCarrera carreras={[]} disabled={true} msgPlaceHolder="Cargando carreras..." />
 
               if (carrerasDisponibles === null)
-                return <SelectorNuevaCarrera carreras={[]} msgPlaceHolder="No se encontraron carreras" />
+                return (
+                  <SelectorNuevaCarrera carreras={[]} disabled={true} msgPlaceHolder="No se encontraron carreras" />
+                )
 
               if (carrerasDisponibles.length > 0)
                 return (
                   <SelectorNuevaCarrera
                     carreras={carrerasDisponibles}
+                    disabled={isLoadingPlanes}
                     msgPlaceHolder="Selecciona una carrera"
                     onValueChange={handleSelectCarrera}
                   />
@@ -169,7 +173,8 @@ export const AgregarCarreraModal = () => {
           {selectedCarrera && (
             <div className="space-y-2">
               {(() => {
-                if (isLoadingPlanes) return <SelectorNuevoPlan planes={[]} msgPlaceHolder="Cargando planes..." />
+                if (isLoadingPlanes)
+                  return <SelectorNuevoPlan planes={[]} disabled={true} msgPlaceHolder="Cargando planes..." />
 
                 if (planesCarrera.length > 0)
                   return (
@@ -183,6 +188,7 @@ export const AgregarCarreraModal = () => {
                 return (
                   <SelectorNuevoPlan
                     planes={[]}
+                    disabled={true}
                     msgPlaceHolder="No hay planes de estudio disponibles para esta carrera"
                   />
                 )
