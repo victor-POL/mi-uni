@@ -32,6 +32,12 @@ export const AgregarCarreraModal = () => {
 
   const { toast } = useToast()
 
+  const resetSelections = () => {
+    setSelectedCarrera('')
+    setSelectedPlan('')
+    setPlanesCarrera([])
+  }
+
   // Cargar planesCarrera cuando cambia la carrera seleccionada
   useEffect(() => {
     if (selectedCarrera) {
@@ -109,10 +115,7 @@ export const AgregarCarreraModal = () => {
         description: 'Carrera agregada correctamente',
       })
 
-      // Reset form y cerrar modal
-      setSelectedCarrera('')
-      setSelectedPlan('')
-      setPlanesCarrera([])
+      resetSelections()
       setIsOpen(false)
     } catch (error) {
       console.error('Error:', error)
@@ -129,8 +132,15 @@ export const AgregarCarreraModal = () => {
   const selectedCarreraData = carrerasDisponibles?.find((carrera) => carrera.idCarrera.toString() === selectedCarrera)
   const selectedPlanData = planesCarrera?.find((planEstudio) => planEstudio.idPlan.toString() === selectedPlan)
 
+  const handleChangeModal = (open: boolean) => {
+    setIsOpen(open)
+    if (!open) {
+      resetSelections()
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleChangeModal}>
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
