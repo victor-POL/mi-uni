@@ -1,6 +1,6 @@
 import { adaptCarrerasUsuariosConEstadisticasAPIResponse } from '@/adapters/carreras.adapter'
 import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/carreras.model'
-import type { CarreraResumen } from '@/models/mis-carreras.model'
+import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
 import { useState, useEffect } from 'react'
 
 interface ApiResponse<T> {
@@ -65,6 +65,63 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
   useEffect(() => {
     if (options.autoFetch !== false && options.userID) {
       fetchCarreras()
+    }
+  }, [options.userID, options.autoFetch])
+
+  return {
+    carreras,
+    loading,
+    error,
+    refetch: fetchCarreras,
+  }
+}
+
+interface UseNuevasCarrerasUsuarioOptions {
+  userID: number
+  autoFetch?: boolean
+}
+
+export const useNuevasCarrerasUsuario = (options: UseNuevasCarrerasUsuarioOptions) => {
+  const [carreras, setCarreras] = useState<Carrera[] | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchCarreras = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const url = `/api/carreras`
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+
+      const formattedCarreras: Carrera[] = result.map((carrera: any) => ({
+        idCarrera: carrera.carrera_id,
+        nombreCarrera: carrera.nombre_carrera,
+      }))
+
+      setCarreras(formattedCarreras)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
+      setError(errorMessage)
+      console.error('Error fetching nuevas carreras del usuario:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (options.autoFetch && options.userID) {
+      fetchCarreras()
+    } else if (options.autoFetch === false) {
+      setCarreras(null)
+      setError(null)
+      setLoading(false)
     }
   }, [options.userID, options.autoFetch])
 
