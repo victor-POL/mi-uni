@@ -16,6 +16,16 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { CarreraResumen } from '@/models/mis-carreras.model'
@@ -34,6 +44,8 @@ export default function MisCarrerasPage() {
 
   // Estado para eliminación de carreras
   const [carreraEliminandose, setCarreraEliminandose] = useState<number | null>(null)
+  const [carreraAEliminar, setCarreraAEliminar] = useState<CarreraResumen | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const { toast } = useToast()
 
@@ -50,14 +62,22 @@ export default function MisCarrerasPage() {
     setIsLoadingDetalleCarrera(false)
   }
 
-  // Handler para eliminar carrera
-  const handleEliminarCarrera = async (planEstudioId: number, event: React.MouseEvent) => {
+  // Handler para mostrar confirmación de eliminar carrera
+  const handleMostrarConfirmacionEliminar = (carrera: CarreraResumen, event: React.MouseEvent) => {
     event.stopPropagation() // Evitar que se active el onClick del Card
+    setCarreraAEliminar(carrera)
+    setShowDeleteDialog(true)
+  }
 
-    setCarreraEliminandose(planEstudioId)
+  // Handler para eliminar carrera (confirmado)
+  const handleEliminarCarrera = async () => {
+    if (!carreraAEliminar) return
+
+    setCarreraEliminandose(carreraAEliminar.planEstudioId)
+    setShowDeleteDialog(false)
     
     try {
-      const response = await fetch(`/api/user/carreras/${planEstudioId}`, {
+      const response = await fetch(`/api/user/carreras/${carreraAEliminar.planEstudioId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +98,7 @@ export default function MisCarrerasPage() {
       })
 
       // Si la carrera eliminada era la que estaba seleccionada, limpiar detalle
-      if (detalleCarreraConsultada?.planEstudioId === planEstudioId) {
+      if (detalleCarreraConsultada?.planEstudioId === carreraAEliminar.planEstudioId) {
         setDetalleCarreraConsultada(null)
       }
 
@@ -94,7 +114,14 @@ export default function MisCarrerasPage() {
       })
     } finally {
       setCarreraEliminandose(null)
+      setCarreraAEliminar(null)
     }
+  }
+
+  // Handler para cancelar eliminación
+  const handleCancelarEliminacion = () => {
+    setShowDeleteDialog(false)
+    setCarreraAEliminar(null)
   }
 
   const getEstadoBadgeColor = (estado: string) => {
@@ -142,7 +169,7 @@ export default function MisCarrerasPage() {
                     variant="ghost"
                     size="sm"
                     className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                    onClick={(e) => handleEliminarCarrera(carrera.planEstudioId, e)}
+                    onClick={(e) => handleMostrarConfirmacionEliminar(carrera, e)}
                     disabled={carreraEliminandose === carrera.planEstudioId}
                   >
                     {carreraEliminandose === carrera.planEstudioId ? (
@@ -192,6 +219,38 @@ export default function MisCarrerasPage() {
       {!isLoadingDetalleCarrera && detalleCarreraConsultada !== null && (
         <CarreraDetalle carrera={detalleCarreraConsultada} usuarioId={userId ?? 1} />
       )}
+
+      {/* Diálogo de confirmación para eliminar carrera */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente la carrera "{carreraAEliminar?.nombre}" de tu perfil.
+              Se perderán todos los datos asociados a esta carrera, incluyendo el progreso y las materias cursadas.
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelarEliminacion}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleEliminarCarrera}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {carreraEliminandose === carreraAEliminar?.planEstudioId ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Eliminando...
+                </>
+              ) : (
+                'Eliminar Carrera'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MisCarrerasLayout>
   )
 }
