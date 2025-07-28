@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
-import { usePlanesCarrera } from '@/hooks/use-planes-carrera'
+import { usePlanesCarrera } from '@/hooks/use-planes-estudio'
 /* ------------------------------ COMPONENTS ----------------------------- */
 import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
 import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'

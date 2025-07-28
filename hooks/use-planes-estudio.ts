@@ -36,7 +36,7 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planI
       if (options.usuarioId) {
         url += `?usuarioId=${options.usuarioId}`
       }
-      
+
       const response = await fetch(url)
 
       if (!response.ok) {
@@ -171,4 +171,73 @@ export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
  */
 export function useAllPlanes() {
   return usePlanesEstudio({ autoFetch: true })
+}
+
+interface UsePlanesCarreraOptions {
+  carreraId: number | null
+  autoFetch?: boolean
+}
+
+/**
+ * Hook para obtener listado de planes de estudio de una carrera específica
+ * @param options - Opciones del hook
+ * @param options.carreraId - ID de la carrera para obtener sus planes
+ * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
+ * @return Hook con la lista de planes, loading, error y métodos de refetch
+ */
+export function usePlanesCarrera(options: UsePlanesCarreraOptions = { carreraId: null, autoFetch: true }) {
+  const [planes, setPlanes] = useState<PlanEstudio[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchPlanes = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (!options.carreraId) {
+        throw new Error('Se requiere un planId para obtener información detallada')
+      }
+
+      const url = `/api/carreras/${options.carreraId}/planes`
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: ApiResponse<PlanEstudioAPIResponse[]> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch data')
+      }
+
+      const formattedPlanes: PlanEstudio[] = result.data.map((plan) => ({
+        idPlan: plan.plan_id,
+        nombreCarrera: plan.nombre_carrera,
+        anio: plan.anio,
+      }))
+
+      setPlanes(formattedPlanes)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
+      setError(errorMessage)
+      console.error('Error fetching planes de carrera:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (options.autoFetch && options.carreraId) {
+      fetchPlanes()
+    }
+  }, [options.carreraId, options.autoFetch])
+
+  return {
+    planes,
+    loading,
+    error,
+    refetch: fetchPlanes,
+  }
 }
