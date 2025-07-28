@@ -1,14 +1,9 @@
 import { query } from '@/connection'
 import type {
-  DetalleMateriaAPIResponse,
-  EstadisticasPlanAPIResponse,
-  PlanEstudioAPIResponse,
-  PlanEstudioDetalleAPIResponse,
-} from '@/models/api/planes-estudio.model'
-import type {
   PlanEstudioDB,
   MateriaPlanEstudioDetalleDB,
   EstadisticasPlanDB,
+  PlanEstudioDetalleDB,
 } from '@/models/database/planes-estudio.model'
 
 /**
@@ -16,11 +11,11 @@ import type {
  * @param idCarrera - ID de la carrera para filtrar los planes. Si no se proporciona, devuelve todos los planes
  * @returns Promise con array de planes de estudio con información básica
  */
-export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioAPIResponse[]> {
+export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioDB[]> {
   try {
     await query(`SET search_path = prod, public`)
 
-    const planesResult = await query(
+    const resultQueryPlanes = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
@@ -34,7 +29,7 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioA
       [idCarrera || null]
     )
 
-    const planesDB: PlanEstudioDB[] = planesResult.rows as unknown as PlanEstudioDB[]
+    const planesDB: PlanEstudioDB[] = resultQueryPlanes.rows as unknown as PlanEstudioDB[]
 
     return planesDB
   } catch (error) {
@@ -45,18 +40,18 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioA
 
 /**
  * Obtiene un detalle del plan con todas las materias desde la base de datos (anioCursada, cuatrimestreCursada, horasSemanales, tipo, estado, correlativas, etc)
- * @param planId - ID del plan de estudio a obtener
- * @param usuarioId - ID del usuario (opcional) para obtener el estado de las materias
+ * @param planId - ID del plan de estudio a obtener su detalle
+ * @param usuarioId - ID del usuario (opcional) para obtener el estado de las materias (Pendiente, Aprobado, Cursando, etc)
  * @returns Promise con el detalle del plan de estudio o null si no se encuentra
  */
 export async function getDetallePlan(
   planId: number,
   usuarioId?: number
-): Promise<PlanEstudioDetalleAPIResponse | null> {
+): Promise<PlanEstudioDetalleDB | null> {
   try {
     await query(`SET search_path = prod, public`)
 
-    // Primero obtener la información básica del plan
+    // 1. Obtener la información básica del plan
     const resultQueryDatosPlan = await query(
       `
       SELECT 
@@ -76,7 +71,7 @@ export async function getDetallePlan(
 
     const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0] as any
 
-    // Luego obtener todas las materias del plan con correlativas y estadísticas
+    // 2. Obtener todas las materias del plan con correlativas y estadísticas
     const resultQueryDetallePlan = await query(
       `
       WITH materias_plan AS (
@@ -151,6 +146,7 @@ export async function getDetallePlan(
             SELECT usuario_materia_estado.estado
             FROM prod.usuario_materia_estado
             WHERE usuario_materia_estado.usuario_id = $2::int
+              AND usuario_materia_estado.plan_estudio_id = materias_plan.plan_estudio_id
               AND usuario_materia_estado.materia_id = materias_plan.materia_id
           )
           ELSE NULL
@@ -168,41 +164,21 @@ export async function getDetallePlan(
       [planId, usuarioId]
     )
 
-    const detallePlanDB: MateriaPlanEstudioDetalleDB[] =
+    const materiasPlanDB: MateriaPlanEstudioDetalleDB[] =
       resultQueryDetallePlan.rows as unknown as MateriaPlanEstudioDetalleDB[]
 
-    const estadisticasPlanDB: EstadisticasPlanDB = detallePlanDB[0]
+    // 3. Obtener las estadísticas del plan, tomo la primera fila ya que es la misma para todas las materias
+    const estadisticasPlanDB: EstadisticasPlanDB = materiasPlanDB[0]
 
-    // Transformar las materias al formato esperado
-    const materias: DetalleMateriaAPIResponse[] = detallePlanDB.map((materia) => ({
-      codigo_materia: materia.codigo_materia,
-      nombre_materia: materia.nombre_materia,
-      anio_cursada: materia.anio_cursada,
-      cuatrimestre_cursada: materia.cuatrimestre,
-      horas_semanales: materia.horas_semanales,
-      tipo: materia.tipo,
-      estado_materia_usuario: materia.estado_materia_usuario,
-      lista_correlativas: materia.lista_correlativas.map((correlativa) => ({
-        codigo_materia: correlativa.codigo_materia,
-        nombre_materia: correlativa.nombre_materia,
-      })),
-    }))
-
-    // Transformar las estadisticas al formato esperado
-    const estadisticas: EstadisticasPlanAPIResponse = {
-      total_materias: estadisticasPlanDB.total_materias,
-      horas_totales: estadisticasPlanDB.horas_totales,
-      duracion_plan: estadisticasPlanDB.duracion_plan,
-      materias_sin_correlativas: estadisticasPlanDB.materias_sin_correlativas,
-    }
-
-    return {
+    const detallePlan: PlanEstudioDetalleDB = {
       plan_id: planEstudioDB.plan_id,
       nombre_carrera: planEstudioDB.nombre_carrera,
       anio: planEstudioDB.anio,
-      estadisticas,
-      materias,
+      estadisticas: estadisticasPlanDB,
+      materias: materiasPlanDB,
     }
+
+    return detallePlan
   } catch (error) {
     console.error('Error DB detalle plan')
     throw error

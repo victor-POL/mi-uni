@@ -1,25 +1,22 @@
 import { useState, useEffect } from 'react'
-import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
-import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
 import type { ApiResponse } from '@/models/api/api.model'
+import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
+import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
+import { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 
 interface UsePlanesEstudioOptions {
-  planId?: number
-  autoFetch?: boolean
-}
-
-interface UsePlanesBasicosOptions {
+  planId: number | null
   autoFetch?: boolean
 }
 
 /**
  * Hook para obtener el detalle de un paln de estudio
  * @param options - Opciones del hook
- * @param options.planId - ID del plan de estudio a obtener
- * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
- * @returns Hook con el plan de estudio, loading, error y métodos de refetch
+ * @param options.planId - ID del plan de estudio a obtener su detalle
+ * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
+ * @returns Hook con el plan de estudio, loading, loading, error y método de refetch
  */
-export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = {}) {
+export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planId: null, autoFetch: true }) {
   const [detallePlan, setDetallePlan] = useState<PlanDeEstudioDetalle | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,14 +37,39 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = {}) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const result: ApiResponse<PlanDeEstudioDetalle> = await response.json()
+      const result: ApiResponse<PlanEstudioDetalleAPIResponse> = await response.json()
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      // Siempre es un plan específico, convertir a array para consistencia
-      setDetallePlan(result.data)
+      const detalleFormatted: PlanDeEstudioDetalle = {
+        idPlan: result.data.plan_id,
+        nombreCarrera: result.data.nombre_carrera,
+        anio: result.data.anio,
+        materias: result.data.materias.map((materia) => ({
+          codigoMateria: materia.codigo_materia,
+          nombreMateria: materia.nombre_materia,
+          tipo: materia.tipo as 'cursable' | 'electiva',
+          anioCursada: materia.anio_cursada,
+          cuatrimestreCursada: materia.cuatrimestre_cursada,
+          horasSemanales: materia.horas_semanales,
+          listaCorrelativas: materia.lista_correlativas.map((correlativa) => ({
+            codigoMateria: correlativa.codigo_materia,
+            nombreMateria: correlativa.nombre_materia,
+          })),
+          opcionesElectivas: [],
+          estado: materia.estado_materia_usuario as EstadoMateriaPlanEstudio | null,
+        })),
+        estadisticas: {
+          totalMaterias: result.data.estadisticas.total_materias,
+          horasTotales: result.data.estadisticas.horas_totales,
+          duracion: result.data.estadisticas.duracion_plan,
+          materiasSinCorrelativas: result.data.estadisticas.materias_sin_correlativas,
+        },
+      }
+
+      setDetallePlan(detalleFormatted)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)
@@ -58,7 +80,7 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = {}) {
   }
 
   useEffect(() => {
-    if (options.autoFetch !== false && options.planId) {
+    if (options.autoFetch && options.planId) {
       fetchPlanes()
     }
   }, [options.planId, options.autoFetch])
@@ -69,6 +91,10 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = {}) {
     error,
     refetch: fetchPlanes,
   }
+}
+
+interface UsePlanesBasicosOptions {
+  autoFetch?: boolean
 }
 
 /**
@@ -126,7 +152,7 @@ export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
     planes,
     loading,
     error,
-    refetch: fetchPlanes
+    refetch: fetchPlanes,
   }
 }
 

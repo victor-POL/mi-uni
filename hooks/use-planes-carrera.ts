@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import type { PlanEstudio } from '@/models/plan-estudio.model'
+import type { ApiResponse } from '@/models/api/api.model'
 import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
+import type { PlanEstudio } from '@/models/plan-estudio.model'
 
 interface UsePlanesCarreraOptions {
-  carreraId?: number | null
+  carreraId: number | null
   autoFetch?: boolean
 }
 
@@ -12,33 +13,36 @@ interface UsePlanesCarreraOptions {
  * @param options - Opciones del hook
  * @param options.carreraId - ID de la carrera para obtener sus planes
  * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
- * @returns Hook con los planes de la carrera, loading y error
+ * @returns Hook con los planes de la carrera, loading, error y método de refetch
  */
-export function usePlanesCarrera(options: UsePlanesCarreraOptions = {}) {
+export function usePlanesCarrera(options: UsePlanesCarreraOptions = { carreraId: null, autoFetch: true }) {
   const [planes, setPlanes] = useState<PlanEstudio[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
-    if (!options.carreraId) {
-      setPlanes(null)
-      return
-    }
-
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch(`/api/carreras/${options.carreraId}/planes`)
-
-      if (!response.ok) {
-        throw new Error('Error cargando planes de estudio')
+      if (!options.carreraId) {
+        throw new Error('Se requiere un planId para obtener información detallada')
       }
 
-      const data = await response.json()
-      const listadoPlanesResponse: PlanEstudioAPIResponse[] = data
+      const url = `/api/carreras/${options.carreraId}/planes`
+      const response = await fetch(url)
 
-      const formattedPlanes: PlanEstudio[] = listadoPlanesResponse.map((plan) => ({
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: ApiResponse<PlanEstudioAPIResponse[]> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch data')
+      }
+
+      const formattedPlanes: PlanEstudio[] = result.data.map((plan) => ({
         idPlan: plan.plan_id,
         anio: plan.anio,
         nombreCarrera: plan.nombre_carrera,
@@ -46,7 +50,7 @@ export function usePlanesCarrera(options: UsePlanesCarreraOptions = {}) {
 
       setPlanes(formattedPlanes)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error cargando planes de estudio'
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)
       console.error('Error fetching planes de carrera:', err)
     } finally {
@@ -57,10 +61,6 @@ export function usePlanesCarrera(options: UsePlanesCarreraOptions = {}) {
   useEffect(() => {
     if (options.autoFetch && options.carreraId) {
       fetchPlanes()
-    } else {
-      setPlanes(null)
-      setError(null)
-      setLoading(false)
     }
   }, [options.carreraId, options.autoFetch])
 

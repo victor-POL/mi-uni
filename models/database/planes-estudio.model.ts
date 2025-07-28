@@ -53,3 +53,11 @@ export interface MateriaPlanEstudioDetalleDB {
     nombre_materia: string
   }[]
 }
+
+export interface PlanEstudioDetalleDB {
+  plan_id: number
+  nombre_carrera: string
+  anio: number
+  estadisticas: EstadisticasPlanDB
+  materias: MateriaPlanEstudioDetalleDB[]
+}

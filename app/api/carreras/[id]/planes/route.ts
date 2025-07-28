@@ -5,27 +5,48 @@ import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 
 /**
  * GET /api/carreras/[id]/planes
- * Obtiene los planes de estudio de una carrera específica
+ * Obtiene un listado básico de todos los planes de estudio de una carrera específica
+ * @param params.id - ID de la carrera para obtener sus planes de estudio
  */
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
+    // Obtener parametros
     const carreraId = parseInt(params.id)
 
     if (Number.isNaN(carreraId)) {
       return NextResponse.json({ error: 'ID de carrera inválido' }, { status: 400 })
     }
 
-    const planes: PlanEstudioDB[] = await getListadoPlanes(carreraId)
+    // Consultar informacion
+    const planesDB: PlanEstudioDB[] = await getListadoPlanes(carreraId)
 
-    const planesFormatted: PlanEstudioAPIResponse[] = planes.map((plan) => ({
+    // Transformar consulta a formato API
+    const planesFormatted: PlanEstudioAPIResponse[] = planesDB.map((plan) => ({
       plan_id: plan.plan_id,
       nombre_carrera: plan.nombre_carrera,
       anio: plan.anio,
     }))
 
-    return NextResponse.json(planesFormatted)
+    // Retornar respuesta
+    return NextResponse.json({
+      success: true,
+      data: planesFormatted,
+      count: planesFormatted.length,
+    })
   } catch (error) {
-    console.error('Error en API planes de carrera:', error)
-    return NextResponse.json({ error: 'No se pudieron obtener los planes de estudio' }, { status: 500 })
+    console.error('Error GET planes de estudio de la carrera')
+
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No se pudo obtener el listado de planes de estudio de la carrera',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
