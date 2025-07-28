@@ -16,7 +16,7 @@ import type {
 } from '@/models/materias-cursada.model'
 import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
 import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
-import { AnioAcademicoSelector } from '@/components/AnioAcademicoSelector'
+import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
 
 export default function MateriasEnCursoPage() {
   const { userId } = useAuth()
@@ -143,7 +143,7 @@ export default function MateriasEnCursoPage() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="h-5 w-5" />
                   Año Académico
-                  <AnioAcademicoSelector usuarioId={userId || 0} />
+                  <EstablecerAnioAcademicoUsuarioModal usuarioId={userId || 0} />
                 </CardTitle>
               </CardHeader>
               <CardContent>

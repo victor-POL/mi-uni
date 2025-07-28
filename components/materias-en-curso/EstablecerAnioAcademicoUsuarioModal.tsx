@@ -23,11 +23,13 @@ import { Edit } from 'lucide-react'
 import { formatearFecha } from '@/lib/utils'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 
-interface AnioAcademicoSelectorProps {
+interface EstablecerAnioAcademicoUsuarioModalProps {
   readonly usuarioId: number
 }
 
-export function AnioAcademicoSelector({ usuarioId: _usuarioId }: AnioAcademicoSelectorProps) {
+export function EstablecerAnioAcademicoUsuarioModal({
+  usuarioId: _usuarioId,
+}: EstablecerAnioAcademicoUsuarioModalProps) {
   // Control del modal
   const [isOpen, setIsOpen] = useState(false)
 
@@ -170,7 +172,10 @@ export function AnioAcademicoSelector({ usuarioId: _usuarioId }: AnioAcademicoSe
           <Button type="button" variant="outline" disabled={isSubmitting} onClick={handleOnClickCancelar}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmitEstablecerAnio} disabled={loadingVigente || !anioVigente?.anioAcademico || isSubmitting}>
+          <Button
+            onClick={handleSubmitEstablecerAnio}
+            disabled={loadingVigente || !anioVigente?.anioAcademico || isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <LoadingSpinner size="sm" />
