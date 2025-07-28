@@ -178,7 +178,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
               return (
                 <SelectorNuevaCarrera
                   carreras={carrerasDisponibles}
-                  disabled={isLoadingPlanes}
+                  disabled={false}
                   msgPlaceHolder="Selecciona una carrera"
                   onValueChange={handleSelectCarrera}
                 />
