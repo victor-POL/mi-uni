@@ -154,7 +154,7 @@ interface UseAnioAcademicoVigenteOptions {
  */
 export function useAnioAcademicoVigente(options: UseAnioAcademicoVigenteOptions) {
   const [anioVigente, setAnioVigente] = useState<AnioAcademicoVigente | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const obtenerAnioVigente = async () => {

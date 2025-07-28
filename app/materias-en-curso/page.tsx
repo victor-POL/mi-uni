@@ -138,7 +138,25 @@ export default function MateriasEnCursoPage() {
           </div>
           {/* Selector de Año Académico */}
           <div className="container mx-auto p-6 space-y-6">
-            <AnioAcademicoSelector esNuevo={true} usuarioId={userId as number} />
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="h-5 w-5" />
+                  Año Académico
+                  <AnioAcademicoSelector usuarioId={userId || 0} />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="mx-2">
+                    <p className="text-2xl font-bold">-</p>
+                    <div className="text-sm text-gray-600">
+                      Por favor establece un año academico para empezar a gestionar tus materias
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </AppLayout>
       </ProtectedRoute>
@@ -175,10 +193,6 @@ export default function MateriasEnCursoPage() {
                 </Card>
               </div>
             )}
-
-            <div className="lg:col-span-1">
-              <AnioAcademicoSelector usuarioId={userId || 0} />
-            </div>
 
             {estadisticas && anioAcademico && !esNuevo && (
               <div className="lg:col-span-2">

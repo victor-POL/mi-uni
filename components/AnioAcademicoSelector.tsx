@@ -1,13 +1,14 @@
 'use client'
 
 /* ---------------------------------- HOOKS --------------------------------- */
-import { useState } from 'react'
-import { useAnioAcademico, useAnioVigente } from '@/hooks/use-anio-academico'
+import { useState, useEffect } from 'react'
+import { useAnioAcademicoVigente } from '@/hooks/use-anio-academico'
+import { useToast } from '@/hooks/use-toast'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -16,69 +17,119 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Calendar, Edit } from 'lucide-react'
-/* ------------------------------- COMPONENTES ------------------------------ */
-import { ErrorAlert } from '@/components/ErrorAlert'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Edit } from 'lucide-react'
 /* --------------------------------- UTILES --------------------------------- */
 import { formatearFecha } from '@/lib/utils'
+import { DialogTrigger } from '@radix-ui/react-dialog'
 
 interface AnioAcademicoSelectorProps {
   readonly usuarioId: number
-  readonly esNuevo?: boolean
 }
 
-export function AnioAcademicoSelector({ usuarioId, esNuevo }: AnioAcademicoSelectorProps) {
-  const { loading } = useAnioAcademico({
-    userId: usuarioId,
-    autoFetch: true,
-  })
-  const { anioVigente, loading: loadingVigente } = useAnioVigente()
-  const [modalAbierto, setModalAbierto] = useState(false)
+export function AnioAcademicoSelector({ usuarioId: _usuarioId }: AnioAcademicoSelectorProps) {
+  // Control del modal
+  const [isOpen, setIsOpen] = useState(false)
 
-  const abrirModalEstablecerAnio = () => {
-    setModalAbierto(true)
+  // Anio académico vigente
+  const { anioVigente, loading: loadingVigente } = useAnioAcademicoVigente({ autoFetch: isOpen })
+
+  // Estado de envío del formulario para establecer el año académico
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { toast } = useToast()
+
+  // Cerrar modal y notificar si no se pudo obtener el año académico vigente
+  useEffect(() => {
+    if (!loadingVigente && !anioVigente && isOpen) {
+      toast({
+        title: 'Error al obtener año académico',
+        description: 'No se pudo obtener el año académico vigente. Por favor, intenta más tarde.',
+        variant: 'destructive',
+      })
+      setIsOpen(false)
+    }
+  }, [loadingVigente, anioVigente, isOpen, toast])
+
+  // Utiles modal
+  const handleChangeModal = (open: boolean) => {
+    setIsOpen(open)
+    if (open) {
+      // resetSelections()
+    }
   }
 
-  if (loadingVigente) {
-    return null
+  const handleOnClickCancelar = () => {
+    setIsOpen(false)
   }
 
-  if (!anioVigente) {
-    return <ErrorAlert title="No se pudo obtener el año academico vigente" />
+  // Lógica para establecer el año académico
+  const handleSubmitEstablecerAnio = () => {
+    if (!anioVigente?.anioAcademico) {
+      toast({
+        title: 'Anio academico requerido',
+        description: 'Para poder establecer un año académico, primero debe haber uno vigente.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+
+    // simular timeout
+    setTimeout(() => {
+      setIsSubmitting(false)
+      setIsOpen(false)
+
+      toast({
+        title: 'Año académico establecido',
+        description: `El año académico ${anioVigente.anioAcademico} ha sido establecido correctamente.`,
+      })
+    }, 1000)
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Calendar className="h-5 w-5" />
-            Año Académico
-            <Button variant="outline" size="sm" onClick={abrirModalEstablecerAnio} disabled={loading}>
-              <Edit className="h-4 w-4 mr-2" />
-              Establecer
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="mx-2">
-              <p className="text-2xl font-bold">-</p>
-              <div className="text-sm text-gray-600">
-                Por favor establece un año academico para empezar a gestionar tus materias
-              </div>
+    <Dialog open={isOpen} onOpenChange={handleChangeModal}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <Edit className="h-4 w-4 mr-2" />
+          Establecer
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Establecer Año Académico</DialogTitle>
+          <DialogDescription>
+            {loadingVigente ? 'Obteniendo año vigente...' : 'El año academico vigente es el siguiente:'}
+          </DialogDescription>
+        </DialogHeader>
+
+        {loadingVigente && (
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Año</Label>
+              <Skeleton className="h-10 col-span-3" />
+
+              <Label className="text-right">Fecha Inicio</Label>
+              <Skeleton className="h-10 col-span-3" />
+
+              <Label className="text-right">Fecha Fin</Label>
+              <Skeleton className="h-10 col-span-3" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{esNuevo ? 'Establecer Año Académico' : 'Cambiar Año Académico'}</DialogTitle>
-            <DialogDescription>El año academico vigente es el siguiente:</DialogDescription>
-          </DialogHeader>
+        {!loadingVigente && !anioVigente && (
+          <div className="grid gap-4 py-4">
+            <div className="text-center text-gray-500">
+              <p>No se pudo obtener el año académico vigente.</p>
+              <p className="text-sm mt-1">Contacta al administrador del sistema.</p>
+            </div>
+          </div>
+        )}
 
+        {!loadingVigente && anioVigente && (
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="anio-academico-vigente-anio" className="text-right">
@@ -87,7 +138,7 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo }: AnioAcademicoSelec
               <Input
                 id="anio-academico-vigente-anio"
                 type="number"
-                value={anioVigente?.anioAcademico}
+                value={anioVigente.anioAcademico || ''}
                 readOnly
                 className="col-span-3"
               />
@@ -97,7 +148,7 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo }: AnioAcademicoSelec
               <Input
                 id="anio-academico-vigente-inicio"
                 type="text"
-                value={formatearFecha(anioVigente.fechaInicio)}
+                value={anioVigente.fechaInicio ? formatearFecha(anioVigente.fechaInicio) || '' : ''}
                 readOnly
                 className="col-span-3"
               />
@@ -107,23 +158,30 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo }: AnioAcademicoSelec
               <Input
                 id="anio-academico-vigente-fin"
                 type="text"
-                value={formatearFecha(anioVigente.fechaFin)}
+                value={anioVigente.fechaFin ? formatearFecha(anioVigente.fechaFin) || '' : ''}
                 readOnly
                 className="col-span-3"
               />
             </div>
           </div>
+        )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} disabled={loading}>
-              Cancelar
-            </Button>
-            <Button type="button" disabled={loading}>
-              Establecer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        <DialogFooter>
+          <Button type="button" variant="outline" disabled={isSubmitting} onClick={handleOnClickCancelar}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmitEstablecerAnio} disabled={loadingVigente || !anioVigente?.anioAcademico || isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <LoadingSpinner size="sm" />
+                <span className="ml-2">Estableciendo...</span>
+              </>
+            ) : (
+              'Establecer'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
