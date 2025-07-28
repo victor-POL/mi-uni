@@ -9,3 +9,8 @@ export interface AnioAcademicoVigenteAPIResponse {
   fecha_inicio: string
   fecha_fin: string
 }
+
+/* -------------------- ESTABLECER ANIO ACADEMICO USUARIO ------------------- */
+export interface BodyPostEstablecerAnioAcademicoUsuario {
+  usuario_id: number
+}

@@ -2,9 +2,15 @@
 import { useState, useEffect } from 'react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { ApiResponse } from '@/models/api/api.model'
-import type { AnioAcademicoUsuarioAPIResponse, AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-cursada.model'
+import type {
+  AnioAcademicoUsuarioAPIResponse,
+  AnioAcademicoVigenteAPIResponse,
+} from '@/models/api/materias-cursada.model'
 import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materias-cursada.model'
-import { adaptAnioAcademicoUsuarioAPIResponseToLocal, adaptAnioAcademicoVigenteAPIResponseToLocal } from '@/adapters/materias-cursada.model'
+import {
+  adaptAnioAcademicoUsuarioAPIResponseToLocal,
+  adaptAnioAcademicoVigenteAPIResponseToLocal,
+} from '@/adapters/materias-cursada.model'
 
 interface UseCarerrasOptions {
   userId?: number
@@ -129,16 +135,19 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
   }
 }
 
-
 export const useAnioAcademicoUsuario = (usuarioId: number) => {
-  const { anioAcademico, esNuevo, fechaActualizacion, loading, error } = useAnioAcademico({ userId: usuarioId, autoFetch: true })
+  const { anioAcademico, esNuevo, fechaActualizacion, loading, error, refrescar } = useAnioAcademico({
+    userId: usuarioId,
+    autoFetch: true,
+  })
 
   return {
     anioAcademico,
     esNuevo,
     fechaActualizacion,
     loading,
-    error
+    error,
+    refrescar,
   }
 }
 
@@ -207,4 +216,3 @@ export function useAnioAcademicoVigente(options: UseAnioAcademicoVigenteOptions)
 export function useAnioVigente() {
   return useAnioAcademicoVigente({ autoFetch: true })
 }
-

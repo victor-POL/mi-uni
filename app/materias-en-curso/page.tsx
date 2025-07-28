@@ -21,7 +21,7 @@ import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-cu
 export default function MateriasEnCursoPage() {
   const { userId } = useAuth()
   const { toast } = useToast()
-  const { anioAcademico, esNuevo } = useAnioAcademicoUsuario(userId as number)
+  const { anioAcademico, esNuevo, refrescar } = useAnioAcademicoUsuario(userId as number)
 
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
@@ -143,7 +143,7 @@ export default function MateriasEnCursoPage() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="h-5 w-5" />
                   Año Académico
-                  <EstablecerAnioAcademicoUsuarioModal usuarioId={userId || 0} />
+                  <EstablecerAnioAcademicoUsuarioModal onEstablecerAnio={refrescar} />
                 </CardTitle>
               </CardHeader>
               <CardContent>

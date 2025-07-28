@@ -48,18 +48,24 @@ export async function obtenerAnioAcademicoUsuario(usuarioId: number): Promise<An
   }
 }
 
-// Establecer o actualizar el año académico del usuario
-export async function establecerAnioAcademicoUsuario(usuarioId: string, anioAcademico: number): Promise<void> {
+export async function establecerAnioAcademicoUsuario(usuarioID: number) {
   try {
+    const anioAcademicoVigente = await obtenerAnioAcademicoVigente()
+
+    if (!anioAcademicoVigente) {
+      throw new Error('No se encontró un año académico vigente')
+    }
+
     await query(
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
-       ON CONFLICT (usuario_id) 
-       DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
-      [usuarioId, anioAcademico]
+       `,
+      [usuarioID, anioAcademicoVigente.anio_academico]
     )
+
+    return true
   } catch (error) {
-    console.error('Error estableciendo año académico:', error)
-    throw new Error('Error al establecer el año académico')
+    console.error('Error estableciendo año académico del usuario:', error)
+    throw new Error('Error al establecer el año académico del usuario')
   }
 }

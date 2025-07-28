@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { query } from '@/connection'
-import { obtenerAnioAcademicoUsuario } from '@/lib/database/anio-academico.service'
+import { establecerAnioAcademicoUsuario, obtenerAnioAcademicoUsuario } from '@/lib/database/anio-academico.service'
 import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
 import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.model'
 
@@ -47,34 +47,30 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Establecer año académico para el usuario
+/**
+ * POST /api/user/anio-academico
+ * Establece el año académico del usuario con el anio vigente
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, anioAcademico } = body
+    const { usuario_id } = body
 
-    if (!userId || !anioAcademico) {
-      return NextResponse.json({ error: 'Usuario y año académico requeridos' }, { status: 400 })
+    if (!usuario_id) {
+      return NextResponse.json({ error: 'Parametro "usuario_id" es requerido' }, { status: 400 })
     }
 
-    // Validar año académico
-    const anioActual = new Date().getFullYear()
-    if (anioAcademico < anioActual - 1 || anioAcademico > anioActual) {
-      return NextResponse.json({ error: 'Año académico inválido' }, { status: 400 })
-    }
+    await establecerAnioAcademicoUsuario(usuario_id)
 
-    await query(
-      `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (usuario_id) 
-       DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
-      [parseInt(userId), parseInt(anioAcademico)]
-    )
-
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      message: `Año académico establecido exitosamente`,
+    })
   } catch (error) {
-    console.error('Error estableciendo año académico:', error)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    console.error('Error en API establecer año academico:', error)
+
+    const message = error instanceof Error ? error.message : 'No se pudo establecer el año académico'
+
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

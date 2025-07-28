@@ -19,17 +19,22 @@ import {
 } from '@/components/ui/dialog'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Edit } from 'lucide-react'
+import { DialogTrigger } from '@radix-ui/react-dialog'
 /* --------------------------------- UTILES --------------------------------- */
 import { formatearFecha } from '@/lib/utils'
-import { DialogTrigger } from '@radix-ui/react-dialog'
+/* --------------------------------- MODELS --------------------------------- */
+import type { BodyPostEstablecerAnioAcademicoUsuario } from '@/models/api/materias-cursada.model'
+/* -------------------------------- CONTEXTS -------------------------------- */
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EstablecerAnioAcademicoUsuarioModalProps {
-  readonly usuarioId: number
+  onEstablecerAnio?: () => void
 }
 
-export function EstablecerAnioAcademicoUsuarioModal({
-  usuarioId: _usuarioId,
-}: EstablecerAnioAcademicoUsuarioModalProps) {
+export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readonly<EstablecerAnioAcademicoUsuarioModalProps>) {
+  // Para obtener el ID del usuario autenticado y establecer el año académico
+  const { userId } = useAuth()
+
   // Control del modal
   const [isOpen, setIsOpen] = useState(false)
 
@@ -66,11 +71,11 @@ export function EstablecerAnioAcademicoUsuarioModal({
   }
 
   // Lógica para establecer el año académico
-  const handleSubmitEstablecerAnio = () => {
+  const handleSubmitEstablecerAnio = async () => {
     if (!anioVigente?.anioAcademico) {
       toast({
-        title: 'Anio academico requerido',
-        description: 'Para poder establecer un año académico, primero debe haber uno vigente.',
+        title: 'Selección requerida',
+        description: 'Por favor selecciona un plan de estudio',
         variant: 'destructive',
       })
       return
@@ -78,16 +83,43 @@ export function EstablecerAnioAcademicoUsuarioModal({
 
     setIsSubmitting(true)
 
-    // simular timeout
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setIsOpen(false)
+    try {
+      const bodyPost: BodyPostEstablecerAnioAcademicoUsuario = {
+        usuario_id: userId as number,
+      }
+
+      const response = await fetch('/api/user/anio-academico', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bodyPost),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Error estableciendo el año académico vigente')
+      }
 
       toast({
-        title: 'Año académico establecido',
-        description: `El año académico ${anioVigente.anioAcademico} ha sido establecido correctamente.`,
+        title: '¡Éxito!',
+        description: 'Año académico establecido correctamente',
       })
-    }, 1000)
+
+      // Llamar al callback para refrescar la pantalla padre
+      onEstablecerAnio?.()
+
+      setIsOpen(false)
+    } catch (error) {
+      console.error('Error:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'No se pudo establecer el año académico',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
