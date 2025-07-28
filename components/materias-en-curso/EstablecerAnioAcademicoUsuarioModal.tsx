@@ -2,7 +2,7 @@
 
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
-import { useAnioAcademicoVigente } from '@/hooks/use-anio-academico'
+import { useAnioAcademicoVigente, useAnioAcademicoUsuario } from '@/hooks/use-anio-academico'
 import { useToast } from '@/hooks/use-toast'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Button } from '@/components/ui/button'
@@ -22,8 +22,6 @@ import { Edit } from 'lucide-react'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 /* --------------------------------- UTILES --------------------------------- */
 import { formatearFecha } from '@/lib/utils'
-/* --------------------------------- MODELS --------------------------------- */
-import type { BodyPostEstablecerAnioAcademicoUsuario } from '@/models/api/materias-cursada.model'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -38,11 +36,11 @@ export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readon
   // Control del modal
   const [isOpen, setIsOpen] = useState(false)
 
-  // Anio académico vigente
+  // Anio académico vigente (para mostrar la información)
   const { anioVigente, loading: loadingVigente } = useAnioAcademicoVigente({ autoFetch: isOpen })
 
-  // Estado de envío del formulario para establecer el año académico
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Hook del usuario para establecer el año académico
+  const { establecerAnioAcademicoVigente, loading: loadingEstablecimiento } = useAnioAcademicoUsuario(userId as number)
 
   const { toast } = useToast()
 
@@ -74,33 +72,16 @@ export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readon
   const handleSubmitEstablecerAnio = async () => {
     if (!anioVigente?.anioAcademico) {
       toast({
-        title: 'Selección requerida',
-        description: 'Por favor selecciona un plan de estudio',
+        title: 'Año académico requerido',
+        description: 'Para poder establecer un año académico, primero debe haber uno vigente.',
         variant: 'destructive',
       })
       return
     }
 
-    setIsSubmitting(true)
+    const exito = await establecerAnioAcademicoVigente()
 
-    try {
-      const bodyPost: BodyPostEstablecerAnioAcademicoUsuario = {
-        usuario_id: userId as number,
-      }
-
-      const response = await fetch('/api/user/anio-academico', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bodyPost),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Error estableciendo el año académico vigente')
-      }
-
+    if (exito) {
       toast({
         title: '¡Éxito!',
         description: 'Año académico establecido correctamente',
@@ -110,15 +91,12 @@ export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readon
       onEstablecerAnio?.()
 
       setIsOpen(false)
-    } catch (error) {
-      console.error('Error:', error)
+    } else {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'No se pudo establecer el año académico',
+        description: 'No se pudo establecer el año académico',
         variant: 'destructive',
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -201,14 +179,14 @@ export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readon
         )}
 
         <DialogFooter>
-          <Button type="button" variant="outline" disabled={isSubmitting} onClick={handleOnClickCancelar}>
+          <Button type="button" variant="outline" disabled={loadingEstablecimiento} onClick={handleOnClickCancelar}>
             Cancelar
           </Button>
           <Button
             onClick={handleSubmitEstablecerAnio}
-            disabled={loadingVigente || !anioVigente?.anioAcademico || isSubmitting}
+            disabled={loadingVigente || !anioVigente?.anioAcademico || loadingEstablecimiento}
           >
-            {isSubmitting ? (
+            {loadingEstablecimiento ? (
               <>
                 <LoadingSpinner size="sm" />
                 <span className="ml-2">Estableciendo...</span>

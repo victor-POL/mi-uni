@@ -105,3 +105,33 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
+
+/**
+ * DELETE /api/user/anio-academico?userId={id}
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const userIdParam = searchParams.get('userId')
+
+    if (!userIdParam) {
+      return NextResponse.json({ error: 'ID de usuario requerido' }, { status: 400 })
+    }
+
+    const userId = parseInt(userIdParam)
+
+    if (Number.isNaN(userId)) {
+      return NextResponse.json({ error: 'ID de usuario inválido' }, { status: 400 })
+    }
+
+    await query(
+      `DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`,
+      [userId]
+    )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error desestableciendo año académico:', error)
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+  }
+}

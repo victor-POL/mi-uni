@@ -117,6 +117,64 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     }
   }
 
+  /**
+   * Establece el año academico del usuario en funcion al año vigente cargado en el sistema
+   * @returns true si se estableció correctamente el año académico, false en caso contrario
+   */
+  const establecerAnioAcademicoVigente = async () => {
+    if (!options.userId) return false
+
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/user/anio-academico', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: options.userId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Error estableciendo año académico vigente')
+      }
+
+      await obtenerAnioAcademico() // Refrescar datos
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const desestablecerAnioAcademico = async () => {
+    if (!options.userId) return false
+
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/user/anio-academico?userId=${options.userId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Error desestableciendo año académico')
+      }
+
+      await obtenerAnioAcademico() // Refrescar datos
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (options.autoFetch && options.userId) {
       obtenerAnioAcademico()
@@ -131,12 +189,23 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     error,
     establecerAnioAcademico,
     cambiarAnioAcademico,
+    establecerAnioAcademicoVigente,
+    desestablecerAnioAcademico,
     refrescar: obtenerAnioAcademico,
   }
 }
 
 export const useAnioAcademicoUsuario = (usuarioId: number) => {
-  const { anioAcademico, esNuevo, fechaActualizacion, loading, error, refrescar } = useAnioAcademico({
+  const { 
+    anioAcademico, 
+    esNuevo, 
+    fechaActualizacion, 
+    loading, 
+    error, 
+    establecerAnioAcademicoVigente,
+    desestablecerAnioAcademico,
+    refrescar 
+  } = useAnioAcademico({
     userId: usuarioId,
     autoFetch: true,
   })
@@ -147,6 +216,8 @@ export const useAnioAcademicoUsuario = (usuarioId: number) => {
     fechaActualizacion,
     loading,
     error,
+    establecerAnioAcademicoVigente,
+    desestablecerAnioAcademico,
     refrescar,
   }
 }
@@ -207,12 +278,4 @@ export function useAnioAcademicoVigente(options: UseAnioAcademicoVigenteOptions)
     error,
     refetch: obtenerAnioVigente,
   }
-}
-
-/**
- * Hook simple para obtener el año académico vigente con autoFetch habilitado
- * @returns Hook con el año académico vigente, loading y error
- */
-export function useAnioVigente() {
-  return useAnioAcademicoVigente({ autoFetch: true })
 }
