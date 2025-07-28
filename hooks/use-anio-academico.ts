@@ -1,3 +1,4 @@
+/* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
 
 interface UsuarioAnioAcademico {
@@ -6,18 +7,24 @@ interface UsuarioAnioAcademico {
   esNuevo: boolean
 }
 
-export function useAnioAcademico(usuarioId?: number) {
+interface UseCarerrasOptions {
+  userId?: number
+  autoFetch?: boolean
+}
+
+
+export function useAnioAcademico(options: UseCarerrasOptions = {}) {
   const [anioAcademico, setAnioAcademico] = useState<UsuarioAnioAcademico | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const obtenerAnioAcademico = async () => {
-    if (!usuarioId) return
+    if (!options.userId) return
 
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/anio-academico?usuarioId=${usuarioId}`)
+      const response = await fetch(`/api/anio-academico?userId=${options.userId}`)
       
       if (!response.ok) {
         throw new Error('Error obteniendo año académico')
@@ -33,7 +40,7 @@ export function useAnioAcademico(usuarioId?: number) {
   }
 
   const establecerAnioAcademico = async (nuevoAnio: number) => {
-    if (!usuarioId) return false
+    if (!options.userId) return false
 
     setLoading(true)
     setError(null)
@@ -44,7 +51,7 @@ export function useAnioAcademico(usuarioId?: number) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usuarioId,
+          userId: options.userId,
           anioAcademico: nuevoAnio
         }),
       })
@@ -64,7 +71,7 @@ export function useAnioAcademico(usuarioId?: number) {
   }
 
   const cambiarAnioAcademico = async (nuevoAnio: number) => {
-    if (!usuarioId) return false
+    if (!options.userId) return false
 
     setLoading(true)
     setError(null)
@@ -75,7 +82,7 @@ export function useAnioAcademico(usuarioId?: number) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usuarioId,
+          userId: options.userId,
           nuevoAnioAcademico: nuevoAnio
         }),
       })
@@ -96,7 +103,7 @@ export function useAnioAcademico(usuarioId?: number) {
 
   useEffect(() => {
     obtenerAnioAcademico()
-  }, [usuarioId])
+  }, [options.userId])
 
   return {
     anioAcademico: anioAcademico?.anioAcademico,

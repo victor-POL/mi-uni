@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { BookOpen, Clock, Edit, Plus, GraduationCap, Trash2, Calendar } from 'lucide-react'
+import { BookOpen, Clock, Edit, GraduationCap, Trash2, Calendar } from 'lucide-react'
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
@@ -20,9 +19,9 @@ import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
 import { AnioAcademicoSelector } from '@/components/AnioAcademicoSelector'
 
 export default function MateriasEnCursoPage() {
-  const { user } = useAuth()
+  const { userId } = useAuth()
   const { toast } = useToast()
-  const { anioAcademico, esNuevo } = useAnioAcademico(user?.dbId || 0)
+  const { anioAcademico, esNuevo } = useAnioAcademico({ userId })
 
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
@@ -31,11 +30,11 @@ export default function MateriasEnCursoPage() {
   const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
   const cargarMateriasEnCurso = async () => {
-    if (!user?.dbId) return
+    if (!userId) return
 
     try {
       setLoading(true)
-      const response = await fetch(`/api/materias-en-curso?usuarioId=${user.dbId}`)
+      const response = await fetch(`/api/materias-en-curso?usuarioId=${userId}`)
 
       if (!response.ok) throw new Error('Error cargando materias en curso')
 
@@ -56,7 +55,7 @@ export default function MateriasEnCursoPage() {
 
   useEffect(() => {
     cargarMateriasEnCurso()
-  }, [user?.dbId])
+  }, [userId])
 
   const handleEditarNotas = (materia: MateriaCursada) => {
     setMateriaEditando(materia)
@@ -64,14 +63,14 @@ export default function MateriasEnCursoPage() {
   }
 
   const handleEliminarMateria = async (materia: MateriaCursada) => {
-    if (!user?.dbId) return
+    if (!userId) return
 
     const confirmacion = window.confirm('¿Estás seguro de que deseas eliminar esta materia en curso?')
     if (!confirmacion) return
 
     try {
       const params = new URLSearchParams({
-        usuarioId: user.dbId.toString(),
+        usuarioId: userId.toString(),
         planEstudioId: materia.planEstudioId.toString(),
         materiaId: materia.materiaId.toString(),
       })
@@ -136,7 +135,7 @@ export default function MateriasEnCursoPage() {
               <h1 className="text-3xl font-bold">Materias en Curso</h1>
               <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
             </div>
-            {anioAcademico && <AgregarMateriaEnCursoModal usuarioId={user?.dbId || 0} />}
+            {anioAcademico && <AgregarMateriaEnCursoModal usuarioId={userId || 0} />}
           </div>
 
           {/* Año Académico y Estadísticas */}
@@ -158,7 +157,7 @@ export default function MateriasEnCursoPage() {
             )}
 
             <div className="lg:col-span-1">
-              <AnioAcademicoSelector usuarioId={user?.dbId || 0} onAnioChanged={cargarMateriasEnCurso} />
+              <AnioAcademicoSelector usuarioId={userId || 0} onAnioChanged={cargarMateriasEnCurso} />
             </div>
 
             {estadisticas && anioAcademico && !esNuevo && (

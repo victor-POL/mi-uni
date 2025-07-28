@@ -5,7 +5,7 @@ import { query } from '@/connection'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const usuarioId = searchParams.get('usuarioId')
+    const usuarioId = searchParams.get('usedId')
 
     if (!usuarioId) {
       return NextResponse.json(
