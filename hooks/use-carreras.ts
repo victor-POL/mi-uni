@@ -1,11 +1,17 @@
+/* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
+/* --------------------------------- MODELS --------------------------------- */
 import type { ApiResponse } from '@/models/api/api.model'
 import type {
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
 } from '@/models/api/carreras.model'
 import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
-import { adaptCarrerasUsuariosConEstadisticasAPIResponse } from '@/adapters/carreras.adapter'
+/* -------------------------------- ADAPTERS -------------------------------- */
+import {
+  adaptCarrerasDisponiblesUsuarioAPIResponse,
+  adaptCarrerasUsuariosConEstadisticasAPIResponse,
+} from '@/adapters/carreras.adapter'
 
 interface UseCarerrasOptions {
   userID?: number
@@ -81,7 +87,7 @@ interface UseCarrerasDisponiblesUsuarioOptions {
  * Hook para obtener las carreras disponibles para agregar al usuario
  * @param options - Opciones del hook
  * @param options.userID - ID del usuario para obtener sus carreras disponibles
- * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
+ * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook (si cambia su valor se vuelve a hacer fetch)
  * @returns Hook con las carreras, loading, error y métodos de refetch
  */
 export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsuarioOptions) => {
@@ -111,10 +117,7 @@ export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsu
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      const formattedCarreras: Carrera[] = result.data.map((carrera: any) => ({
-        idCarrera: carrera.carrera_id,
-        nombreCarrera: carrera.nombre_carrera,
-      }))
+      const formattedCarreras: Carrera[] = adaptCarrerasDisponiblesUsuarioAPIResponse(result.data)
 
       setCarreras(formattedCarreras)
     } catch (err) {
@@ -129,10 +132,6 @@ export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsu
   useEffect(() => {
     if (options.autoFetch && options.userID) {
       fetchCarreras()
-    } else if (options.autoFetch === false) {
-      setCarreras(null)
-      setError(null)
-      setLoading(false)
     }
   }, [options.userID, options.autoFetch])
 

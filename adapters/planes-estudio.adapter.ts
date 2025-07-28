@@ -1,13 +1,16 @@
+import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
 import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
 import { getGenericErrorMessage, getErrorType, ErrorType } from '@/utils/error.util'
 
 /**
- * Transforma la respuesta de la API al modelo local de PlanDeEstudioDetalle
- * @param detallePlanAPIResponse - Respuesta de la API
- * @returns Plan de estudio transformado al formato local
+ * Adapta la respuesta de la API /api/planes-estudio/${options.planId} al modelo local PlanDeEstudioDetalle
+ * @param detallePlanAPIResponse - PlanEstudioDetalleAPIResponse - Detalle del plan de estudio desde la API
+ * @returns PlanDeEstudioDetalle - Detalle del plan de estudio adaptado al modelo local
  */
-export const transformPlanAPIResponseToLocal = (detallePlanAPIResponse: any): PlanDeEstudioDetalle => {
+export const transformPlanAPIResponseToLocal = (
+  detallePlanAPIResponse: PlanEstudioDetalleAPIResponse
+): PlanDeEstudioDetalle => {
   return {
     idPlan: detallePlanAPIResponse.plan_id,
     nombreCarrera: detallePlanAPIResponse.nombre_carrera,
@@ -34,6 +37,20 @@ export const transformPlanAPIResponseToLocal = (detallePlanAPIResponse: any): Pl
   }
 }
 
+
+/**
+ * Adapta la respuesta de la API /api/planes-estudio al modelo local PlanEstudio
+ * @param planes - PlanEstudioAPIResponse[] - Lista de planes de estudio desde la API
+ * @returns PlanEstudio[] - Lista de planes adaptada al modelo local
+ */
+export const adaptPlanesEstudioAPIResponseToLocal = (planes: PlanEstudioAPIResponse[]): PlanEstudio[] => {
+  return planes.map((plan) => ({
+    idPlan: plan.plan_id,
+    nombreCarrera: plan.nombre_carrera,
+    anio: plan.anio,
+  }))
+}
+
 /**
  * Determina el mensaje de error apropiado para operaciones de planes de estudio
  * @param error - Error capturado
@@ -41,11 +58,11 @@ export const transformPlanAPIResponseToLocal = (detallePlanAPIResponse: any): Pl
  */
 export const getPlanesEstudioErrorMessage = (error: unknown): string => {
   const errorType = getErrorType(error)
-  
+
   if (errorType === ErrorType.NOT_FOUND) {
     return 'Plan de estudio no encontrado. Verifica que el plan seleccionado sea válido.'
   }
-  
+
   // Para otros tipos de errores, usar el mensaje genérico
   return getGenericErrorMessage(error)
 }
