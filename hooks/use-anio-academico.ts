@@ -128,3 +128,16 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     refrescar: obtenerAnioAcademico,
   }
 }
+
+
+export const useAnioAcademicoUsuario = (usuarioId: number) => {
+  const { anioAcademico, esNuevo, fechaActualizacion, loading, error } = useAnioAcademico({ userId: usuarioId, autoFetch: true })
+
+  return {
+    anioAcademico,
+    esNuevo,
+    fechaActualizacion,
+    loading,
+    error
+  }
+}

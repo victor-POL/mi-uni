@@ -8,7 +8,7 @@ import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { useAnioAcademico } from '@/hooks/use-anio-academico'
+import { useAnioAcademicoUsuario } from '@/hooks/use-anio-academico'
 import type {
   MateriaCursadaPorCarrera,
   EstadisticasMateriasEnCurso,
@@ -21,7 +21,7 @@ import { AnioAcademicoSelector } from '@/components/AnioAcademicoSelector'
 export default function MateriasEnCursoPage() {
   const { userId } = useAuth()
   const { toast } = useToast()
-  const { anioAcademico, esNuevo } = useAnioAcademico({ userId, autoFetch: true })
+  const { anioAcademico, esNuevo } = useAnioAcademicoUsuario(userId as number)
 
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
@@ -129,6 +129,14 @@ export default function MateriasEnCursoPage() {
     return (
       <ProtectedRoute>
         <AppLayout title="Materias en Curso">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Materias en Curso</h1>
+              <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
+            </div>
+          </div>
+          {/* Selector de Año Académico */}
           <div className="container mx-auto p-6 space-y-6">
             <AnioAcademicoSelector esNuevo={true} usuarioId={userId as number} onAnioChanged={cargarMateriasEnCurso} />
           </div>
