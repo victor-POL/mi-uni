@@ -9,23 +9,13 @@ import { useMateriasEnCurso } from '@/hooks/use-materias-en-curso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Clock, Edit, GraduationCap, Trash2, Calendar } from 'lucide-react'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 /* ------------------------------- COMPONENTES ------------------------------ */
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
 import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
 import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
+import { DesestablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/DesestablecerAnioAcademicoUsuarioModal'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 /* --------------------------------- MODELS --------------------------------- */
@@ -62,23 +52,10 @@ export default function MateriasEnCursoPage() {
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
-  // Estado para desestablecer anio academico usuario
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-
   // Handler para editar notas de una materia
   const handleEditarNotas = (materia: MateriaCursada) => {
     setMateriaEditando(materia)
     setModalEditarAbierto(true)
-  }
-
-  // Handler para mostrar confirmación de eliminar anio académico
-  const handleMostrarConfirmacionEliminar = () => {
-    setShowDeleteDialog(true)
-  }
-
-  // Handler para cancelar la eliminación de anio académico
-  const handleCancelarEliminacion = () => {
-    setShowDeleteDialog(false)
   }
 
   const handleEliminarMateria = async (materia: MateriaCursada) => {
@@ -111,24 +88,6 @@ export default function MateriasEnCursoPage() {
       toast({
         title: 'Error',
         description: 'No se pudo eliminar la materia',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleDesestablecerAnio = async () => {
-    const exito = await desestablecerAnioAcademico()
-
-    if (exito) {
-      toast({
-        title: 'Año académico quitado de tu perfil',
-        description: 'Tu año académico ha sido eliminado correctamente',
-      })
-      refrescarAnioAcademico()
-    } else {
-      toast({
-        title: 'Error',
-        description: 'No se pudo desvincular el año académico de tu perfil',
         variant: 'destructive',
       })
     }
@@ -212,14 +171,11 @@ export default function MateriasEnCursoPage() {
                         <CardTitle className="text-lg">Estadísticas del Curso</CardTitle>
                         <CardDescription>Año Académico: {anioAcademico}</CardDescription>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-500 hover:text-red-600"
-                        onClick={handleMostrarConfirmacionEliminar}
-                      >
-                        Quitar
-                      </Button>
+                      <DesestablecerAnioAcademicoUsuarioModal
+                        desestablecerAnioAcademico={desestablecerAnioAcademico}
+                        loading={loadingAnioAcademico}
+                        onDesestablecerAnio={refrescarAnioAcademico}
+                      />
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -370,37 +326,6 @@ export default function MateriasEnCursoPage() {
             })
           }}
         />
-
-        {/* Diálogo de confirmación para desestablecer carrera */}
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción eliminará permanentemente el año académico establecido en tu perfil. Se perderan todos los
-                datos cargados a tus materias en curso y no podrás recuperarlos. Las mismas regresaran al estado en el
-                que estaban antes de establecer el año académico y podras agregarlas a tus materias en curso una vez que
-                establezcas un nuevo año académico.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={handleCancelarEliminacion}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDesestablecerAnio}
-                className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              >
-                {loadingAnioAcademico ? (
-                  <>
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    Eliminando...
-                  </>
-                ) : (
-                  'Eliminar Año Establecido'
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </AppLayout>
     </ProtectedRoute>
   )

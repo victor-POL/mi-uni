@@ -45,15 +45,7 @@ export const useMateriasEnCurso = (options: UseCarerrasOptions = { autoFetch: tr
   }
 
   useEffect(() => {
-    console.log('🔍 useMateriasEnCurso - Evaluando condiciones:', {
-      autoFetch: options.autoFetch,
-      userId: options.userId,
-      esNuevo: options.esNuevo,
-      shouldFetch: options.autoFetch && options.userId && options.esNuevo === false
-    })
-    
     if (options.autoFetch && options.userId && options.esNuevo === false) {
-      console.log('✅ useMateriasEnCurso - Ejecutando llamada a API')
       cargarMateriasPorCarrera()
     }
   }, [options.userId, options.autoFetch, options.esNuevo])
