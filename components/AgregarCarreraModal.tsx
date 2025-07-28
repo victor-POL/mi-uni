@@ -39,10 +39,10 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
   // Planes disponibles para el usuario según la carrera seleccionada
   const [selectedPlan, setSelectedPlan] = useState<string>('')
 
-  const { planes: planesCarrera, loading: isLoadingPlanes } = usePlanesCarrera({
-    carreraId: parseInt(selectedCarrera),
-    autoFetch: selectedCarrera !== '',
-  })
+  const { planes: planesCarrera, loading: isLoadingPlanes } = usePlanesCarrera(
+    selectedCarrera !== '' ? parseInt(selectedCarrera) : null,
+    selectedCarrera !== ''
+  )
 
   // Estado de envío del formulario para agregar carrera
   const [isSubmitting, setIsSubmitting] = useState(false)
