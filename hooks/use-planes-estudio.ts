@@ -109,7 +109,7 @@ interface UsePlanesBasicosOptions {
 /**
  * Hook para obtener listado de planes de estudio
  * @param options - Opciones del hook
- * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
+ * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
  * @return Hook con la lista de planes, loading, error y métodos de refetch
  */
 export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
@@ -122,7 +122,8 @@ export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
     setError(null)
 
     try {
-      const response = await fetch('/api/planes-estudio')
+      const url = '/api/planes-estudio'
+      const response = await fetch(url)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -134,25 +135,24 @@ export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      // Transformar de API response a modelo interno
-      const planesData: PlanEstudio[] = result.data.map((plan) => ({
+      const formattedPlanes: PlanEstudio[] = result.data.map((plan) => ({
         idPlan: plan.plan_id,
         nombreCarrera: plan.nombre_carrera,
         anio: plan.anio,
       }))
 
-      setPlanes(planesData)
+      setPlanes(formattedPlanes)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)
-      console.error('Error fetching planes básicos:', err)
+      console.error('Error fetching planes:', err)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (options.autoFetch !== false) {
+    if (options.autoFetch) {
       fetchPlanes()
     }
   }, [options.autoFetch])

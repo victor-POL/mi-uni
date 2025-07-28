@@ -9,15 +9,15 @@ interface UsePlanesCarreraOptions {
 }
 
 /**
- * Hook para obtener los planes de estudio de una carrera específica
+ * Hook para obtener listado de planes de estudio de una carrera específica
  * @param options - Opciones del hook
  * @param options.carreraId - ID de la carrera para obtener sus planes
  * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
- * @returns Hook con los planes de la carrera, loading, error y método de refetch
+ * @return Hook con la lista de planes, loading, error y métodos de refetch
  */
 export function usePlanesCarrera(options: UsePlanesCarreraOptions = { carreraId: null, autoFetch: true }) {
   const [planes, setPlanes] = useState<PlanEstudio[] | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
@@ -44,8 +44,8 @@ export function usePlanesCarrera(options: UsePlanesCarreraOptions = { carreraId:
 
       const formattedPlanes: PlanEstudio[] = result.data.map((plan) => ({
         idPlan: plan.plan_id,
-        anio: plan.anio,
         nombreCarrera: plan.nombre_carrera,
+        anio: plan.anio,
       }))
 
       setPlanes(formattedPlanes)
