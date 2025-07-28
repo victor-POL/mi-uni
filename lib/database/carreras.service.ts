@@ -21,26 +21,6 @@ import type {
   MateriaDelPlanDB,
 } from '@/models/database/carreras.model'
 
-export interface Carrera {
-  id: number
-  nombre: string
-}
-
-export interface PlanEstudio {
-  id: number
-  carrera_id: number
-  anio: number
-  carrera_nombre?: string
-}
-
-export interface UsuarioPlanEstudio {
-  usuario_id: number
-  plan_estudio_id: number
-  carrera_id: number
-  carrera_nombre: string
-  anio: number
-}
-
 export interface EstadoMateriaUsuario {
   materia_id: number
   codigo_materia: string
