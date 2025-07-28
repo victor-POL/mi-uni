@@ -77,6 +77,13 @@ interface UseCarrerasDisponiblesUsuarioOptions {
   autoFetch?: boolean
 }
 
+/**
+ * Hook para obtener las carreras disponibles para agregar al usuario
+ * @param options - Opciones del hook
+ * @param options.userID - ID del usuario para obtener sus carreras disponibles
+ * @param options.autoFetch - Si se debe hacer fetch automáticamente al montar el hook
+ * @returns Hook con las carreras, loading, error y métodos de refetch
+ */
 export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsuarioOptions) => {
   const [carreras, setCarreras] = useState<Carrera[] | null>(null)
   const [loading, setLoading] = useState(true)

@@ -61,13 +61,13 @@ export async function obtenerCarreras(): Promise<CarreraDB[]> {
 }
 
 /**
- * Obtiene un listado de todas las carreras del usuario
+ * Obtiene un listado de todas las carreras del usuario que el usuario agregó a su perfil
  * @param usuarioId - ID del usuario
- * @returns Promise<CarreraUsuarioAPIResponse[]> - Promise con array de carreras del usuario
+ * @returns Promise<CarreraUsuarioDB[]> - Promise con array de carreras del usuario
  */
-export async function obtenerCarrerasUsuario(usuarioId: number): Promise<CarreraUsuarioAPIResponse[]> {
+export async function obtenerCarrerasUsuario(usuarioId: number): Promise<CarreraUsuarioDB[]> {
   try {
-    const result = await query(
+    const carrerasResult = await query(
       `SELECT 
               usuario_plan_estudio.usuario_id, 
               usuario_plan_estudio.plan_estudio_id, 
@@ -84,14 +84,12 @@ export async function obtenerCarrerasUsuario(usuarioId: number): Promise<Carrera
       [usuarioId]
     )
 
-    const rowsCarreras: CarreraUsuarioDB[] = result.rows as unknown as CarreraUsuarioDB[]
+    const carrerrasDB: CarreraUsuarioDB[] = carrerasResult.rows as unknown as CarreraUsuarioDB[]
 
-    const carreras: CarreraUsuarioAPIResponse[] = adaptCarrerasUsuarioDBToAPIResponse(rowsCarreras)
-
-    return carreras
+    return carrerrasDB
   } catch (error) {
-    console.error('Error DB carreras usuario')
-    throw error
+    console.error('Error obteniendo carreras del usuario:', error)
+    throw new Error('No se pudieron obtener las carreras asociadas al usuario')
   }
 }
 
