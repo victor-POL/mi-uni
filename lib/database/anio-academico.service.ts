@@ -1,5 +1,31 @@
-import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.model'
+import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
 import { query } from './connection'
+
+/**
+ * Obtiene el año académico vigente desde la base de datos.
+ * @returns Promise<AnioAcademicoVigenteDB | null> - El año académico vigente o null si no se encuentra.
+ */
+export async function obtenerAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB | null> {
+  try {
+    const result = await query(
+      `SELECT
+          anio as anio_academico,
+          fecha_inicio,
+          fecha_fin
+      FROM prod.anio_academico
+      WHERE fecha_inicio <= NOW() AND fecha_fin >= NOW()
+      ORDER BY fecha_inicio DESC
+      LIMIT 1`
+    )
+
+    const anioAcademicoVigente: AnioAcademicoVigenteDB | null = result.rows.length > 0 ? result.rows[0] : null
+
+    return anioAcademicoVigente
+  } catch (error) {
+    console.error('Error obteniendo año académico vigente:', error)
+    throw new Error('Error al obtener el año académico vigente')
+  }
+}
 
 // Obtener el año académico actual del usuario
 export async function obtenerAnioAcademicoUsuario(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {

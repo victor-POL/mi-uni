@@ -3,3 +3,9 @@ export interface AnioAcademicoUsuarioAPIResponse {
   fechaActualizacion: string | null
   esNuevo: boolean
 }
+
+export interface AnioAcademicoVigenteAPIResponse {
+  anio_academico: number
+  fecha_inicio: string
+  fecha_fin: string
+}

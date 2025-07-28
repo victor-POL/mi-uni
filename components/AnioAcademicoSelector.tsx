@@ -1,6 +1,9 @@
 'use client'
 
+/* ---------------------------------- HOOKS --------------------------------- */
 import { useState } from 'react'
+import { useAnioAcademico, useAnioVigente } from '@/hooks/use-anio-academico'
+/* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,63 +16,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { useAnioAcademico } from '@/hooks/use-anio-academico'
 import { Calendar, Edit } from 'lucide-react'
+/* ------------------------------- COMPONENTES ------------------------------ */
+import { ErrorAlert } from '@/components/ErrorAlert'
+/* --------------------------------- UTILES --------------------------------- */
+import { formatearFecha } from '@/lib/utils'
 
 interface AnioAcademicoSelectorProps {
-  usuarioId: number
-  esNuevo?: boolean
-  onAnioChanged?: () => void
+  readonly usuarioId: number
+  readonly esNuevo?: boolean
 }
 
-export function AnioAcademicoSelector({ usuarioId, esNuevo, onAnioChanged }: AnioAcademicoSelectorProps) {
-  const { toast } = useToast()
-  const { anioAcademico, loading, establecerAnioAcademico, cambiarAnioAcademico } = useAnioAcademico(usuarioId)
+export function AnioAcademicoSelector({ usuarioId, esNuevo }: AnioAcademicoSelectorProps) {
+  const { loading } = useAnioAcademico({
+    userId: usuarioId,
+    autoFetch: true,
+  })
+  const { anioVigente, loading: loadingVigente } = useAnioVigente()
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [nuevoAnio, setNuevoAnio] = useState('')
 
-  const anioActual = new Date().getFullYear()
-
-  const handleCambiarAnio = async () => {
-    const anio = parseInt(nuevoAnio)
-
-    if (anio < anioActual - 1 || anio > anioActual) {
-      toast({
-        title: 'Error',
-        description: `El año académico debe estar entre ${anioActual - 1} y ${anioActual}`,
-        variant: 'destructive',
-      })
-      return
-    }
-
-    const exito = esNuevo ? await establecerAnioAcademico(anio) : await cambiarAnioAcademico(anio)
-
-    if (exito) {
-      toast({
-        title: 'Éxito',
-        description: esNuevo ? 'Año académico establecido correctamente' : 'Año académico actualizado correctamente',
-      })
-      setModalAbierto(false)
-      setNuevoAnio('')
-      onAnioChanged?.()
-    } else {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el año académico',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const obtenerTextoBoton = () => {
-    if (loading) return 'Guardando...'
-    return esNuevo ? 'Establecer' : 'Cambiar'
-  }
-
-  const abrirModal = () => {
-    setNuevoAnio(anioAcademico?.toString() || '')
+  const abrirModalEstablecerAnio = () => {
     setModalAbierto(true)
+  }
+
+  if (loadingVigente) {
+    return null
+  }
+
+  if (!anioVigente) {
+    return <ErrorAlert title="No se pudo obtener el año academico vigente" />
   }
 
   return (
@@ -79,22 +54,20 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo, onAnioChanged }: Ani
           <CardTitle className="flex items-center gap-2 text-lg">
             <Calendar className="h-5 w-5" />
             Año Académico
+            <Button variant="outline" size="sm" onClick={abrirModalEstablecerAnio} disabled={loading}>
+              <Edit className="h-4 w-4 mr-2" />
+              Establecer
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="mx-2">
-              <p className="text-2xl font-bold">{loading ? '...' : anioAcademico || '-'}</p>
-              <p className="text-sm text-gray-600">
-                {esNuevo
-                  ? 'Por favor establece un año academico para empezar a gestionar tus materias'
-                  : 'Año académico actual'}
-              </p>
+              <p className="text-2xl font-bold">-</p>
+              <div className="text-sm text-gray-600">
+                Por favor establece un año academico para empezar a gestionar tus materias
+              </div>
             </div>
-            <Button variant="outline" size="sm" onClick={abrirModal} disabled={loading}>
-              <Edit className="h-4 w-4 mr-2" />
-              {esNuevo ? 'Establecer' : 'Cambiar'}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -103,27 +76,40 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo, onAnioChanged }: Ani
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{esNuevo ? 'Establecer Año Académico' : 'Cambiar Año Académico'}</DialogTitle>
-            <DialogDescription>
-              {esNuevo
-                ? 'Establece el año académico para tus materias en curso.'
-                : 'Cambiar el año académico actualizará tu año académico actual.'}
-            </DialogDescription>
+            <DialogDescription>El año academico vigente es el siguiente:</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="anio" className="text-right">
-                Año *
+              <Label htmlFor="anio-academico-vigente-anio" className="text-right">
+                Año
               </Label>
               <Input
-                id="anio"
+                id="anio-academico-vigente-anio"
                 type="number"
-                min={anioActual - 1}
-                max={anioActual}
-                value={nuevoAnio}
-                onChange={(e) => setNuevoAnio(e.target.value)}
+                value={anioVigente?.anioAcademico}
+                readOnly
                 className="col-span-3"
-                placeholder={`Ej: ${anioActual}`}
+              />
+              <Label htmlFor="anio-academico-vigente-inicio" className="text-right">
+                Fecha Inicio
+              </Label>
+              <Input
+                id="anio-academico-vigente-inicio"
+                type="text"
+                value={formatearFecha(anioVigente.fechaInicio)}
+                readOnly
+                className="col-span-3"
+              />
+              <Label htmlFor="anio-academico-vigente-fin" className="text-right">
+                Fecha Fin
+              </Label>
+              <Input
+                id="anio-academico-vigente-fin"
+                type="text"
+                value={formatearFecha(anioVigente.fechaFin)}
+                readOnly
+                className="col-span-3"
               />
             </div>
           </div>
@@ -132,8 +118,8 @@ export function AnioAcademicoSelector({ usuarioId, esNuevo, onAnioChanged }: Ani
             <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} disabled={loading}>
               Cancelar
             </Button>
-            <Button onClick={handleCambiarAnio} disabled={loading}>
-              {obtenerTextoBoton()}
+            <Button type="button" disabled={loading}>
+              Establecer
             </Button>
           </DialogFooter>
         </DialogContent>

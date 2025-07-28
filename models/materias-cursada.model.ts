@@ -60,3 +60,9 @@ export interface UsuarioAnioAcademico {
   fechaActualizacion: string | null
   esNuevo: boolean
 }
+
+export interface AnioAcademicoVigente {
+  anioAcademico: number
+  fechaInicio: string
+  fechaFin: string
+}

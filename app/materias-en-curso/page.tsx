@@ -138,7 +138,7 @@ export default function MateriasEnCursoPage() {
           </div>
           {/* Selector de Año Académico */}
           <div className="container mx-auto p-6 space-y-6">
-            <AnioAcademicoSelector esNuevo={true} usuarioId={userId as number} onAnioChanged={cargarMateriasEnCurso} />
+            <AnioAcademicoSelector esNuevo={true} usuarioId={userId as number} />
           </div>
         </AppLayout>
       </ProtectedRoute>
@@ -177,7 +177,7 @@ export default function MateriasEnCursoPage() {
             )}
 
             <div className="lg:col-span-1">
-              <AnioAcademicoSelector usuarioId={userId || 0} onAnioChanged={cargarMateriasEnCurso} />
+              <AnioAcademicoSelector usuarioId={userId || 0} />
             </div>
 
             {estadisticas && anioAcademico && !esNuevo && (

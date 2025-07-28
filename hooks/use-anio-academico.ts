@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { ApiResponse } from '@/models/api/api.model'
-import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
-import type { UsuarioAnioAcademico } from '@/models/materias-cursada.model'
-import { adaptAnioAcademicoUsuarioAPIResponseToLocal } from '@/adapters/materias-cursada.model'
+import type { AnioAcademicoUsuarioAPIResponse, AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-cursada.model'
+import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materias-cursada.model'
+import { adaptAnioAcademicoUsuarioAPIResponseToLocal, adaptAnioAcademicoVigenteAPIResponseToLocal } from '@/adapters/materias-cursada.model'
 
 interface UseCarerrasOptions {
   userId?: number
@@ -141,3 +141,70 @@ export const useAnioAcademicoUsuario = (usuarioId: number) => {
     error
   }
 }
+
+interface UseAnioAcademicoVigenteOptions {
+  autoFetch?: boolean
+}
+
+/**
+ * Hook para obtener el año académico vigente del sistema
+ * @param options - Opciones del hook
+ * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
+ * @returns Hook con el año académico vigente, loading, error y método de refetch
+ */
+export function useAnioAcademicoVigente(options: UseAnioAcademicoVigenteOptions) {
+  const [anioVigente, setAnioVigente] = useState<AnioAcademicoVigente | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const obtenerAnioVigente = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const url = '/api/anio-academico'
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: ApiResponse<AnioAcademicoVigenteAPIResponse> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch data')
+      }
+
+      const formattedAnioVigente: AnioAcademicoVigente = adaptAnioAcademicoVigenteAPIResponseToLocal(result.data)
+
+      setAnioVigente(formattedAnioVigente)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+      setError(errorMessage)
+      console.error('Error fetching año académico vigente:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (options.autoFetch) {
+      obtenerAnioVigente()
+    }
+  }, [options.autoFetch])
+
+  return {
+    anioVigente,
+    loading,
+    error,
+    refetch: obtenerAnioVigente,
+  }
+}
+
+/**
+ * Hook simple para obtener el año académico vigente con autoFetch habilitado
+ * @returns Hook con el año académico vigente, loading y error
+ */
+export function useAnioVigente() {
+  return useAnioAcademicoVigente({ autoFetch: true })
+}
+
