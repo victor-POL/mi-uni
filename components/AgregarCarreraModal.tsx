@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { useNuevasCarrerasUsuario } from '@/hooks/use-carreras'
+import { useCarrerasDisponiblesUsuario } from '@/hooks/use-carreras'
 import { usePlanesCarrera } from '@/hooks/use-planes-estudio'
 /* ------------------------------ COMPONENTS ----------------------------- */
 import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
@@ -29,7 +29,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
   const [isOpen, setIsOpen] = useState(false)
 
   // Carreras disponibles para el usuario
-  const { carreras: carrerasDisponibles, loading: isLoadingCarreras } = useNuevasCarrerasUsuario({
+  const { carreras: carrerasDisponibles, loading: isLoadingCarreras } = useCarrerasDisponiblesUsuario({
     userID: userId as number,
     autoFetch: isOpen,
   })

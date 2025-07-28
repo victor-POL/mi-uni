@@ -3,7 +3,10 @@ import {
   adaptEstadisticaCarreraDBToAPIResponse,
 } from '@/adapters/carreras.adapter'
 import { query } from '@/connection'
-import type { CarreraEstadisticasAPIResponse, CarreraUsuarioAPIResponse, CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
+import type {
+  CarreraEstadisticasAPIResponse,
+  CarreraUsuarioAPIResponse,
+} from '@/models/api/carreras.model'
 import type {
   MateriaEnCurso,
   MateriaHistorial,
@@ -55,6 +58,7 @@ export interface EstadoMateriaUsuario {
 
 /**
  * Obtiene un listado de todas las carreras (solo información basica: carrera_id, nombre_carrera)
+ * @returns Promise<CarreraDB[]> - Lista de carreras disponibles
  */
 export async function obtenerCarreras(): Promise<CarreraDB[]> {
   try {
@@ -112,16 +116,16 @@ export async function obtenerCarrerasUsuario(usuarioId: number): Promise<Carrera
 }
 
 /**
- * Obtiene las carreras disponibles para un usuario (carreras en las que no está inscrito)
+ * Obtiene un listado de todas las carreras (solo información basica: carrera_id, nombre_carrera) disponibles para que un usuario agregue a su perfil
  * @param usuarioId - ID del usuario
- * @returns Promise<CarreraUsuarioDisponibleAPIResponse[]> - Lista de carreras disponibles
+ * @returns Promise<CarreraDB[]> - Lista de carreras disponibles
  */
-export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): Promise<CarreraUsuarioDisponibleAPIResponse[]> {
+export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): Promise<CarreraDB[]> {
   try {
-    const result = await query(
+    const carrerasResult = await query(
       `SELECT DISTINCT
               carrera.id      as carrera_id, 
-              carrera.nombre  as nombre_carrera
+              carrera.nombre  as carrera_nombre
        FROM prod.carrera 
        WHERE carrera.id NOT IN (
          SELECT DISTINCT plan_estudio.carrera_id
@@ -132,11 +136,13 @@ export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): 
        ORDER BY carrera.nombre ASC`,
       [usuarioId]
     )
-    
-    return result.rows as unknown as CarreraUsuarioDisponibleAPIResponse[]
+
+    const carrerasDB: CarreraDB[] = carrerasResult.rows as unknown as CarreraDB[]
+
+    return carrerasDB
   } catch (error) {
     console.error('Error obteniendo carreras disponibles para usuario:', error)
-    throw new Error('No se pudieron obtener las carreras disponibles')
+    throw new Error('No se pudieron obtener las carreras disponibles para el usuario')
   }
 }
 
@@ -187,9 +193,10 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
             [usuarioId, planEstudioId, materia.materia_id]
           )
         }
-      }
-      else {
-        throw new Error('El plan de estudio no tiene materias asociadas. Por favor, espere a que se carguen las materias o contacte a soporte.')
+      } else {
+        throw new Error(
+          'El plan de estudio no tiene materias asociadas. Por favor, espere a que se carguen las materias o contacte a soporte.'
+        )
       }
 
       // Confirmar transacción

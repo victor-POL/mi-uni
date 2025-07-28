@@ -1,15 +1,11 @@
-import { adaptCarrerasUsuariosConEstadisticasAPIResponse } from '@/adapters/carreras.adapter'
-import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/carreras.model'
-import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
 import { useState, useEffect } from 'react'
-
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-  count?: number
-  error?: string
-  message?: string
-}
+import type { ApiResponse } from '@/models/api/api.model'
+import type {
+  CarreraUsuarioConEstadisticasAPIResponse,
+  CarreraUsuarioDisponibleAPIResponse,
+} from '@/models/api/carreras.model'
+import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
+import { adaptCarrerasUsuariosConEstadisticasAPIResponse } from '@/adapters/carreras.adapter'
 
 interface UseCarerrasOptions {
   userID?: number
@@ -50,9 +46,9 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      const carrerasConEstadisticas: CarreraResumen[] = adaptCarrerasUsuariosConEstadisticasAPIResponse(result.data)
+      const formattedCarreras: CarreraResumen[] = adaptCarrerasUsuariosConEstadisticasAPIResponse(result.data)
 
-      setCarreras(carrerasConEstadisticas)
+      setCarreras(formattedCarreras)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)
@@ -76,12 +72,12 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
   }
 }
 
-interface UseNuevasCarrerasUsuarioOptions {
+interface UseCarrerasDisponiblesUsuarioOptions {
   userID: number | undefined
   autoFetch?: boolean
 }
 
-export const useNuevasCarrerasUsuario = (options: UseNuevasCarrerasUsuarioOptions) => {
+export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsuarioOptions) => {
   const [carreras, setCarreras] = useState<Carrera[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +87,10 @@ export const useNuevasCarrerasUsuario = (options: UseNuevasCarrerasUsuarioOption
     setError(null)
 
     try {
+      if (!options.userID) {
+        throw new Error('Se requiere un userID para obtener las carreras disponibles')
+      }
+
       const url = `/api/user/carreras/disponibles?usuarioId=${options.userID}`
       const response = await fetch(url)
 
@@ -98,9 +98,13 @@ export const useNuevasCarrerasUsuario = (options: UseNuevasCarrerasUsuarioOption
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const result = await response.json()
+      const result: ApiResponse<CarreraUsuarioDisponibleAPIResponse[]> = await response.json()
 
-      const formattedCarreras: Carrera[] = result.map((carrera: any) => ({
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch data')
+      }
+
+      const formattedCarreras: Carrera[] = result.data.map((carrera: any) => ({
         idCarrera: carrera.carrera_id,
         nombreCarrera: carrera.nombre_carrera,
       }))
