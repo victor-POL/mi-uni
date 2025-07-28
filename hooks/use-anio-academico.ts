@@ -1,37 +1,47 @@
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
-
-interface UsuarioAnioAcademico {
-  anioAcademico: number
-  fechaActualizacion?: string
-  esNuevo: boolean
-}
+/* --------------------------------- MODELS --------------------------------- */
+import type { ApiResponse } from '@/models/api/api.model'
+import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
+import type { UsuarioAnioAcademico } from '@/models/materias-cursada.model'
+import { adaptAnioAcademicoUsuarioAPIResponseToLocal } from '@/adapters/materias-cursada.model'
 
 interface UseCarerrasOptions {
   userId?: number
   autoFetch?: boolean
 }
 
-
-export function useAnioAcademico(options: UseCarerrasOptions = {}) {
+export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true }) {
   const [anioAcademico, setAnioAcademico] = useState<UsuarioAnioAcademico | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const obtenerAnioAcademico = async () => {
-    if (!options.userId) return
-
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/anio-academico?userId=${options.userId}`)
-      
-      if (!response.ok) {
-        throw new Error('Error obteniendo año académico')
+      if (!options.userId) {
+        throw new Error('Se requiere un userId para obtener el año académico')
       }
-      
-      const data = await response.json()
-      setAnioAcademico(data)
+
+      const url = `/api/anio-academico?userId=${options.userId}`
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result: ApiResponse<AnioAcademicoUsuarioAPIResponse> = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch data')
+      }
+
+      const formattedAnioUsuario: UsuarioAnioAcademico = adaptAnioAcademicoUsuarioAPIResponseToLocal(result.data)
+
+      console.log({ formattedAnioUsuario })
+
+      setAnioAcademico(formattedAnioUsuario)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
@@ -52,7 +62,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = {}) {
         },
         body: JSON.stringify({
           userId: options.userId,
-          anioAcademico: nuevoAnio
+          anioAcademico: nuevoAnio,
         }),
       })
 
@@ -83,7 +93,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = {}) {
         },
         body: JSON.stringify({
           userId: options.userId,
-          nuevoAnioAcademico: nuevoAnio
+          nuevoAnioAcademico: nuevoAnio,
         }),
       })
 
@@ -102,8 +112,10 @@ export function useAnioAcademico(options: UseCarerrasOptions = {}) {
   }
 
   useEffect(() => {
-    obtenerAnioAcademico()
-  }, [options.userId])
+    if (options.autoFetch && options.userId) {
+      obtenerAnioAcademico()
+    }
+  }, [options.autoFetch, options.userId])
 
   return {
     anioAcademico: anioAcademico?.anioAcademico,
@@ -113,6 +125,6 @@ export function useAnioAcademico(options: UseCarerrasOptions = {}) {
     error,
     establecerAnioAcademico,
     cambiarAnioAcademico,
-    refrescar: obtenerAnioAcademico
+    refrescar: obtenerAnioAcademico,
   }
 }

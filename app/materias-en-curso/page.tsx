@@ -21,7 +21,7 @@ import { AnioAcademicoSelector } from '@/components/AnioAcademicoSelector'
 export default function MateriasEnCursoPage() {
   const { userId } = useAuth()
   const { toast } = useToast()
-  const { anioAcademico, esNuevo } = useAnioAcademico({ userId })
+  const { anioAcademico, esNuevo } = useAnioAcademico({ userId, autoFetch: true })
 
   const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
   const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
@@ -119,6 +119,18 @@ export default function MateriasEnCursoPage() {
         <AppLayout title="Materias en Curso">
           <div className="container mx-auto p-6">
             <div className="text-center">Cargando materias en curso...</div>
+          </div>
+        </AppLayout>
+      </ProtectedRoute>
+    )
+  }
+
+  if (esNuevo) {
+    return (
+      <ProtectedRoute>
+        <AppLayout title="Materias en Curso">
+          <div className="container mx-auto p-6 space-y-6">
+            <AnioAcademicoSelector esNuevo={true} usuarioId={userId as number} onAnioChanged={cargarMateriasEnCurso} />
           </div>
         </AppLayout>
       </ProtectedRoute>

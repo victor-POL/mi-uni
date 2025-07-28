@@ -9,7 +9,7 @@ export interface MateriaCursada {
   notaRecuperatorioPrimerParcial?: number
   notaRecuperatorioSegundoParcial?: number
   fechaActualizacion: Date
-  
+
   // Datos de la materia (JOIN)
   codigoMateria: string
   nombreMateria: string
@@ -17,7 +17,7 @@ export interface MateriaCursada {
   horasSemanales: number
   anioEnPlan: number
   cuatrimestreEnPlan: number
-  
+
   // Datos del plan/carrera (JOIN)
   carreraNombre: string
   planAnio: number
@@ -56,7 +56,7 @@ export interface EstadisticasMateriasEnCurso {
 }
 
 export interface UsuarioAnioAcademico {
-  usuarioId: number
-  anioAcademico: number
-  fechaActualizacion: Date
+  anioAcademico: number | null
+  fechaActualizacion: string | null
+  esNuevo: boolean
 }

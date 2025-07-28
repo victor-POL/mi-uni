@@ -1,3 +1,4 @@
+import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.model'
 import { query } from './connection'
 
 export interface AnioAcademico {
@@ -7,14 +8,20 @@ export interface AnioAcademico {
 }
 
 // Obtener el año académico actual del usuario
-export async function obtenerAnioAcademicoUsuario(usuarioId: string): Promise<number | null> {
+export async function obtenerAnioAcademicoUsuario(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
   try {
     const result = await query(
-      'SELECT anio_academico FROM prod.usuario_anio_academico WHERE usuario_id = $1',
+      `SELECT 
+          anio_academico, 
+          fecha_actualizacion
+       FROM prod.usuario_anio_academico 
+       WHERE usuario_id = $1
+       LIMIT 1
+       `,
       [usuarioId]
     )
-    
-    return result.rows.length > 0 ? result.rows[0].anio_academico : null
+
+    return result.rows.length > 0 ? result.rows[0] : null
   } catch (error) {
     console.error('Error obteniendo año académico:', error)
     throw new Error('Error al obtener el año académico')
@@ -40,11 +47,8 @@ export async function establecerAnioAcademicoUsuario(usuarioId: string, anioAcad
 // Verificar si el usuario tiene un año académico establecido
 export async function usuarioTieneAnioAcademico(usuarioId: string): Promise<boolean> {
   try {
-    const result = await query(
-      'SELECT 1 FROM prod.usuario_anio_academico WHERE usuario_id = $1',
-      [usuarioId]
-    )
-    
+    const result = await query('SELECT 1 FROM prod.usuario_anio_academico WHERE usuario_id = $1', [usuarioId])
+
     return result.rows.length > 0
   } catch (error) {
     console.error('Error verificando año académico:', error)
@@ -59,16 +63,16 @@ export async function obtenerInfoAnioAcademico(usuarioId: string): Promise<AnioA
       'SELECT usuario_id, anio_academico, fecha_actualizacion FROM prod.usuario_anio_academico WHERE usuario_id = $1',
       [usuarioId]
     )
-    
+
     if (result.rows.length === 0) {
       return null
     }
-    
+
     const row = result.rows[0]
     return {
       usuarioId: row.usuario_id,
       anioAcademico: row.anio_academico,
-      fechaActualizacion: row.fecha_actualizacion
+      fechaActualizacion: row.fecha_actualizacion,
     }
   } catch (error) {
     console.error('Error obteniendo información del año académico:', error)

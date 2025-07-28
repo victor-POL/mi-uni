@@ -5,19 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { useAnioAcademico } from '@/hooks/use-anio-academico'
 import { Calendar, Edit } from 'lucide-react'
 
 interface AnioAcademicoSelectorProps {
   usuarioId: number
+  esNuevo?: boolean
   onAnioChanged?: () => void
 }
 
-export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademicoSelectorProps) {
+export function AnioAcademicoSelector({ usuarioId, esNuevo, onAnioChanged }: AnioAcademicoSelectorProps) {
   const { toast } = useToast()
-  const { anioAcademico, esNuevo, loading, establecerAnioAcademico, cambiarAnioAcademico } = useAnioAcademico(usuarioId)
+  const { anioAcademico, loading, establecerAnioAcademico, cambiarAnioAcademico } = useAnioAcademico(usuarioId)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [nuevoAnio, setNuevoAnio] = useState('')
 
@@ -25,35 +33,31 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
 
   const handleCambiarAnio = async () => {
     const anio = parseInt(nuevoAnio)
-    
+
     if (anio < anioActual - 1 || anio > anioActual) {
       toast({
-        title: "Error",
+        title: 'Error',
         description: `El año académico debe estar entre ${anioActual - 1} y ${anioActual}`,
-        variant: "destructive",
+        variant: 'destructive',
       })
       return
     }
 
-    const exito = esNuevo 
-      ? await establecerAnioAcademico(anio)
-      : await cambiarAnioAcademico(anio)
+    const exito = esNuevo ? await establecerAnioAcademico(anio) : await cambiarAnioAcademico(anio)
 
     if (exito) {
       toast({
-        title: "Éxito",
-        description: esNuevo 
-          ? "Año académico establecido correctamente"
-          : "Año académico actualizado correctamente",
+        title: 'Éxito',
+        description: esNuevo ? 'Año académico establecido correctamente' : 'Año académico actualizado correctamente',
       })
       setModalAbierto(false)
       setNuevoAnio('')
       onAnioChanged?.()
     } else {
       toast({
-        title: "Error",
-        description: "No se pudo actualizar el año académico",
-        variant: "destructive",
+        title: 'Error',
+        description: 'No se pudo actualizar el año académico',
+        variant: 'destructive',
       })
     }
   }
@@ -79,18 +83,15 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold">{loading ? '...' : (anioAcademico || '-')}</p>
+            <div className="mx-2">
+              <p className="text-2xl font-bold">{loading ? '...' : anioAcademico || '-'}</p>
               <p className="text-sm text-gray-600">
-                {esNuevo ? 'Establecer año académico' : 'Año académico actual'}
+                {esNuevo
+                  ? 'Por favor establece un año academico para empezar a gestionar tus materias'
+                  : 'Año académico actual'}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={abrirModal}
-              disabled={loading}
-            >
+            <Button variant="outline" size="sm" onClick={abrirModal} disabled={loading}>
               <Edit className="h-4 w-4 mr-2" />
               {esNuevo ? 'Establecer' : 'Cambiar'}
             </Button>
@@ -101,14 +102,11 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
       <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {esNuevo ? 'Establecer Año Académico' : 'Cambiar Año Académico'}
-            </DialogTitle>
+            <DialogTitle>{esNuevo ? 'Establecer Año Académico' : 'Cambiar Año Académico'}</DialogTitle>
             <DialogDescription>
-              {esNuevo 
+              {esNuevo
                 ? 'Establece el año académico para tus materias en curso.'
-                : 'Cambiar el año académico actualizará tu año académico actual.'
-              }
+                : 'Cambiar el año académico actualizará tu año académico actual.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -131,18 +129,10 @@ export function AnioAcademicoSelector({ usuarioId, onAnioChanged }: AnioAcademic
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setModalAbierto(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => setModalAbierto(false)} disabled={loading}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleCambiarAnio}
-              disabled={loading}
-            >
+            <Button onClick={handleCambiarAnio} disabled={loading}>
               {obtenerTextoBoton()}
             </Button>
           </DialogFooter>

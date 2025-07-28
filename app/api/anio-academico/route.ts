@@ -1,46 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { query } from '@/connection'
+import { obtenerAnioAcademicoUsuario } from '@/lib/database/anio-academico.service'
+import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
+import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.model'
 
 // GET: Obtener año académico actual del usuario
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const usuarioId = searchParams.get('usedId')
+    const userIdParam = searchParams.get('userId')
 
-    if (!usuarioId) {
-      return NextResponse.json(
-        { error: 'ID de usuario requerido' },
-        { status: 400 }
-      )
+    if (!userIdParam) {
+      return NextResponse.json({ error: 'ID de usuario requerido' }, { status: 400 })
     }
 
-    const result = await query(
-      `SELECT anio_academico, fecha_actualizacion 
-       FROM prod.usuario_anio_academico 
-       WHERE usuario_id = $1 
-       ORDER BY fecha_actualizacion DESC 
-       LIMIT 1`,
-      [parseInt(usuarioId)]
-    )
+    const usedId = parseInt(userIdParam)
 
-    if (result.rows.length === 0) {
-      // Si no hay año académico establecido, devolver null
-      return NextResponse.json({ 
-        anioAcademico: null,
-        esNuevo: true 
-      })
+    if (Number.isNaN(usedId)) {
+      return NextResponse.json({ error: 'ID de usuario inválido' }, { status: 400 })
     }
 
-    const row = result.rows[0] as any
+    const anioAcademicoUsuarioDB = await obtenerAnioAcademicoUsuario(usedId)
+
+    const anioAcademicoResponse: AnioAcademicoUsuarioAPIResponse =
+      adaptAnioAcademicoUsuarioDBToAPIResponse(anioAcademicoUsuarioDB)
+
     return NextResponse.json({
-      anioAcademico: row.anio_academico,
-      fechaActualizacion: row.fecha_actualizacion,
-      esNuevo: false
+      success: true,
+      data: anioAcademicoResponse,
     })
   } catch (error) {
-    console.error('Error obteniendo año académico:', error)
+    console.error('Error GET año academico del usuario')
+
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+    }
+
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      {
+        success: false,
+        error: 'No se pudo obtener el año académico del usuario',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }
@@ -50,22 +51,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { usuarioId, anioAcademico } = body
+    const { userId, anioAcademico } = body
 
-    if (!usuarioId || !anioAcademico) {
-      return NextResponse.json(
-        { error: 'Usuario y año académico requeridos' },
-        { status: 400 }
-      )
+    if (!userId || !anioAcademico) {
+      return NextResponse.json({ error: 'Usuario y año académico requeridos' }, { status: 400 })
     }
 
     // Validar año académico
     const anioActual = new Date().getFullYear()
     if (anioAcademico < anioActual - 1 || anioAcademico > anioActual) {
-      return NextResponse.json(
-        { error: 'Año académico inválido' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Año académico inválido' }, { status: 400 })
     }
 
     await query(
@@ -73,16 +68,13 @@ export async function POST(request: NextRequest) {
        VALUES ($1, $2, NOW())
        ON CONFLICT (usuario_id) 
        DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
-      [parseInt(usuarioId), parseInt(anioAcademico)]
+      [parseInt(userId), parseInt(anioAcademico)]
     )
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error estableciendo año académico:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
 
@@ -90,22 +82,16 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { usuarioId, nuevoAnioAcademico } = body
+    const { userId, nuevoAnioAcademico } = body
 
-    if (!usuarioId || !nuevoAnioAcademico) {
-      return NextResponse.json(
-        { error: 'Usuario y nuevo año académico requeridos' },
-        { status: 400 }
-      )
+    if (!userId || !nuevoAnioAcademico) {
+      return NextResponse.json({ error: 'Usuario y nuevo año académico requeridos' }, { status: 400 })
     }
 
     // Validar año académico
     const anioActual = new Date().getFullYear()
     if (nuevoAnioAcademico < anioActual - 1 || nuevoAnioAcademico > anioActual) {
-      return NextResponse.json(
-        { error: 'Año académico inválido' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Año académico inválido' }, { status: 400 })
     }
 
     // Crear/actualizar registro de año académico
@@ -114,15 +100,12 @@ export async function PUT(request: NextRequest) {
        VALUES ($1, $2, NOW())
        ON CONFLICT (usuario_id) 
        DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
-      [parseInt(usuarioId), parseInt(nuevoAnioAcademico)]
+      [parseInt(userId), parseInt(nuevoAnioAcademico)]
     )
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error cambiando año académico:', error)
-    return NextResponse.json(
-      { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
