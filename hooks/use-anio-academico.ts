@@ -24,7 +24,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
         throw new Error('Se requiere un userId para obtener el año académico')
       }
 
-      const url = `/api/anio-academico?userId=${options.userId}`
+      const url = `/api/user/anio-academico?userId=${options.userId}`
       const response = await fetch(url)
 
       if (!response.ok) {
@@ -55,7 +55,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/anio-academico', {
+      const response = await fetch('/api/user/anio-academico', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/anio-academico', {
+      const response = await fetch('/api/user/anio-academico', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

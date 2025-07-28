@@ -14,13 +14,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'ID de usuario requerido' }, { status: 400 })
     }
 
-    const usedId = parseInt(userIdParam)
+    const userId = parseInt(userIdParam)
 
-    if (Number.isNaN(usedId)) {
+    if (Number.isNaN(userId)) {
       return NextResponse.json({ error: 'ID de usuario inválido' }, { status: 400 })
     }
 
-    const anioAcademicoUsuarioDB = await obtenerAnioAcademicoUsuario(usedId)
+    const anioAcademicoUsuarioDB = await obtenerAnioAcademicoUsuario(userId)
 
     const anioAcademicoResponse: AnioAcademicoUsuarioAPIResponse =
       adaptAnioAcademicoUsuarioDBToAPIResponse(anioAcademicoUsuarioDB)
