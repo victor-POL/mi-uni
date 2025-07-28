@@ -197,4 +197,10 @@ CREATE TABLE prod.usuario_materia_cursada (
 );
 
 
+CREATE TABLE prod.anio_academico (
+  id SERIAL PRIMARY KEY,
+  anio INT NOT NULL UNIQUE CHECK (anio >= 2000 AND anio <= 2100),
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NOT NULL
+);
 
