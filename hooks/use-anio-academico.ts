@@ -133,7 +133,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: options.userId,
+          usuario_id: options.userId,
         }),
       })
 
