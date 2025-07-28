@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import type { ApiResponse } from '@/models/api/api.model'
 import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
 import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
-import { EstadoMateriaPlanEstudio } from '@/models/materias.model'
+import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 
 interface UsePlanesEstudioOptions {
   planId: number | null
+  usuarioId?: number | null
   autoFetch?: boolean
 }
 
@@ -13,12 +14,13 @@ interface UsePlanesEstudioOptions {
  * Hook para obtener el detalle de un paln de estudio
  * @param options - Opciones del hook
  * @param options.planId - ID del plan de estudio a obtener su detalle
+ * @param options.usuarioId - ID del usuario (opcional) para obtener el progreso
  * @param options.autoFetch - Si el hook debe hacer fetch automáticamente
  * @returns Hook con el plan de estudio, loading, loading, error y método de refetch
  */
 export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planId: null, autoFetch: true }) {
   const [detallePlan, setDetallePlan] = useState<PlanDeEstudioDetalle | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
@@ -30,7 +32,11 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planI
         throw new Error('Se requiere un planId para obtener información detallada')
       }
 
-      const url = `/api/planes-estudio/${options.planId}`
+      let url = `/api/planes-estudio/${options.planId}`
+      if (options.usuarioId) {
+        url += `?usuarioId=${options.usuarioId}`
+      }
+      
       const response = await fetch(url)
 
       if (!response.ok) {
@@ -81,9 +87,12 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planI
 
   useEffect(() => {
     if (options.autoFetch && options.planId) {
+      // Limpiar el plan anterior cuando cambia el planId
+      setDetallePlan(null)
+      setError(null)
       fetchPlanes()
     }
-  }, [options.planId, options.autoFetch])
+  }, [options.planId, options.usuarioId, options.autoFetch])
 
   return {
     detallePlan,
@@ -157,48 +166,9 @@ export function usePlanesEstudio(options: UsePlanesBasicosOptions = {}) {
 }
 
 /**
- * Hook específico para obtener un plan por ID con información detallada
- * @param planId - ID del plan de estudio a obtener
- * @returns Hook con el plan específico, loading, error y métodos de refetch
- */
-export function usePlanById(planId: number) {
-  return useDetallePlanEstudio({ planId, autoFetch: true })
-}
-
-/**
  * Hook específico para obtener listado básico de todos los planes
  * @returns Hook con lista básica de planes, loading, error y métodos de refetch
  */
 export function useAllPlanes() {
   return usePlanesEstudio({ autoFetch: true })
-}
-
-/**
- * Helper para hacer fetch manual de un plan específico
- * @param planId - ID del plan de estudio
- * @param usuarioId - ID del usuario (opcional) para obtener el progreso
- * @returns Promise con los datos del plan
- */
-export async function fetchPlanById(planId: number, usuarioId?: number): Promise<PlanEstudioDetalleAPIResponse> {
-  try {
-    let url = `/api/planes-estudio/${planId}`
-    if (usuarioId) {
-      url += `?usuarioId=${usuarioId}`
-    }
-
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const result: ApiResponse<PlanEstudioDetalleAPIResponse> = await response.json()
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch plan')
-    }
-
-    return result.data
-  } catch (error) {
-    console.error('Error fetching plan by ID:', error)
-    throw error
-  }
 }

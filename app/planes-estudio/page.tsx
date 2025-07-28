@@ -1,24 +1,22 @@
 'use client'
 
 /* ---------------------------------- HOOKS --------------------------------- */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { useAllPlanes, fetchPlanById } from '@/hooks/use-planes-estudio'
+import { useAllPlanes, useDetallePlanEstudio } from '@/hooks/use-planes-estudio'
 /* ------------------------------ COMPONENTS ----------------------------- */
 import { PlanesEstudioLayout } from '@/components/planes-estudio/PlanesEstudioLayout'
 import { SelectorPlanEstudio } from '@/components/planes-estudio/SelectorPlanEstudio'
 import { ListadoMaterias } from '@/components/planes-estudio/ListadoMaterias'
 import { SkeletonEstadisticasPlanEstudio } from '@/components/planes-estudio/SkeletonEstadisticasPlanEstudio'
 import { SkeletonMateriasPlanEstudio } from '@/components/planes-estudio/SkeletonMateriasPlanEstudio'
-import { PlanesEstudioFiltrosProvider } from '@/contexts/PlanesEstudioFiltrosContext'
-/* --------------------------------- MODELS --------------------------------- */
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
-/* -------------------------------- ADAPTERS -------------------------------- */
-import { transformPlanAPIResponseToLocal, getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
-import { planesDeEstudio } from '@/data/planes-estudio.data'
 import { EstadisticasPlanComponent } from '@/components/planes-estudio/EstadisticasPlan'
 import { SeccionFiltros } from '@/components/planes-estudio/SeccionFiltros'
+/* --------------------------------- CONTEXT -------------------------------- */
+import { PlanesEstudioFiltrosProvider } from '@/contexts/PlanesEstudioFiltrosContext'
+/* -------------------------------- ADAPTERS -------------------------------- */
+import { getPlanesEstudioErrorMessage } from '@/adapters/planes-estudio.adapter'
 
 export default function PlanesEstudioPage() {
   // Para bloquear o no el filtro de estado de materia según autenticación y mostrar/ocultar dicho estado
@@ -27,9 +25,19 @@ export default function PlanesEstudioPage() {
   // Planes para el input select
   const { planes, loading: isLoadingPlanes } = useAllPlanes()
 
-  // Detalles de planes
-  const [detallePlanConsultado, setDetallePlanConsultado] = useState<PlanDeEstudioDetalle | null>(null)
-  const [isLoadingPlanDetalle, setIsLoadingPlanDetalle] = useState<boolean>(false)
+  // Plan seleccionado para consultar detalles
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
+  
+  // Hook para obtener detalles del plan (con autoFetch habilitado)
+  const { 
+    detallePlan: detallePlanConsultado, 
+    loading: isLoadingPlanDetalle, 
+    error: errorPlanDetalle
+  } = useDetallePlanEstudio({ 
+    planId: selectedPlanId, 
+    usuarioId: userId,
+    autoFetch: true 
+  })
 
   // Auxiliar para ir a la materia resaltada
   const [materiaResaltada, setMateriaResaltada] = useState<string | null>(null)
@@ -37,27 +45,24 @@ export default function PlanesEstudioPage() {
   // Otros auxiliares
   const { toast } = useToast()
 
-  const handleSubmitPlan = async (planId: string) => {
-    if (planId === detallePlanConsultado?.idPlan.toString()) return
-
-    setDetallePlanConsultado(null)
-    setIsLoadingPlanDetalle(true)
-
-    try {
-      const detallePlanAPIResponse = await fetchPlanById(parseInt(planId), userId)
-      const planData = transformPlanAPIResponseToLocal(detallePlanAPIResponse)
-
-      setDetallePlanConsultado(planData)
-    } catch (error) {
-      const errorMessage = getPlanesEstudioErrorMessage(error)
+  // Manejar errores del hook
+  useEffect(() => {
+    if (errorPlanDetalle) {
+      const errorMessage = getPlanesEstudioErrorMessage(new Error(errorPlanDetalle))
       toast({
         title: 'Error',
         description: errorMessage,
         variant: 'destructive',
       })
-    } finally {
-      setIsLoadingPlanDetalle(false)
     }
+  }, [errorPlanDetalle, toast])
+
+  const handleSubmitPlan = (planId: string) => {
+    const planIdNum = parseInt(planId)
+    if (planIdNum === selectedPlanId) return
+
+    // Actualizar el ID del plan seleccionado - el hook hará el fetch automáticamente
+    setSelectedPlanId(planIdNum)
   }
 
   // Util para navegar a una materia resaltada al clickear en una correlativa
@@ -78,7 +83,7 @@ export default function PlanesEstudioPage() {
     return <PlanesEstudioLayout forError />
   }
 
-  if (planesDeEstudio.length === 0) {
+  if (planes.length === 0) {
     return <PlanesEstudioLayout emptyPlanes />
   }
 
