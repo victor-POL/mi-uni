@@ -1,22 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+/* ---------------------------------- HOOKS --------------------------------- */
+import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
+import { useAnioAcademicoUsuario } from '@/hooks/use-anio-academico'
+import { useMateriasEnCurso } from '@/hooks/use-materias-en-curso'
+/* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Clock, Edit, GraduationCap, Trash2, Calendar } from 'lucide-react'
-import { AppLayout } from '@/components/AppLayout'
-import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
-import { useAnioAcademicoUsuario } from '@/hooks/use-anio-academico'
-import type {
-  MateriaCursadaPorCarrera,
-  EstadisticasMateriasEnCurso,
-  MateriaCursada,
-} from '@/models/materias-cursada.model'
-import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
-import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
-import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import {
   AlertDialog,
@@ -28,49 +20,52 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+/* ------------------------------- COMPONENTES ------------------------------ */
+import { AppLayout } from '@/components/AppLayout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
+import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
+import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
+/* -------------------------------- CONTEXTS -------------------------------- */
+import { useAuth } from '@/contexts/AuthContext'
+/* --------------------------------- MODELS --------------------------------- */
+import type { MateriaCursada } from '@/models/materias-cursada.model'
+/* --------------------------------- UTILES --------------------------------- */
+import { formatearNota, calcularPromedioMaterias } from '@/lib/utils'
 
 export default function MateriasEnCursoPage() {
   const { userId } = useAuth()
   const { toast } = useToast()
-  const { anioAcademico, esNuevo, desestablecerAnioAcademico, refrescar: refrescarAnioAcademico } = useAnioAcademicoUsuario(userId as number)
 
-  const [materiasPorCarrera, setMateriasPorCarrera] = useState<MateriaCursadaPorCarrera[]>([])
-  const [estadisticas, setEstadisticas] = useState<EstadisticasMateriasEnCurso | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Hook para obtener el año académico del usuario
+  const {
+    anioAcademico,
+    esNuevo,
+    loading: loadingAnioAcademico,
+    desestablecerAnioAcademico,
+    establecerAnioAcademicoVigente,
+    refrescar: refrescarAnioAcademico,
+  } = useAnioAcademicoUsuario(userId as number)
+
+  // Si el usuario tiene un año académico establecido, carga las materias en curso
+  const {
+    infoMateriasEnCurso,
+    loading: loadinfoInfoMateriasEnCurso,
+    refetch: refrescarInfoMateriasEnCurso,
+  } = useMateriasEnCurso({ 
+    userId: userId as number, 
+    autoFetch: true,
+    esNuevo: esNuevo
+  })
+
+  // Estado para el modal de edición de notas
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
   // Estado para desestablecer anio academico usuario
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-  const cargarMateriasEnCurso = async () => {
-    if (!userId) return
-
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/materias-en-curso?usuarioId=${userId}`)
-
-      if (!response.ok) throw new Error('Error cargando materias en curso')
-
-      const data = await response.json()
-      setMateriasPorCarrera(data.materiasPorCarrera)
-      setEstadisticas(data.estadisticas)
-    } catch (error) {
-      console.error('Error:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar las materias en curso',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    cargarMateriasEnCurso()
-  }, [userId])
-
+  // Handler para editar notas de una materia
   const handleEditarNotas = (materia: MateriaCursada) => {
     setMateriaEditando(materia)
     setModalEditarAbierto(true)
@@ -110,7 +105,7 @@ export default function MateriasEnCursoPage() {
         description: 'Materia eliminada correctamente',
       })
 
-      cargarMateriasEnCurso()
+      refrescarInfoMateriasEnCurso()
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -119,22 +114,6 @@ export default function MateriasEnCursoPage() {
         variant: 'destructive',
       })
     }
-  }
-
-  const formatearNota = (nota?: number) => {
-    return nota !== undefined ? nota.toFixed(1) : '-'
-  }
-
-  const calcularPromedioMaterias = (materia: any) => {
-    const notas = [
-      materia.notaPrimerParcial,
-      materia.notaSegundoParcial,
-      materia.notaRecuperatorioPrimerParcial,
-      materia.notaRecuperatorioSegundoParcial,
-    ].filter((nota) => nota !== undefined)
-
-    if (notas.length === 0) return undefined
-    return notas.reduce((sum, nota) => sum + nota, 0) / notas.length
   }
 
   const handleDesestablecerAnio = async () => {
@@ -155,7 +134,7 @@ export default function MateriasEnCursoPage() {
     }
   }
 
-  if (loading) {
+  if (loadinfoInfoMateriasEnCurso) {
     return (
       <ProtectedRoute>
         <AppLayout title="Materias en Curso">
@@ -185,7 +164,11 @@ export default function MateriasEnCursoPage() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="h-5 w-5" />
                   Año Académico
-                  <EstablecerAnioAcademicoUsuarioModal onEstablecerAnio={refrescarAnioAcademico} />
+                  <EstablecerAnioAcademicoUsuarioModal 
+                    onEstablecerAnio={refrescarAnioAcademico}
+                    establecerAnioAcademicoVigente={establecerAnioAcademicoVigente}
+                    loadingEstablecimiento={loadingAnioAcademico}
+                  />
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -220,7 +203,7 @@ export default function MateriasEnCursoPage() {
 
           {/* Año Académico y Estadísticas */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            {estadisticas && anioAcademico && !esNuevo && (
+            {infoMateriasEnCurso?.estadisticas && anioAcademico && !esNuevo && (
               <div className="lg:col-span-2">
                 <Card>
                   <CardHeader className="pb-3">
@@ -246,7 +229,9 @@ export default function MateriasEnCursoPage() {
                           <BookOpen className="h-4 w-4 text-blue-600" />
                           <p className="text-sm text-gray-600">Total</p>
                         </div>
-                        <p className="text-xl font-bold text-blue-600">{estadisticas.totalMaterias}</p>
+                        <p className="text-xl font-bold text-blue-600">
+                          {infoMateriasEnCurso.estadisticas.totalMaterias}
+                        </p>
                       </div>
 
                       <div className="text-center">
@@ -254,7 +239,9 @@ export default function MateriasEnCursoPage() {
                           <Calendar className="h-4 w-4 text-purple-600" />
                           <p className="text-sm text-gray-600">Anuales</p>
                         </div>
-                        <p className="text-xl font-bold text-purple-600">{estadisticas.materiasAnual}</p>
+                        <p className="text-xl font-bold text-purple-600">
+                          {infoMateriasEnCurso.estadisticas.materiasAnual}
+                        </p>
                       </div>
 
                       <div className="text-center">
@@ -262,7 +249,9 @@ export default function MateriasEnCursoPage() {
                           <Clock className="h-4 w-4 text-green-600" />
                           <p className="text-sm text-gray-600">1er Cuatr.</p>
                         </div>
-                        <p className="text-xl font-bold text-green-600">{estadisticas.materiasPrimero}</p>
+                        <p className="text-xl font-bold text-green-600">
+                          {infoMateriasEnCurso.estadisticas.materiasPrimero}
+                        </p>
                       </div>
 
                       <div className="text-center">
@@ -270,7 +259,9 @@ export default function MateriasEnCursoPage() {
                           <Clock className="h-4 w-4 text-orange-600" />
                           <p className="text-sm text-gray-600">2do Cuatr.</p>
                         </div>
-                        <p className="text-xl font-bold text-orange-600">{estadisticas.materiasSegundo}</p>
+                        <p className="text-xl font-bold text-orange-600">
+                          {infoMateriasEnCurso.estadisticas.materiasSegundo}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -281,7 +272,7 @@ export default function MateriasEnCursoPage() {
 
           {/* Materias por Carrera */}
           {anioAcademico &&
-            (materiasPorCarrera.length === 0 ? (
+            (infoMateriasEnCurso?.materiasPorCarrera.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
                   <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -290,7 +281,7 @@ export default function MateriasEnCursoPage() {
                 </CardContent>
               </Card>
             ) : (
-              materiasPorCarrera.map((carrera) => (
+              infoMateriasEnCurso?.materiasPorCarrera.map((carrera) => (
                 <Card key={`${carrera.carreraId}-${carrera.planEstudioId}`}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -372,7 +363,7 @@ export default function MateriasEnCursoPage() {
           }}
           materia={materiaEditando}
           onSuccess={() => {
-            cargarMateriasEnCurso()
+            refrescarInfoMateriasEnCurso()
             toast({
               title: 'Éxito',
               description: 'Notas actualizadas correctamente',
@@ -398,7 +389,7 @@ export default function MateriasEnCursoPage() {
                 onClick={handleDesestablecerAnio}
                 className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               >
-                {loading ? (
+                {loadingAnioAcademico ? (
                   <>
                     <LoadingSpinner size="sm" className="mr-2" />
                     Eliminando...

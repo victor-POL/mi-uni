@@ -12,3 +12,19 @@ export function formatearFecha(fecha: string) {
     year: 'numeric',
   })
 }
+
+export function formatearNota(nota?: number) {
+  return nota !== undefined ? nota.toFixed(1) : '-'
+}
+
+export function calcularPromedioMaterias(materia: any) {
+  const notas = [
+    materia.notaPrimerParcial,
+    materia.notaSegundoParcial,
+    materia.notaRecuperatorioPrimerParcial,
+    materia.notaRecuperatorioSegundoParcial,
+  ].filter((nota) => nota !== undefined)
+
+  if (notas.length === 0) return undefined
+  return notas.reduce((sum, nota) => sum + nota, 0) / notas.length
+}

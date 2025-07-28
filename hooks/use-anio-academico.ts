@@ -22,7 +22,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const obtenerAnioAcademico = async () => {
+  const obtenerAnioAcademicoVigenteUsuario = async () => {
     setLoading(true)
     setError(null)
     try {
@@ -55,68 +55,6 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     }
   }
 
-  const establecerAnioAcademico = async (nuevoAnio: number) => {
-    if (!options.userId) return false
-
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch('/api/user/anio-academico', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: options.userId,
-          anioAcademico: nuevoAnio,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Error estableciendo año académico')
-      }
-
-      await obtenerAnioAcademico() // Refrescar datos
-      return true
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      return false
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const cambiarAnioAcademico = async (nuevoAnio: number) => {
-    if (!options.userId) return false
-
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch('/api/user/anio-academico', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: options.userId,
-          nuevoAnioAcademico: nuevoAnio,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Error cambiando año académico')
-      }
-
-      await obtenerAnioAcademico() // Refrescar datos
-      return true
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      return false
-    } finally {
-      setLoading(false)
-    }
-  }
-
   /**
    * Establece el año academico del usuario en funcion al año vigente cargado en el sistema
    * @returns true si se estableció correctamente el año académico, false en caso contrario
@@ -141,7 +79,6 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
         throw new Error('Error estableciendo año académico vigente')
       }
 
-      await obtenerAnioAcademico() // Refrescar datos
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
@@ -151,6 +88,10 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
     }
   }
 
+  /**
+   * Desestablece el año académico del usuario, eliminando la relación con el año académico vigente
+   * @returns true si se desestableció correctamente el año académico, false en caso contrario
+   */
   const desestablecerAnioAcademico = async () => {
     if (!options.userId) return false
 
@@ -165,7 +106,6 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
         throw new Error('Error desestableciendo año académico')
       }
 
-      await obtenerAnioAcademico() // Refrescar datos
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
@@ -177,21 +117,19 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
 
   useEffect(() => {
     if (options.autoFetch && options.userId) {
-      obtenerAnioAcademico()
+      obtenerAnioAcademicoVigenteUsuario()
     }
   }, [options.autoFetch, options.userId])
 
   return {
     anioAcademico: anioAcademico?.anioAcademico,
-    esNuevo: anioAcademico?.esNuevo || false,
+    esNuevo: anioAcademico?.esNuevo ?? true, // Si no hay datos, asumimos que es nuevo
     fechaActualizacion: anioAcademico?.fechaActualizacion,
     loading,
     error,
-    establecerAnioAcademico,
-    cambiarAnioAcademico,
     establecerAnioAcademicoVigente,
     desestablecerAnioAcademico,
-    refrescar: obtenerAnioAcademico,
+    refrescar: obtenerAnioAcademicoVigenteUsuario,
   }
 }
 

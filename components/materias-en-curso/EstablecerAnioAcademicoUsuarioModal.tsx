@@ -2,7 +2,7 @@
 
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
-import { useAnioAcademicoVigente, useAnioAcademicoUsuario } from '@/hooks/use-anio-academico'
+import { useAnioAcademicoVigente } from '@/hooks/use-anio-academico'
 import { useToast } from '@/hooks/use-toast'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Button } from '@/components/ui/button'
@@ -22,25 +22,23 @@ import { Edit } from 'lucide-react'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 /* --------------------------------- UTILES --------------------------------- */
 import { formatearFecha } from '@/lib/utils'
-/* -------------------------------- CONTEXTS -------------------------------- */
-import { useAuth } from '@/contexts/AuthContext'
 
 interface EstablecerAnioAcademicoUsuarioModalProps {
   onEstablecerAnio?: () => void
+  establecerAnioAcademicoVigente: () => Promise<boolean>
+  loadingEstablecimiento: boolean
 }
 
-export function EstablecerAnioAcademicoUsuarioModal({ onEstablecerAnio }: Readonly<EstablecerAnioAcademicoUsuarioModalProps>) {
-  // Para obtener el ID del usuario autenticado y establecer el año académico
-  const { userId } = useAuth()
-
+export function EstablecerAnioAcademicoUsuarioModal({ 
+  onEstablecerAnio, 
+  establecerAnioAcademicoVigente,
+  loadingEstablecimiento 
+}: Readonly<EstablecerAnioAcademicoUsuarioModalProps>) {
   // Control del modal
   const [isOpen, setIsOpen] = useState(false)
 
   // Anio académico vigente (para mostrar la información)
   const { anioVigente, loading: loadingVigente } = useAnioAcademicoVigente({ autoFetch: isOpen })
-
-  // Hook del usuario para establecer el año académico
-  const { establecerAnioAcademicoVigente, loading: loadingEstablecimiento } = useAnioAcademicoUsuario(userId as number)
 
   const { toast } = useToast()
 
