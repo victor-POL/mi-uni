@@ -9,9 +9,11 @@ import { useMateriasEnCurso } from '@/hooks/use-materias-en-curso'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, Clock, Edit, GraduationCap, Trash2, Calendar } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 /* ------------------------------- COMPONENTES ------------------------------ */
 import { AppLayout } from '@/components/AppLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { ErrorAlert } from '@/components/ErrorAlert'
 import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoModal'
 import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
 import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
@@ -42,10 +44,10 @@ export default function MateriasEnCursoPage() {
     infoMateriasEnCurso,
     loading: loadinfoInfoMateriasEnCurso,
     refetch: refrescarInfoMateriasEnCurso,
-  } = useMateriasEnCurso({ 
-    userId: userId as number, 
+  } = useMateriasEnCurso({
+    userId: userId as number,
     autoFetch: true,
-    esNuevo: esNuevo
+    esNuevo: esNuevo,
   })
 
   // Estado para el modal de edición de notas
@@ -93,13 +95,41 @@ export default function MateriasEnCursoPage() {
     }
   }
 
-  if (loadinfoInfoMateriasEnCurso) {
+  if (loadingAnioAcademico || loadinfoInfoMateriasEnCurso) {
     return (
       <ProtectedRoute>
         <AppLayout title="Materias en Curso">
-          <div className="container mx-auto p-6">
-            <div className="text-center">Cargando materias en curso...</div>
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Materias en Curso</h1>
+              <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
+            </div>
           </div>
+          {/* Loading Icon */}
+          {loadingAnioAcademico && <LoadingSpinner text="Obteniendo año academico" />}
+          {loadinfoInfoMateriasEnCurso && <LoadingSpinner text="Obteniendo materias en curso" />}
+        </AppLayout>
+      </ProtectedRoute>
+    )
+  }
+
+  if (
+    (!loadingAnioAcademico && anioAcademico === null) ||
+    (!loadinfoInfoMateriasEnCurso && infoMateriasEnCurso === null)
+  ) {
+    return (
+      <ProtectedRoute>
+        <AppLayout title="Materias en Curso">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Materias en Curso</h1>
+              <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
+            </div>
+          </div>
+          {/* Error Message */}
+          <ErrorAlert />
         </AppLayout>
       </ProtectedRoute>
     )
@@ -123,7 +153,7 @@ export default function MateriasEnCursoPage() {
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="h-5 w-5" />
                   Año Académico
-                  <EstablecerAnioAcademicoUsuarioModal 
+                  <EstablecerAnioAcademicoUsuarioModal
                     onEstablecerAnio={refrescarAnioAcademico}
                     establecerAnioAcademicoVigente={establecerAnioAcademicoVigente}
                     loadingEstablecimiento={loadingAnioAcademico}
@@ -227,87 +257,86 @@ export default function MateriasEnCursoPage() {
           </div>
 
           {/* Materias por Carrera */}
-          {anioAcademico &&
-            (infoMateriasEnCurso?.materiasPorCarrera.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No hay materias en curso</h3>
-                  <p className="text-gray-600 mb-4">Comienza agregando las materias que estás cursando actualmente</p>
-                </CardContent>
-              </Card>
-            ) : (
-              infoMateriasEnCurso?.materiasPorCarrera.map((carrera) => (
-                <Card key={`${carrera.carreraId}-${carrera.planEstudioId}`}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <GraduationCap className="h-5 w-5" />
-                      {carrera.carreraNombre} - Plan {carrera.planAnio}
-                    </CardTitle>
-                    <CardDescription>
-                      {carrera.materias.length} materia{carrera.materias.length !== 1 ? 's' : ''} en curso
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {carrera.materias.map((materia) => (
-                        <div
-                          key={`${materia.planEstudioId}-${materia.materiaId}`}
-                          className="border rounded-lg p-4 hover:bg-gray-50"
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-medium">
-                                  {materia.codigoMateria} - {materia.nombreMateria}
-                                </h3>
-                              </div>
-                              <p className="text-sm text-gray-600">En curso - Año académico {anioAcademico}</p>
-                              <p className="text-xs text-gray-500">
-                                Plan: {materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatrimestre -{' '}
-                                {materia.horasSemanales}hs semanales
-                              </p>
+          {infoMateriasEnCurso?.materiasPorCarrera.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay materias en curso</h3>
+                <p className="text-gray-600 mb-4">Comienza agregando las materias que estás cursando actualmente</p>
+              </CardContent>
+            </Card>
+          ) : (
+            infoMateriasEnCurso?.materiasPorCarrera.map((carrera) => (
+              <Card key={`${carrera.carreraId}-${carrera.planEstudioId}`}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    {carrera.carreraNombre} - Plan {carrera.planAnio}
+                  </CardTitle>
+                  <CardDescription>
+                    {carrera.materias.length} materia{carrera.materias.length !== 1 ? 's' : ''} en curso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {carrera.materias.map((materia) => (
+                      <div
+                        key={`${materia.planEstudioId}-${materia.materiaId}`}
+                        className="border rounded-lg p-4 hover:bg-gray-50"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium">
+                                {materia.codigoMateria} - {materia.nombreMateria}
+                              </h3>
                             </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => handleEditarNotas(materia)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleEliminarMateria(materia)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            <p className="text-sm text-gray-600">En curso - Año académico {anioAcademico}</p>
+                            <p className="text-xs text-gray-500">
+                              Plan: {materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}° cuatrimestre -{' '}
+                              {materia.horasSemanales}hs semanales
+                            </p>
                           </div>
-
-                          {/* Notas */}
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-600">1er Parcial</p>
-                              <p className="font-medium">{formatearNota(materia.notaPrimerParcial)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">2do Parcial</p>
-                              <p className="font-medium">{formatearNota(materia.notaSegundoParcial)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Recup. 1er</p>
-                              <p className="font-medium">{formatearNota(materia.notaRecuperatorioPrimerParcial)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Recup. 2do</p>
-                              <p className="font-medium">{formatearNota(materia.notaRecuperatorioSegundoParcial)}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-600">Promedio</p>
-                              <p className="font-medium">{formatearNota(calcularPromedioMaterias(materia))}</p>
-                            </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleEditarNotas(materia)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleEliminarMateria(materia)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ))}
+
+                        {/* Notas */}
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">1er Parcial</p>
+                            <p className="font-medium">{formatearNota(materia.notaPrimerParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">2do Parcial</p>
+                            <p className="font-medium">{formatearNota(materia.notaSegundoParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Recup. 1er</p>
+                            <p className="font-medium">{formatearNota(materia.notaRecuperatorioPrimerParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Recup. 2do</p>
+                            <p className="font-medium">{formatearNota(materia.notaRecuperatorioSegundoParcial)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Promedio</p>
+                            <p className="font-medium">{formatearNota(calcularPromedioMaterias(materia))}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Modales */}

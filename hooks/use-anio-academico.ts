@@ -19,7 +19,7 @@ interface UseCarerrasOptions {
 
 export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true }) {
   const [anioAcademico, setAnioAcademico] = useState<UsuarioAnioAcademico | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const obtenerAnioAcademicoVigenteUsuario = async () => {
@@ -44,8 +44,6 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
       }
 
       const formattedAnioUsuario: UsuarioAnioAcademico = adaptAnioAcademicoUsuarioAPIResponseToLocal(result.data)
-
-      console.log({ formattedAnioUsuario })
 
       setAnioAcademico(formattedAnioUsuario)
     } catch (err) {
@@ -122,9 +120,9 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
   }, [options.autoFetch, options.userId])
 
   return {
-    anioAcademico: anioAcademico?.anioAcademico,
-    esNuevo: anioAcademico?.esNuevo ?? true, // Si no hay datos, asumimos que es nuevo
-    fechaActualizacion: anioAcademico?.fechaActualizacion,
+    anioAcademico: anioAcademico === null ? null : anioAcademico.anioAcademico,
+    esNuevo: anioAcademico === null ? false : anioAcademico.esNuevo, // Si no hay datos, asumimos que es nuevo
+    fechaActualizacion: anioAcademico === null ? null : anioAcademico.fechaActualizacion,
     loading,
     error,
     establecerAnioAcademicoVigente,
