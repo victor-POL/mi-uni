@@ -89,7 +89,7 @@ export function AgregarMateriaEnCursoModal({ onCarreraAgregada }: Readonly<Agreg
         materiaId: parseInt(selectedMateria),
       }
 
-      const response = await fetch('/api/materias-en-curso/agregar', {
+      const response = await fetch('/api/user/materias-en-curso/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

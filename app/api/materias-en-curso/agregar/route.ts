@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { agregarMateriaEnCurso, obtenerMateriasDisponiblesParaCurso } from '@/lib/database/materias-cursada.service'
+import { type NextRequest, NextResponse } from 'next/server'
+import { obtenerMateriasDisponiblesParaCurso } from '@/lib/database/materias-cursada.service'
 
 // GET: Obtener materias disponibles para agregar a curso
 export async function GET(request: NextRequest) {
@@ -30,30 +30,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Agregar nueva materia en curso
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { usuarioId, planEstudioId, materiaId } = body
-
-    if (!usuarioId || !planEstudioId || !materiaId) {
-      return NextResponse.json(
-        { error: 'Usuario, plan de estudio y materia son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    await agregarMateriaEnCurso(usuarioId, {
-      planEstudioId,
-      materiaId
-    })
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error agregando materia en curso:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
-      { status: 500 }
-    )
-  }
-}
