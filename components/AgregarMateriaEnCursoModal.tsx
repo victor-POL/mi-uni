@@ -8,7 +8,7 @@ import { useMateriasDisponibles } from '@/hooks/use-materias-disponibles'
 /* ------------------------------- COMPONENTES ------------------------------ */
 import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
@@ -53,6 +53,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
   }
 
   const handleSelectPlan = (planId: string) => {
+    setSelectedMateria('')
     setSelectedCarrera(planId)
   }
 
@@ -146,6 +147,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
             <NotebookPen className="h-5 w-5" />
             Agregar Materia en Curso
           </DialogTitle>
+          <DialogDescription>Selecciona una carrera y una materia para agregarla a tus materias en curso</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -179,21 +181,43 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
             <div className="space-y-2">
               {(() => {
                 if (isLoadingMaterias) {
-                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="Cargando materias" />
+                  return (
+                    <SelectorMateriaCarrera
+                      materias={[]}
+                      value={selectedMateria}
+                      disabled
+                      msgPlaceHolder="Cargando materias"
+                    />
+                  )
                 }
 
                 if (materiasDisponibles === null) {
-                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="Error al obtener materias" />
+                  return (
+                    <SelectorMateriaCarrera
+                      materias={[]}
+                      value={selectedMateria}
+                      disabled
+                      msgPlaceHolder="Error al obtener materias"
+                    />
+                  )
                 }
 
                 if (materiasDisponibles.length === 0) {
-                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="No hay materias disponibles" />
+                  return (
+                    <SelectorMateriaCarrera
+                      materias={[]}
+                      value={selectedMateria}
+                      disabled
+                      msgPlaceHolder="No hay materias disponibles"
+                    />
+                  )
                 }
 
                 return (
                   <SelectorMateriaCarrera
                     materias={materiasDisponibles}
                     msgPlaceHolder="Seleccione una materia"
+                    value={selectedMateria}
                     onValueChange={handleSelectMateria}
                   />
                 )
