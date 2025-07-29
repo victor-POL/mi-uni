@@ -1,22 +1,21 @@
 'use client'
 
 /* ---------------------------------- HOOKS --------------------------------- */
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { useCarrerasUsuario } from '@/hooks/use-carreras'
+import { useMateriasDisponibles } from '@/hooks/use-materias-disponibles'
+/* ------------------------------- COMPONENTES ------------------------------ */
+import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { NotebookPen, Plus } from 'lucide-react'
-/* ------------------------------- COMPONENTES ------------------------------ */
-import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 import { SelectorMateriaCarrera } from '@/components/materias-en-curso/SelectorMateriaCarrera'
-/* --------------------------------- MODELS --------------------------------- */
-import type { Materia } from '@/models/materias.model'
 
 interface AgregarMateriaEnCursoModalProps {
   usuarioId: number
@@ -34,56 +33,31 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
 
-  // Lista de materias de la carrera seleccionada
-  const [materiasDisponibles, setMateriasDisponibles] = useState<Materia[]>([])
-  const [isLoadingMaterias, setIsLoadingMaterias] = useState(false)
-
+  // Materias disponibles segun la carrera seleccionada
   const [selectedMateria, setSelectedMateria] = useState<string>('')
+
+  const { materias: materiasDisponibles, loading: isLoadingMaterias } = useMateriasDisponibles({
+    usuarioId,
+    planEstudioId: selectedCarrera !== '' ? parseInt(selectedCarrera) : null,
+    autoFetch: selectedCarrera !== '',
+  })
 
   // Estado de envío del formulario para agregar materia
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
 
-  // Cargar materias disponibles cuando se selecciona un plan
-  useEffect(() => {
-    if (selectedCarrera) {
-      cargarMateriasDisponibles()
-      setSelectedMateria('')
-    } else {
-      setMateriasDisponibles([])
-      setSelectedMateria('')
-    }
-  }, [selectedCarrera])
+  const resetSelections = () => {
+    setSelectedCarrera('')
+    setSelectedMateria('')
+  }
 
-  const cargarMateriasDisponibles = async () => {
-    setIsLoadingMaterias(true)
-    try {
-      const response = await fetch(
-        `/api/materias-en-curso/agregar?usuarioId=${usuarioId}&planEstudioId=${selectedCarrera}`
-      )
+  const handleSelectPlan = (planId: string) => {
+    setSelectedCarrera(planId)
+  }
 
-      if (!response.ok) throw new Error('Error cargando materias')
-
-      const data = await response.json()
-
-      const dataFormatted: Materia[] = data.materiasDisponibles.map((materia: any) => ({
-        idMateria: materia.id,
-        codigoMateria: materia.codigo,
-        nombreMateria: materia.nombre,
-      }))
-
-      setMateriasDisponibles(dataFormatted)
-    } catch (error) {
-      console.error('Error:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar las materias disponibles',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingMaterias(false)
-    }
+  const handleSelectMateria = (materiaId: string) => {
+    setSelectedMateria(materiaId)
   }
 
   const handleSubmit = async () => {
@@ -106,17 +80,20 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
     }
 
     setIsSubmitting(true)
+
     try {
+      const bodyPost = {
+        usuarioId,
+        planEstudioId: parseInt(selectedCarrera),
+        materiaId: parseInt(selectedMateria),
+      }
+
       const response = await fetch('/api/materias-en-curso/agregar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          usuarioId,
-          planEstudioId: parseInt(selectedCarrera),
-          materiaId: parseInt(selectedMateria),
-        }),
+        body: JSON.stringify(bodyPost),
       })
 
       if (!response.ok) {
@@ -130,9 +107,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
       })
 
       // Reset form y cerrar modal
-      setSelectedCarrera('')
-      setSelectedMateria('')
-      setMateriasDisponibles([])
+      resetSelections()
       setIsOpen(false)
     } catch (error) {
       console.error('Error:', error)
@@ -146,16 +121,19 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
     }
   }
 
-  const handleSelectPlan = (planId: string) => {
-    setSelectedCarrera(planId)
+  const handleChangeModal = (open: boolean) => {
+    setIsOpen(open)
+    if (open) {
+      resetSelections()
+    }
   }
 
-  const handleSelectMateria = (materiaId: string) => {
-    setSelectedMateria(materiaId)
+  const handleOnClickCancelar = () => {
+    setIsOpen(false)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleChangeModal}>
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -226,7 +204,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
 
         {/* Botones de acción */}
         <DialogFooter>
-          <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => setIsOpen(false)}>
+          <Button type="button" variant="outline" disabled={isSubmitting} onClick={handleOnClickCancelar}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit} disabled={!selectedMateria || !selectedCarrera || isSubmitting}>
