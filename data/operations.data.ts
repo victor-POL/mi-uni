@@ -6,14 +6,14 @@ export const publicOperations = [
       description: "Explora los diferentes planes de estudio disponibles",
       icon: GraduationCap,
       href: "/planes-estudio",
-      color: "bg-blue-500",
+      color: "bg-black",
     },
     {
       title: "Oferta de Materias",
       description: "Consulta las materias disponibles por cuatrimestre",
       icon: Calendar,
       href: "/oferta-materias",
-      color: "bg-green-500",
+      color: "bg-black",
     },
   ]
 
@@ -23,13 +23,13 @@ export const publicOperations = [
       description: "Gestiona tus carreras y seguimiento académico",
       icon: User,
       href: "/mis-carreras",
-      color: "bg-purple-500",
+      color: "bg-black",
     },
     {
       title: "Materias en Curso",
       description: "Consulta las materias que estás cursando actualmente",
       icon: BookOpen,
       href: "/materias-en-curso",
-      color: "bg-orange-500",
+      color: "bg-black",
     },
   ]
