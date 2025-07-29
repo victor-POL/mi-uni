@@ -7,7 +7,6 @@ import { useCarrerasUsuario } from '@/hooks/use-carreras'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { NotebookPen, Plus } from 'lucide-react'
@@ -15,16 +14,9 @@ import { NotebookPen, Plus } from 'lucide-react'
 import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
-
-interface MateriaDisponible {
-  id: number
-  codigo: string
-  nombre: string
-  tipo: string
-  horasSemanales: number
-  anioEnPlan: number
-  cuatrimestreEnPlan: number
-}
+import { SelectorMateriaCarrera } from '@/components/materias-en-curso/SelectorMateriaCarrera'
+/* --------------------------------- MODELS --------------------------------- */
+import type { Materia } from '@/models/materias.model'
 
 interface AgregarMateriaEnCursoModalProps {
   usuarioId: number
@@ -34,7 +26,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
   // Para consultar las carreras del usuario
   const { userId } = useAuth()
 
-  const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaDisponible[]>([])
+  const [materiasDisponibles, setMateriasDisponibles] = useState<Materia[]>([])
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
   const [selectedMateria, setSelectedMateria] = useState<string>('')
@@ -69,7 +61,14 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
       if (!response.ok) throw new Error('Error cargando materias')
 
       const data = await response.json()
-      setMateriasDisponibles(data.materiasDisponibles || [])
+
+      const dataFormatted: Materia[] = data.materiasDisponibles.map((materia: any) => ({
+        idMateria: materia.id,
+        codigoMateria: materia.codigo,
+        nombreMateria: materia.nombre,
+      }))
+
+      setMateriasDisponibles(dataFormatted)
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -146,6 +145,10 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
     setSelectedCarrera(planId)
   }
 
+  const handleSelectMateria = (materiaId: string) => {
+    setSelectedMateria(materiaId)
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -171,70 +174,45 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
               }
 
               if (carreras === null) {
+                return <SelectorCarreraUsuario carreras={[]} disabled msgPlaceHolder="Error al obtener carreras" />
+              }
+
+              if (carreras.length === 0) {
                 return <SelectorCarreraUsuario carreras={[]} disabled msgPlaceHolder="No hay carreras asociadas" />
               }
 
-              if (carreras.length > 0) {
-                return (
-                  <SelectorCarreraUsuario
-                    carreras={carreras}
-                    msgPlaceHolder="Seleccione una carrera"
-                    onValueChange={handleSelectPlan}
-                  />
-                )
-              }
-
-              return <div className="text-center py-4 text-gray-500">No hay carreras asociadas a este usuario.</div>
+              return (
+                <SelectorCarreraUsuario
+                  carreras={carreras}
+                  msgPlaceHolder="Seleccione una carrera"
+                  onValueChange={handleSelectPlan}
+                />
+              )
             })()}
           </div>
 
           {/* Seleccion de Materia */}
           {selectedCarrera && (
             <div className="space-y-2">
-              <label htmlFor="materia" className="text-sm font-medium">
-                Materia
-              </label>
               {(() => {
                 if (isLoadingMaterias) {
-                  return (
-                    <div className="flex items-center justify-center py-4">
-                      <LoadingSpinner size="sm" text="Cargando materias..." />
-                    </div>
-                  )
+                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="Cargando materias" />
                 }
 
-                if (materiasDisponibles.length > 0) {
-                  return (
-                    <Select
-                      value={selectedMateria}
-                      onValueChange={setSelectedMateria}
-                      disabled={!selectedCarrera || isLoadingMaterias}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue
-                          placeholder={(() => {
-                            if (isLoadingMaterias) return 'Cargando materias...'
-                            if (!selectedCarrera) return 'Selecciona primero un plan'
-                            return 'Selecciona una materia'
-                          })()}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {materiasDisponibles.map((materia) => (
-                          <SelectItem key={materia.id} value={materia.id.toString()}>
-                            {materia.codigo} - {materia.nombre} ({materia.anioEnPlan}° año, {materia.cuatrimestreEnPlan}
-                            ° cuatr.)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )
+                if (materiasDisponibles === null) {
+                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="Error al obtener materias" />
+                }
+
+                if (materiasDisponibles.length === 0) {
+                  return <SelectorMateriaCarrera materias={[]} disabled msgPlaceHolder="No hay materias disponibles" />
                 }
 
                 return (
-                  <div className="text-center py-4 text-gray-500">
-                    No hay materias disponibles para este plan de estudio
-                  </div>
+                  <SelectorMateriaCarrera
+                    materias={materiasDisponibles}
+                    msgPlaceHolder="Seleccione una materia"
+                    onValueChange={handleSelectMateria}
+                  />
                 )
               })()}
             </div>

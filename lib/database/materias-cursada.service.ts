@@ -118,10 +118,6 @@ export async function obtenerMateriasDisponiblesParaCurso(usuarioId: number, pla
       id: row.id,
       codigo: row.codigo_materia,
       nombre: row.nombre_materia,
-      tipo: row.tipo,
-      horasSemanales: row.horas_semanales,
-      anioEnPlan: row.anio_cursada,
-      cuatrimestreEnPlan: row.cuatrimestre
     }))
   } catch (error) {
     console.error('Error obteniendo materias disponibles:', error)

@@ -1,4 +1,5 @@
 export interface Materia {
+  idMateria: number
   codigoMateria: string
   nombreMateria: string
 }
