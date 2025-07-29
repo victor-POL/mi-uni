@@ -255,7 +255,7 @@ export default function MateriasEnCursoPage() {
           </div>
 
           {infoMateriasEnCurso?.materiasPorCarrera && infoMateriasEnCurso.materiasPorCarrera.length > 0 && (
-            <AgregarMateriaEnCursoModal usuarioId={userId as number} />
+            <AgregarMateriaEnCursoModal onCarreraAgregada={refrescarInfoMateriasEnCurso} />
           )}
 
           {/* Materias por Carrera */}
@@ -265,7 +265,7 @@ export default function MateriasEnCursoPage() {
                 <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay materias en curso</h3>
                 <p className="text-gray-600 mb-4">Comienza agregando las materias que estás cursando actualmente</p>
-                <AgregarMateriaEnCursoModal usuarioId={userId as number} />
+                <AgregarMateriaEnCursoModal onCarreraAgregada={refrescarInfoMateriasEnCurso} />
               </CardContent>
             </Card>
           ) : (

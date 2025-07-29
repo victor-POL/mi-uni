@@ -18,10 +18,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { SelectorMateriaCarrera } from '@/components/materias-en-curso/SelectorMateriaCarrera'
 
 interface AgregarMateriaEnCursoModalProps {
-  usuarioId: number
+  onCarreraAgregada?: () => void
 }
 
-export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateriaEnCursoModalProps>) {
+export function AgregarMateriaEnCursoModal({ onCarreraAgregada }: Readonly<AgregarMateriaEnCursoModalProps>) {
   // Para consultar las carreras del usuario
   const { userId } = useAuth()
 
@@ -37,7 +37,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
   const [selectedMateria, setSelectedMateria] = useState<string>('')
 
   const { materias: materiasDisponibles, loading: isLoadingMaterias } = useMateriasDisponibles({
-    usuarioId,
+    usuarioId: userId as number,
     planEstudioId: selectedCarrera !== '' ? parseInt(selectedCarrera) : null,
     autoFetch: selectedCarrera !== '',
   })
@@ -84,7 +84,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
 
     try {
       const bodyPost = {
-        usuarioId,
+        usuarioId: userId as number,
         planEstudioId: parseInt(selectedCarrera),
         materiaId: parseInt(selectedMateria),
       }
@@ -107,7 +107,8 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
         description: 'Materia agregada correctamente',
       })
 
-      // Reset form y cerrar modal
+      onCarreraAgregada?.()
+
       resetSelections()
       setIsOpen(false)
     } catch (error) {
