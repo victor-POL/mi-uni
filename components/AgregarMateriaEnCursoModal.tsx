@@ -1,13 +1,15 @@
 'use client'
 
+/* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
+import { useToast } from '@/hooks/use-toast'
+/* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { NotebookPen, Plus } from 'lucide-react'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 interface MateriaDisponible {
   id: number
