@@ -9,10 +9,10 @@ import { useToast } from '@/hooks/use-toast'
 import type { MateriaCursada } from '@/models/materias-cursada.model'
 
 interface EditarNotasMateriaModalProps {
-  isOpen: boolean
-  onClose: () => void
-  materia: MateriaCursada | null
-  onSuccess: () => void
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly materia: MateriaCursada | null
+  readonly onSuccess: () => void
 }
 
 export function EditarNotasMateriaModal({ 
@@ -70,8 +70,8 @@ export function EditarNotasMateriaModal({
 
     setLoading(true)
     try {
-      const response = await fetch('/api/materias-en-curso/actualizar', {
-        method: 'PUT',
+      const response = await fetch('/api/user/materias-en-curso/', {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -79,9 +79,6 @@ export function EditarNotasMateriaModal({
           usuarioId: materia.usuarioId,
           planEstudioId: materia.planEstudioId,
           materiaId: materia.materiaId,
-          anioAcademico: materia.anioAcademico,
-          anioCursada: materia.anioCursada,
-          cuatrimestreCursada: materia.cuatrimestreCursada,
           notaPrimerParcial: formData.notaPrimerParcial ? parseFloat(formData.notaPrimerParcial) : null,
           notaSegundoParcial: formData.notaSegundoParcial ? parseFloat(formData.notaSegundoParcial) : null,
           notaRecuperatorioPrimerParcial: formData.notaRecuperatorioPrimerParcial ? parseFloat(formData.notaRecuperatorioPrimerParcial) : null,
@@ -158,7 +155,7 @@ export function EditarNotasMateriaModal({
             <DialogDescription>
               {materia.codigoMateria} - {materia.nombreMateria}
               <br />
-              {materia.carreraNombre} ({materia.anioCursada} - {materia.cuatrimestreCursada}° cuatrimestre)
+              {materia.carreraNombre} ({materia.planAnio})
             </DialogDescription>
           </DialogHeader>
 
