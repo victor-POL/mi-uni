@@ -27,7 +27,7 @@ export function useMateriasDisponibles(options: UseMateriasDisponiblesOptions) {
         throw new Error('Se requiere usuarioId y planEstudioId para obtener materias')
       }
 
-      const url = `/api/materias-en-curso/agregar?usuarioId=${options.usuarioId}&planEstudioId=${options.planEstudioId}`
+      const url = `/api/user/materias-en-curso/disponibles?usuarioId=${options.usuarioId}&planEstudioId=${options.planEstudioId}`
 
       const response = await fetch(url)
 
