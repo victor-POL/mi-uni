@@ -174,7 +174,6 @@ export async function createUserWithGitHub(githubData: GitHubUserData): Promise<
 
     await client.query('COMMIT')
     
-    console.log(`Usuario creado exitosamente: ${newUser.email} (GitHub: ${githubData.login})`)
     return newUser
 
   } catch (error) {
@@ -227,7 +226,6 @@ export async function createUserWithEmailPassword(userData: EmailPasswordUserDat
 
     await client.query('COMMIT')
     
-    console.log(`Usuario creado exitosamente: ${newUser.email} (Email/Password)`)
     return newUser
 
   } catch (error) {
@@ -277,7 +275,6 @@ export async function verifyOrCreateGitHubUser(githubData: GitHubUserData): Prom
     if (user) {
       // Usuario existe, actualizar datos de GitHub por si cambiaron
       await updateGitHubAuthData(user.id, githubData)
-      console.log(`Usuario existente encontrado: ${user.email}`)
       return user
     }
 
@@ -303,7 +300,6 @@ export async function verifyOrCreateGitHubUser(githubData: GitHubUserData): Prom
         })
       ])
       
-      console.log(`GitHub vinculado a usuario existente: ${user.email}`)
       return user
     }
 
@@ -326,7 +322,6 @@ export async function verifyOrCreateEmailPasswordUser(userData: EmailPasswordUse
     let user = await findUserByFirebaseId(userData.id)
     
     if (user) {
-      console.log(`Usuario existente encontrado (Email/Password): ${user.email}`)
       return user
     }
 
@@ -351,7 +346,6 @@ export async function verifyOrCreateEmailPasswordUser(userData: EmailPasswordUse
         })
       ])
       
-      console.log(`Firebase Email/Password vinculado a usuario existente: ${user.email}`)
       return user
     }
 

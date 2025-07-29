@@ -62,7 +62,6 @@ export function EditarMateriaModal({
         cuatrimestreCursada: formData.cuatrimestreCursada ? parseInt(formData.cuatrimestreCursada) : null
       }
 
-      console.log('Enviando datos:', requestBody)
 
       const response = await fetch('/api/materias/actualizar-estado', {
         method: 'PUT',
@@ -73,7 +72,6 @@ export function EditarMateriaModal({
       })
 
       const responseData = await response.json()
-      console.log('Respuesta del servidor:', responseData)
 
       if (!response.ok) {
         throw new Error(responseData.error || `Error ${response.status}`)

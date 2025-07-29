@@ -37,14 +37,12 @@ export default function VerifyCodePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica para verificar el código
-    console.log('Verify code:', { email, code })
     // Simular verificación exitosa
     router.push(`/reset-password?email=${encodeURIComponent(email)}&code=${code}`)
   }
 
   const handleResendCode = () => {
     // Aquí iría la lógica para reenviar el código
-    console.log('Resend code to:', email)
     alert('Código reenviado')
   }
 

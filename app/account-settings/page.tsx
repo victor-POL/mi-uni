@@ -30,7 +30,7 @@ export default function AccountSettingsPage() {
     
     try {
       const methods = await getSignInMethodsForEmail("correovictor5@gmail.com")
-      console.log(methods)
+
       setSignInMethods(methods)
     } catch (error) {
       console.error('Error loading sign in methods:', error)

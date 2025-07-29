@@ -114,13 +114,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
-    console.log('🔧 Configurando listener de autenticación...')
+    console.log('🔧 1.Configurando listener de autenticación...')
     
     const unsubscribe = onAuthStateChanged(async (firebaseUser: User | null) => {
-      console.log('🔔 Estado de autenticación cambió:', firebaseUser ? 'Logueado' : 'Deslogueado')
+      console.log('🔔 1. Estado de autenticación cambió:', firebaseUser ? 'Logueado' : 'Deslogueado')
       
       if (firebaseUser) {
-        console.log('👤 Usuario Firebase:', {
+        console.log('👤 2. Usuario Firebase:', {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName
@@ -128,11 +128,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         await syncCompleteUser(firebaseUser)
       } else {
-        console.log('🚪 Limpiando usuario...')
+        console.log('🚪 2. Limpiando usuario...')
         setUser(null)
       }
 
-      console.log('⏰ Completando inicialización...')
+      console.log('⏰ 3. Completando inicialización...')
       setLoading(false)
       setIsUserInitialized(true)
     })

@@ -152,7 +152,6 @@ async function handleAccountConflict(error: any): Promise<string> {
 
   try {
     const signInMethods = await fetchSignInMethodsForEmail(auth, email)
-    console.log('Métodos disponibles para', email, ':', signInMethods)
     
     if (signInMethods.includes('password')) {
       return `Esta cuenta ya existe con email/password (${email}). Por favor:
@@ -173,7 +172,6 @@ export async function signInWithGitHubAdvanced() {
     const provider = new GithubAuthProvider()
     return await signInWithPopup(auth, provider)
   } catch (error: any) {
-    console.log('Error completo en GitHub login:', error)
     
     if (error.code === 'auth/account-exists-with-different-credential') {
       const errorMessage = await handleAccountConflict(error)

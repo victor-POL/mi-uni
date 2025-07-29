@@ -17,15 +17,6 @@ const pool = new Pool({
   ssl: false // Explícitamente deshabilitar SSL para desarrollo local
 })
 
-// Log de configuración para debug
-console.log('Database connection config:', {
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  hasPassword: !!process.env.DB_PASSWORD
-})
-
 // Función para ejecutar queries
 export async function query(text: string, params?: any[]) {
   const start = Date.now()

@@ -45,8 +45,7 @@ export default function ResetPasswordPage() {
       alert('Las contraseñas no coinciden')
       return
     }
-    // Aquí iría la lógica para cambiar la contraseña
-    console.log('Reset password for:', email)
+    
     // Simular cambio exitoso
     alert('Contraseña cambiada exitosamente')
     router.push('/login')

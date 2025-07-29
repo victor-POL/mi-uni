@@ -4,20 +4,17 @@ import { query } from '@/connection'
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Body recibido:', body)
     
     const { usuarioId, planEstudioId, materiaId, estado, nota, anioCursada, cuatrimestreCursada } = body
 
     // Validar campos requeridos
     if (!usuarioId || !planEstudioId || !materiaId || !estado) {
-      console.log('Campos faltantes:', { usuarioId, planEstudioId, materiaId, estado })
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
       )
     }
 
-    console.log('Verificando si el usuario existe...')
     // Verificar que el usuario existe
     const usuarioExiste = await query(
       `SELECT id FROM prod.usuario WHERE id = $1`,
@@ -25,14 +22,12 @@ export async function PUT(request: NextRequest) {
     )
     
     if (usuarioExiste.rows.length === 0) {
-      console.log('Usuario no encontrado:', usuarioId)
       return NextResponse.json(
         { error: 'Usuario no encontrado' },
         { status: 404 }
       )
     }
 
-    console.log('Verificando si la materia existe en el plan...')
     // Verificar que la materia existe en el plan
     const materiaEnPlan = await query(
       `SELECT materia_id FROM prod.plan_materia WHERE plan_estudio_id = $1 AND materia_id = $2`,
@@ -40,14 +35,12 @@ export async function PUT(request: NextRequest) {
     )
     
     if (materiaEnPlan.rows.length === 0) {
-      console.log('Materia no encontrada en el plan:', { planEstudioId, materiaId })
       return NextResponse.json(
         { error: 'Materia no encontrada en el plan de estudio' },
         { status: 404 }
       )
     }
 
-    console.log('Verificando si existe registro...')
     // Verificar si ya existe un registro para esta materia
     const existeRegistro = await query(
       `SELECT usuario_id FROM prod.usuario_materia_estado 
@@ -55,10 +48,7 @@ export async function PUT(request: NextRequest) {
       [usuarioId, planEstudioId, materiaId]
     )
 
-    console.log('Registro existente:', existeRegistro.rows.length > 0)
-
     if (existeRegistro.rows.length > 0) {
-      console.log('Actualizando registro existente...')
       // Actualizar registro existente
       const result = await query(
         `UPDATE prod.usuario_materia_estado 
@@ -66,9 +56,7 @@ export async function PUT(request: NextRequest) {
          WHERE usuario_id = $5 AND plan_estudio_id = $6 AND materia_id = $7`,
         [estado, nota, anioCursada, cuatrimestreCursada, usuarioId, planEstudioId, materiaId]
       )
-      console.log('UPDATE result:', result.rowCount)
     } else {
-      console.log('Creando nuevo registro...')
       // Crear nuevo registro
       const result = await query(
         `INSERT INTO prod.usuario_materia_estado 
@@ -76,10 +64,8 @@ export async function PUT(request: NextRequest) {
          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
         [usuarioId, planEstudioId, materiaId, estado, nota, anioCursada, cuatrimestreCursada]
       )
-      console.log('INSERT result:', result.rowCount)
     }
 
-    console.log('Operación completada exitosamente')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error detallado actualizando estado de materia:', error)

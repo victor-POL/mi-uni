@@ -27,8 +27,6 @@ export async function GET(request: Request) {
     // Consultar informacion
     const carrerasDB: CarreraDB[] = await obtenerCarrerasDisponiblesParaUsuario(usuarioIdNum)
 
-    console.log({carrerasDB})
-
     // Transformar consulta a formato API
     const carrerasFormatted: CarreraUsuarioDisponibleAPIResponse[] = carrerasDB.map((carrera) => ({
       carrera_id: carrera.carrera_id,
