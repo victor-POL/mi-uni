@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { NotebookPen, Plus } from 'lucide-react'
+/* ------------------------------- COMPONENTES ------------------------------ */
+import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -42,11 +44,7 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Lista de carreras del usuario
-  const {
-    carreras,
-    loading: isLoadingCarreras,
-    refetch: refetchCarreras,
-  } = useCarrerasUsuario({ userID: userId, autoFetch: isOpen })
+  const { carreras, loading: isLoadingCarreras } = useCarrerasUsuario({ userID: userId, autoFetch: isOpen })
 
   const { toast } = useToast()
 
@@ -144,6 +142,10 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
     }
   }
 
+  const handleSelectPlan = (planId: string) => {
+    setSelectedCarrera(planId)
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -163,36 +165,22 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
         <div className="space-y-6">
           {/* Seleccion de Plan de Estudio */}
           <div className="space-y-2">
-            <label htmlFor="plan-select" className="text-sm font-medium">
-              Carrera
-            </label>
             {(() => {
               if (isLoadingCarreras) {
-                return (
-                  <div className="flex items-center justify-center py-4">
-                    <LoadingSpinner size="sm" text="Cargando planes..." />
-                  </div>
-                )
+                return <SelectorCarreraUsuario carreras={[]} disabled msgPlaceHolder="Cargando carreras" />
               }
 
-              if(carreras === null) {
-                return <div className="text-center py-4 text-gray-500">No hay carreras asociadas a este usuario.</div>
+              if (carreras === null) {
+                return <SelectorCarreraUsuario carreras={[]} disabled msgPlaceHolder="No hay carreras asociadas" />
               }
 
               if (carreras.length > 0) {
                 return (
-                  <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
-                    <SelectTrigger id="plan-select">
-                      <SelectValue placeholder="Selecciona un plan de estudio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {carreras.map((plan) => (
-                        <SelectItem key={plan.planEstudioId} value={plan.planEstudioId.toString()}>
-                          <div className="flex items-center gap-2">{`${plan.nombre} - ${plan.planEstudioAnio}`}</div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectorCarreraUsuario
+                    carreras={carreras}
+                    msgPlaceHolder="Seleccione una carrera"
+                    onValueChange={handleSelectPlan}
+                  />
                 )
               }
 
