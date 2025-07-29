@@ -26,17 +26,22 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
   // Para consultar las carreras del usuario
   const { userId } = useAuth()
 
-  const [materiasDisponibles, setMateriasDisponibles] = useState<Materia[]>([])
-
-  const [selectedCarrera, setSelectedCarrera] = useState<string>('')
-  const [selectedMateria, setSelectedMateria] = useState<string>('')
-
+  // Control del modal
   const [isOpen, setIsOpen] = useState(false)
-  const [isLoadingMaterias, setIsLoadingMaterias] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Lista de carreras del usuario
   const { carreras, loading: isLoadingCarreras } = useCarrerasUsuario({ userID: userId, autoFetch: isOpen })
+
+  const [selectedCarrera, setSelectedCarrera] = useState<string>('')
+
+  // Lista de materias de la carrera seleccionada
+  const [materiasDisponibles, setMateriasDisponibles] = useState<Materia[]>([])
+  const [isLoadingMaterias, setIsLoadingMaterias] = useState(false)
+
+  const [selectedMateria, setSelectedMateria] = useState<string>('')
+
+  // Estado de envío del formulario para agregar materia
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
 
