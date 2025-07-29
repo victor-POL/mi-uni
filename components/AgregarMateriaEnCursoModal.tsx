@@ -3,6 +3,7 @@
 /* ---------------------------------- HOOKS --------------------------------- */
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { useCarrerasUsuario } from '@/hooks/use-carreras'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { NotebookPen, Plus } from 'lucide-react'
+/* -------------------------------- CONTEXTS -------------------------------- */
+import { useAuth } from '@/contexts/AuthContext'
 
 interface MateriaDisponible {
   id: number
@@ -21,36 +24,31 @@ interface MateriaDisponible {
   cuatrimestreEnPlan: number
 }
 
-interface PlanUsuario {
-  planEstudioId: number
-  nombre: string
-  planEstudioAnio: number
-}
-
 interface AgregarMateriaEnCursoModalProps {
   usuarioId: number
 }
 
 export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateriaEnCursoModalProps>) {
-  const [carrerasUsuario, setCarrerasUsuario] = useState<PlanUsuario[]>([])
+  // Para consultar las carreras del usuario
+  const { userId } = useAuth()
+
   const [materiasDisponibles, setMateriasDisponibles] = useState<MateriaDisponible[]>([])
 
   const [selectedCarrera, setSelectedCarrera] = useState<string>('')
   const [selectedMateria, setSelectedMateria] = useState<string>('')
 
   const [isOpen, setIsOpen] = useState(false)
-  const [isLoadingCarrerasUsuario, setIsLoadingCarrerasUsuario] = useState(false)
   const [isLoadingMaterias, setIsLoadingMaterias] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { toast } = useToast()
+  // Lista de carreras del usuario
+  const {
+    carreras,
+    loading: isLoadingCarreras,
+    refetch: refetchCarreras,
+  } = useCarrerasUsuario({ userID: userId, autoFetch: isOpen })
 
-  // Cargar planes del usuario al abrir el modal
-  useEffect(() => {
-    if (isOpen) {
-      cargarCarrerasUsuario()
-    }
-  }, [isOpen, usuarioId])
+  const { toast } = useToast()
 
   // Cargar materias disponibles cuando se selecciona un plan
   useEffect(() => {
@@ -62,27 +60,6 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
       setSelectedMateria('')
     }
   }, [selectedCarrera])
-
-  const cargarCarrerasUsuario = async () => {
-    setIsLoadingCarrerasUsuario(true)
-    try {
-      const response = await fetch(`/api/user/carreras/resumen?usuarioId=${usuarioId}`)
-
-      if (!response.ok) throw new Error('Error cargando planes')
-
-      const data = await response.json()
-      setCarrerasUsuario(data || [])
-    } catch (error) {
-      console.error('Error cargando planes:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los planes de estudio',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoadingCarrerasUsuario(false)
-    }
-  }
 
   const cargarMateriasDisponibles = async () => {
     setIsLoadingMaterias(true)
@@ -153,7 +130,6 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
       // Reset form y cerrar modal
       setSelectedCarrera('')
       setSelectedMateria('')
-      setCarrerasUsuario([])
       setMateriasDisponibles([])
       setIsOpen(false)
     } catch (error) {
@@ -188,10 +164,10 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
           {/* Seleccion de Plan de Estudio */}
           <div className="space-y-2">
             <label htmlFor="plan-select" className="text-sm font-medium">
-              Plan de Estudio
+              Carrera
             </label>
             {(() => {
-              if (isLoadingCarrerasUsuario) {
+              if (isLoadingCarreras) {
                 return (
                   <div className="flex items-center justify-center py-4">
                     <LoadingSpinner size="sm" text="Cargando planes..." />
@@ -199,14 +175,18 @@ export function AgregarMateriaEnCursoModal({ usuarioId }: Readonly<AgregarMateri
                 )
               }
 
-              if (carrerasUsuario.length > 0) {
+              if(carreras === null) {
+                return <div className="text-center py-4 text-gray-500">No hay carreras asociadas a este usuario.</div>
+              }
+
+              if (carreras.length > 0) {
                 return (
                   <Select value={selectedCarrera} onValueChange={setSelectedCarrera}>
                     <SelectTrigger id="plan-select">
                       <SelectValue placeholder="Selecciona un plan de estudio" />
                     </SelectTrigger>
                     <SelectContent>
-                      {carrerasUsuario.map((plan) => (
+                      {carreras.map((plan) => (
                         <SelectItem key={plan.planEstudioId} value={plan.planEstudioId.toString()}>
                           <div className="flex items-center gap-2">{`${plan.nombre} - ${plan.planEstudioAnio}`}</div>
                         </SelectItem>
