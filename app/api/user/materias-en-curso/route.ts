@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { obtenerMateriasEnCursoPorCarrera, obtenerEstadisticasMateriasEnCurso, agregarMateriaEnCurso } from '@/lib/database/materias-cursada.service'
+import { obtenerMateriasEnCursoPorCarrera, obtenerEstadisticasMateriasEnCurso, agregarMateriaEnCurso, eliminarMateriaEnCurso } from '@/lib/database/materias-cursada.service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,6 +61,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error agregando materia en curso:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE: Eliminar materia en curso
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const usuarioId = searchParams.get('usuarioId')
+    const planEstudioId = searchParams.get('planEstudioId')
+    const materiaId = searchParams.get('materiaId')
+
+    if (!usuarioId || !planEstudioId || !materiaId) {
+      return NextResponse.json(
+        { error: 'Todos los parámetros son requeridos' },
+        { status: 400 }
+      )
+    }
+
+    await eliminarMateriaEnCurso(
+      parseInt(usuarioId),
+      parseInt(planEstudioId),
+      parseInt(materiaId)
+    )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error eliminando materia en curso:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       { status: 500 }

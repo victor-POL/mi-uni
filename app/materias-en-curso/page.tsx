@@ -73,7 +73,7 @@ export default function MateriasEnCursoPage() {
         materiaId: materia.materiaId.toString(),
       })
 
-      const response = await fetch(`/api/materias-en-curso/actualizar?${params}`, {
+      const response = await fetch(`/api/user/materias-en-curso?${params}`, {
         method: 'DELETE',
       })
 

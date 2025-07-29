@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { actualizarNotasMateriaEnCurso, eliminarMateriaEnCurso } from '@/lib/database/materias-cursada.service'
+import { type NextRequest, NextResponse } from 'next/server'
+import { actualizarNotasMateriaEnCurso } from '@/lib/database/materias-cursada.service'
 
 // PUT: Actualizar notas de una materia en curso
 export async function PUT(request: NextRequest) {
@@ -41,37 +41,6 @@ export async function PUT(request: NextRequest) {
     console.error('Error actualizando notas:', error)
     return NextResponse.json(
       { error: 'Error interno del servidor' },
-      { status: 500 }
-    )
-  }
-}
-
-// DELETE: Eliminar materia en curso
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const usuarioId = searchParams.get('usuarioId')
-    const planEstudioId = searchParams.get('planEstudioId')
-    const materiaId = searchParams.get('materiaId')
-
-    if (!usuarioId || !planEstudioId || !materiaId) {
-      return NextResponse.json(
-        { error: 'Todos los parámetros son requeridos' },
-        { status: 400 }
-      )
-    }
-
-    await eliminarMateriaEnCurso(
-      parseInt(usuarioId),
-      parseInt(planEstudioId),
-      parseInt(materiaId)
-    )
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error eliminando materia en curso:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Error interno del servidor' },
       { status: 500 }
     )
   }
