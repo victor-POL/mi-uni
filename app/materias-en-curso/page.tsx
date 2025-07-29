@@ -107,8 +107,7 @@ export default function MateriasEnCursoPage() {
             </div>
           </div>
           {/* Loading Icon */}
-          {loadingAnioAcademico && <LoadingSpinner text="Obteniendo año academico" />}
-          {loadinfoInfoMateriasEnCurso && <LoadingSpinner text="Obteniendo materias en curso" />}
+          <LoadingSpinner text="Obteniendo año academico y materias en curso" />
         </AppLayout>
       </ProtectedRoute>
     )
@@ -187,7 +186,6 @@ export default function MateriasEnCursoPage() {
               <h1 className="text-3xl font-bold">Materias en Curso</h1>
               <p className="text-gray-600">Gestiona las materias que estás cursando actualmente</p>
             </div>
-            {anioAcademico && <AgregarMateriaEnCursoModal usuarioId={userId || 0} />}
           </div>
 
           {/* Año Académico y Estadísticas */}
@@ -263,6 +261,7 @@ export default function MateriasEnCursoPage() {
                 <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay materias en curso</h3>
                 <p className="text-gray-600 mb-4">Comienza agregando las materias que estás cursando actualmente</p>
+                <AgregarMateriaEnCursoModal usuarioId={userId as number} />
               </CardContent>
             </Card>
           ) : (
