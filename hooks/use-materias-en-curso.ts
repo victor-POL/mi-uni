@@ -26,7 +26,7 @@ export const useMateriasEnCurso = (options: UseCarerrasOptions = { autoFetch: tr
     }
 
     try {
-      const url = `/api/materias-en-curso?usuarioId=${options.userId}`
+      const url = `/api/user/materias-en-curso?usuarioId=${options.userId}`
       const response = await fetch(url)
 
       if (!response.ok) {
