@@ -19,14 +19,14 @@ export const SelectorMateriaCarrera = ({
 }: SelectorMateriaCarreraProps) => {
   return (
     <>
-      <Label htmlFor="materia-carrera-select">Materia</Label>
+      <Label htmlFor="materia-en-curso--carrera-select">Materia</Label>
       <Select disabled={disabled} value={value} onValueChange={onValueChange}>
-        <SelectTrigger id="materia-carrera-select">
+        <SelectTrigger id="materia-en-curso--carrera-select">
           <SelectValue placeholder={msgPlaceHolder} />
         </SelectTrigger>
         <SelectContent>
           {materias.map((materia) => (
-            <SelectItem key={materia.codigoMateria} value={materia.codigoMateria}>
+            <SelectItem key={materia.idMateria} value={materia.idMateria.toString()}>
               {`${materia.codigoMateria} - ${materia.nombreMateria}`}
             </SelectItem>
           ))}

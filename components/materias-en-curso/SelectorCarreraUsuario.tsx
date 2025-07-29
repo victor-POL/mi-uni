@@ -19,9 +19,9 @@ export const SelectorCarreraUsuario = ({
 }: SelectorCarreraUsuarioProps) => {
   return (
     <>
-      <Label htmlFor="nueva-carrera-select">Carrera</Label>
+      <Label htmlFor="materia-en-curso-carrera-select">Carrera</Label>
       <Select disabled={disabled} value={value} onValueChange={onValueChange}>
-        <SelectTrigger id="nueva-carrera-select">
+        <SelectTrigger id="materia-en-curso--carrera-select">
           <SelectValue placeholder={msgPlaceHolder} />
         </SelectTrigger>
         <SelectContent>
