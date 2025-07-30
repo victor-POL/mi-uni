@@ -36,29 +36,6 @@ export interface EstadoMateriaUsuario {
   fecha_actualizacion: Date
 }
 
-/**
- * Obtiene un listado de todas las carreras (solo información basica: carrera_id, nombre_carrera)
- * @returns Promise<CarreraDB[]> - Lista de carreras disponibles
- */
-export async function obtenerCarreras(): Promise<CarreraDB[]> {
-  try {
-    const carrerasResult = await query(`
-      SELECT 
-        carrera.id      as carrera_id, 
-        carrera.nombre  as carrera_nombre
-      FROM prod.carrera 
-      ORDER BY 
-        carrera.nombre ASC
-    `)
-
-    const carrerasDB: CarreraDB[] = carrerasResult.rows as unknown as CarreraDB[]
-
-    return carrerasDB
-  } catch (error) {
-    console.error('Error obteniendo carreras:', error)
-    throw new Error('No se pudieron obtener las carreras')
-  }
-}
 
 /**
  * Obtiene un listado de todas las carreras del usuario que el usuario agregó a su perfil
