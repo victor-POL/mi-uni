@@ -63,7 +63,7 @@ export function EditarMateriaModal({
       }
 
 
-      const response = await fetch('/api/materias/actualizar-estado', {
+      const response = await fetch('/api/user/carreras/materias/actualizar-estado', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
