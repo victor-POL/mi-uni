@@ -83,7 +83,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
   const fetchMateriasEnCurso = async () => {
     setLoadingMateriasEnCurso(true)
     try {
-      const response = await fetch(`/api/carreras/${carrera.planEstudioId}/materias-en-curso?usuarioId=${usuarioId}`)
+      const response = await fetch(`/api/user/carreras/${carrera.planEstudioId}/materias-en-curso?usuarioId=${usuarioId}`)
       if (!response.ok) throw new Error('Error cargando materias en curso')
       
       const data = await response.json()
@@ -103,7 +103,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
   const fetchHistorial = async () => {
     setLoadingHistorial(true)
     try {
-      const response = await fetch(`/api/carreras/${carrera.planEstudioId}/historial?usuarioId=${usuarioId}`)
+      const response = await fetch(`/api/user/carreras/${carrera.planEstudioId}/historial?usuarioId=${usuarioId}`)
       if (!response.ok) throw new Error('Error cargando historial')
       
       const data = await response.json()
