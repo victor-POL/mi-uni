@@ -25,13 +25,18 @@ import {
  * GET /api/user/materias-en-curso?userId={id}
  * Obtiene las materias en curso del usuario, agrupadas por carrera, junto con estadísticas de las materias en curso
  * @descripcion Parametro requerido: "userId" para identificar al usuario
+ * @description Parametro opcional: "planEstudioId" para filtrar por un plan de estudio específico
  */
 export async function GET(request: NextRequest) {
   try {
+    let getMaterias: () => Promise<MateriaEnCursoUsuarioDB[]>
+    let getEstadisticas: () => Promise<EstadisticasMateriasEnCursoDB>
     // Obtener parametros
     const { searchParams } = new URL(request.url)
     const userIdParam = searchParams.get('userId')
+    const planIdParam = searchParams.get('planEstudioId')
 
+    // UserId (requerido)
     if (!userIdParam) {
       return NextResponse.json(
         {
@@ -54,12 +59,32 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // PlanId (opcional)
+    let planIdParsed: number | undefined
+
+    if (planIdParam) {
+      planIdParsed = parseInt(planIdParam)
+
+      if (Number.isNaN(planIdParsed)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Parametro "planEstudioId" inválido',
+          },
+          { status: 400 }
+        )
+      }
+
+      getMaterias = () => getMateriasEnCurso(userIdParsed, planIdParsed)
+      getEstadisticas = () => getEstadisticasMateriasEnCurso(userIdParsed, planIdParsed)
+    } else {
+      getMaterias = () => getMateriasEnCurso(userIdParsed)
+      getEstadisticas = () => getEstadisticasMateriasEnCurso(userIdParsed)
+    }
+
     // Consultar informacion
     const [materiasPorCarreraDB, estadisticasDB]: [MateriaEnCursoUsuarioDB[], EstadisticasMateriasEnCursoDB] =
-      await Promise.all([
-        getMateriasEnCurso(userIdParsed),
-        getEstadisticasMateriasEnCurso(userIdParsed),
-      ])
+      await Promise.all([getMaterias(), getEstadisticas()])
 
     // Transformar consulta a formato API
     const materiasCursadaPorCarreraResponse: MateriasPorCarreraCursadaAPIResponse[] =

@@ -11,7 +11,6 @@ import type {
 } from '@/models/database/carreras.model'
 
 import type {
-  MateriaEnCurso,
   MateriaHistoriaAcademica,
   EstadisticasMateriasEnCurso,
   EstadisticasHistoriaAcademica,
@@ -241,64 +240,6 @@ export async function getEstadisticasProgreso(
   } catch (error) {
     console.error('Error obteniendo estadísticas de progreso:', error)
     throw new Error('No se pudieron obtener las estadísticas de progreso')
-  }
-}
-
-/**
- * Obtiene un listado de las materias en curso del usuario
- * @param usuarioId - ID del usuario
- * @param planEstudioId  - ID del plan de estudio
- * @returns Promise con array de materias en curso del usuario
- */
-export async function getMateriasEnCurso(usuarioId: number, planEstudioId: number): Promise<MateriaEnCurso[]> {
-  try {
-    const result = await query(
-      `SELECT 
-         ume.materia_id as id,
-         m.codigo_materia as codigo,
-         m.nombre_materia as nombre,
-         pm.anio_cursada as anio,
-         pm.cuatrimestre,
-         ume.anio_cursada as anio_cursada,
-         ume.cuatrimestre as cuatrimestre_cursada,
-         umc.nota_primer_parcial as nota_primer_parcial,
-         umc.nota_segundo_parcial as nota_segundo_parcial,
-         umc.nota_recuperatorio_primer_parcial as nota_recuperatorio_primero,
-         umc.nota_recuperatorio_segundo_parcial as nota_recuperatorio_segundo,
-         ume.fecha_actualizacion,
-         m.horas_semanales,
-         m.tipo
-       FROM prod.usuario_materia_estado ume
-       LEFT JOIN prod.usuario_materia_cursada umc ON ume.usuario_id = umc.usuario_id 
-                                                  AND ume.plan_estudio_id = umc.plan_estudio_id 
-                                                  AND ume.materia_id = umc.materia_id
-       JOIN prod.materia m ON ume.materia_id = m.id
-       JOIN prod.plan_materia pm ON ume.plan_estudio_id = pm.plan_estudio_id 
-                                 AND ume.materia_id = pm.materia_id
-       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2 AND ume.estado = 'Cursando'
-       ORDER BY ume.anio_cursada DESC, ume.cuatrimestre DESC, m.nombre_materia`,
-      [usuarioId, planEstudioId]
-    )
-
-    return result.rows.map((row: any) => ({
-      id: row.id,
-      codigo: row.codigo,
-      nombre: row.nombre,
-      anio: row.anio,
-      cuatrimestre: row.cuatrimestre,
-      anioCursada: row.anio_cursada,
-      cuatrimestreCursada: row.cuatrimestre_cursada,
-      notaPrimerParcial: row.nota_primer_parcial || undefined,
-      notaSegundoParcial: row.nota_segundo_parcial || undefined,
-      notaRecuperatorioPrimero: row.nota_recuperatorio_primero || undefined,
-      notaRecuperatorioSegundo: row.nota_recuperatorio_segundo || undefined,
-      fechaActualizacion: new Date(row.fecha_actualizacion),
-      horasSemanales: row.horas_semanales,
-      tipo: row.tipo as 'cursable' | 'electiva',
-    }))
-  } catch (error) {
-    console.error('Error obteniendo materias en curso:', error)
-    throw new Error('No se pudieron obtener las materias en curso')
   }
 }
 

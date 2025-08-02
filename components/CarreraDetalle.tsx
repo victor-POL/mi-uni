@@ -20,6 +20,7 @@ import type {
   EstadisticasHistoriaAcademica,
 } from '@/models/carrera-detalle.model'
 import type { ApiResponse } from '@/models/api/api.model'
+import type { MateriasEnCursoAPIResponse } from '@/models/api/materias-cursada.model'
 
 interface CarreraDetalleProps {
   carrera: CarreraResumen
@@ -90,20 +91,62 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
     setLoadingMateriasEnCurso(true)
     try {
       const response = await fetch(
-        `/api/user/carreras/${carrera.planEstudioId}/materias-en-curso?userId=${usuarioId}`
+        `/api/user/materias-en-curso?userId=${usuarioId}&planEstudioId=${carrera.planEstudioId}`
       )
       if (!response.ok) throw new Error('Error cargando materias en curso')
 
-      const result: ApiResponse<{
-        materias: MateriaEnCurso[]
-        estadisticas: EstadisticasMateriasEnCurso
-      }> = await response.json()
+      const result: ApiResponse<MateriasEnCursoAPIResponse> = await response.json()
 
       if (!result.success) {
         throw new Error(result.error || 'Error desconocido al cargar materias en curso')
       }
 
-      setMateriasEnCurso(result.data)
+      if(result.data.materias_por_carrera.length === 0) {
+        setMateriasEnCurso({
+          materias: [],
+          estadisticas: {
+            totalMaterias: 0,
+            materiasAnual: 0,
+            materiasPrimero: 0,
+            materiasSegundo: 0,
+            promedioNotasParciales: 0,
+            materiasConParciales: 0,
+          },
+        })
+        return
+      }
+
+      // Transformar datos a formato esperado
+      const materias: MateriaEnCurso[] = result.data.materias_por_carrera[0].materias.map((m) => ({
+        id: m.materia_id,
+        codigo: m.codigo_materia,
+        nombre: m.nombre_materia,
+        anio: m.anio_en_plan,
+        cuatrimestre: m.cuatrimestre_en_plan,
+        anioCursada: 9999,
+        cuatrimestreCursada: 9999,
+        horasSemanales: m.horas_semanales,
+        notaPrimerParcial: m.nota_primer_parcial,
+        notaSegundoParcial: m.nota_segundo_parcial,
+        notaRecuperatorioPrimero: m.nota_recuperatorio_primer_parcial,
+        notaRecuperatorioSegundo: m.nota_recuperatorio_segundo_parcial,
+        fechaActualizacion: new Date(m.fecha_actualizacion),
+        tipo: m.tipo,
+      }))
+
+      const estadisticas: EstadisticasMateriasEnCurso = {
+        totalMaterias: result.data.estadisticas_cursada.total_materias,
+        materiasAnual: result.data.estadisticas_cursada.materias_anual,
+        materiasPrimero: result.data.estadisticas_cursada.materias_primero,
+        materiasSegundo: result.data.estadisticas_cursada.materias_segundo,
+        promedioNotasParciales: result.data.estadisticas_cursada.promedio_notas_parciales,
+        materiasConParciales: result.data.estadisticas_cursada.materias_con_parciales,
+      }
+
+      setMateriasEnCurso({
+        materias,
+        estadisticas,
+      })
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -291,7 +334,9 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
                       <p className="text-sm text-gray-600">Pendientes</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{formatearNota(carrera.promedioGeneral)|| 'N/A'}</p>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {formatearNota(carrera.promedioGeneral) || 'N/A'}
+                      </p>
                       <p className="text-sm text-gray-600">Promedio</p>
                     </div>
                   </div>

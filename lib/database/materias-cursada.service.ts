@@ -11,9 +11,10 @@ import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-cursada.mo
 /**
  * Obtiene un listado de materias en curso del usuario desde la base de datos
  * @param usuarioId - ID del usuario para obtener sus materias en curso
+ * @param planEstudioId - Opcional - ID del plan de estudio específico a obtener
  * @returns Promise con array de materias en curso del usuario
  */
-export async function getMateriasEnCurso(usuarioId: number): Promise<MateriaEnCursoUsuarioDB[]> {
+export async function getMateriasEnCurso(usuarioId: number, planEstudioId?: number): Promise<MateriaEnCursoUsuarioDB[]> {
   try {
     const result = await query(
       `SELECT 
@@ -41,8 +42,9 @@ export async function getMateriasEnCurso(usuarioId: number): Promise<MateriaEnCu
        JOIN prod.plan_estudio pe ON umc.plan_estudio_id = pe.id
        JOIN prod.carrera c ON pe.carrera_id = c.id
        WHERE umc.usuario_id = $1
+          AND (COALESCE($2::int, 0) = 0 OR umc.plan_estudio_id = $2::int)
        ORDER BY c.nombre, pe.anio DESC, pm.anio_cursada, pm.cuatrimestre, m.nombre_materia`,
-      [usuarioId]
+      [usuarioId, planEstudioId || null]
     )
 
     const materiasEnCursoDB: MateriaEnCursoUsuarioDB[] = result.rows as unknown as MateriaEnCursoUsuarioDB[]
@@ -225,7 +227,7 @@ export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: num
  * @param usuarioId - ID del usuario para obtener sus estadísticas de materias en curso
  * @returns Promise con las estadísticas de materias en curso del usuario
  */
-export async function getEstadisticasMateriasEnCurso(usuarioId: number): Promise<EstadisticasMateriasEnCursoDB> {
+export async function getEstadisticasMateriasEnCurso(usuarioId: number, planEstudioId?: number): Promise<EstadisticasMateriasEnCursoDB> {
   try {
     const result = await query(
       `SELECT 
@@ -246,8 +248,10 @@ export async function getEstadisticasMateriasEnCurso(usuarioId: number): Promise
        FROM prod.usuario_materia_cursada umc
        JOIN prod.plan_materia pm ON umc.plan_estudio_id = pm.plan_estudio_id 
                                  AND umc.materia_id = pm.materia_id
-       WHERE umc.usuario_id = $1`,
-      [usuarioId]
+       WHERE umc.usuario_id = $1
+       AND (COALESCE($2::int, 0) = 0 OR umc.plan_estudio_id = $2::int)
+       `,
+      [usuarioId, planEstudioId || null]
     )
 
     const estadisticasMaterias = result.rows[0] as unknown as EstadisticasMateriasEnCursoDB
