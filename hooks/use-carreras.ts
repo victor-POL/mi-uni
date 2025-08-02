@@ -39,7 +39,7 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
         throw new Error('Se requiere un userID para obtener las carreras del usuario')
       }
 
-      const url = `/api/user/carreras/?userId=${options.userID}`
+      const url = `/api/user/carreras?userId=${options.userID}`
       const response = await fetch(url)
 
       if (!response.ok) {

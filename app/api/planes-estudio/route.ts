@@ -9,7 +9,7 @@ import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 import { adaptPlanEstudioDBToAPIResponse } from '@/adapters/planes-estudio.adapter'
 
 /**
- * GET /api/planes-estudio/?carreraId={id}
+ * GET /api/planes-estudio?carreraId={id}
  * Obtiene un listado básico de todos los planes de estudio
  * @description Parametro opcional: "carreraId" para filtrar por carrera
  */
