@@ -1,14 +1,4 @@
-import { Pool } from 'pg'
-
-// Usar el mismo pool de configuración
-const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'miuniversidad',
-  password: process.env.DB_PASSWORD || 'victor1234',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: false
-})
+import { query } from '@/connection'
 
 // Tipos para el usuario
 export interface Usuario {
@@ -55,9 +45,9 @@ export interface AuthUserData {
  */
 export async function findUserByGitHubId(githubId: string): Promise<Usuario | null> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
     
-    const result = await pool.query(`
+    const result = await query(`
       SELECT 
         u.id,
         u.nombre,
@@ -70,8 +60,11 @@ export async function findUserByGitHubId(githubId: string): Promise<Usuario | nu
         AND ua.external_id = $1
     `, [githubId])
 
-    return result.rows.length > 0 ? result.rows[0] : null
+    if( result.rows.length === 0 ) {
+      return null
+    }
 
+    return result.rows[0] as unknown as Usuario
   } catch (error) {
     console.error('Database error finding user by GitHub ID:', error)
     throw error
@@ -83,9 +76,9 @@ export async function findUserByGitHubId(githubId: string): Promise<Usuario | nu
  */
 export async function findUserByFirebaseId(firebaseId: string): Promise<Usuario | null> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
     
-    const result = await pool.query(`
+    const result = await query(`
       SELECT 
         u.id,
         u.nombre,
@@ -98,7 +91,7 @@ export async function findUserByFirebaseId(firebaseId: string): Promise<Usuario 
         AND ua.external_id = $1
     `, [firebaseId])
 
-    return result.rows.length > 0 ? result.rows[0] : null
+    return result.rows.length > 0 ? result.rows[0] as unknown as Usuario: null
 
   } catch (error) {
     console.error('Database error finding user by Firebase ID:', error)
@@ -111,9 +104,9 @@ export async function findUserByFirebaseId(firebaseId: string): Promise<Usuario 
  */
 export async function findUserByEmail(email: string): Promise<Usuario | null> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
     
-    const result = await pool.query(`
+    const result = await query(`
       SELECT 
         id,
         nombre,
@@ -124,7 +117,7 @@ export async function findUserByEmail(email: string): Promise<Usuario | null> {
       WHERE email = $1
     `, [email])
 
-    return result.rows.length > 0 ? result.rows[0] : null
+    return result.rows.length > 0 ? result.rows[0] as unknown as Usuario : null
 
   } catch (error) {
     console.error('Database error finding user by email:', error)
@@ -136,11 +129,10 @@ export async function findUserByEmail(email: string): Promise<Usuario | null> {
  * Crea un nuevo usuario y su registro de autenticación GitHub
  */
 export async function createUserWithGitHub(githubData: GitHubUserData): Promise<Usuario> {
-  const client = await pool.connect()
-  
   try {
-    await client.query('BEGIN')
-    await client.query(`SET search_path = prod, public`)
+    // Iniciar transacción para asegurar consistencia
+    await query('BEGIN', [])
+    await query(`SET search_path = prod, public`)
 
     // Parsear el nombre completo
     const fullName = githubData.name || githubData.login
@@ -149,16 +141,16 @@ export async function createUserWithGitHub(githubData: GitHubUserData): Promise<
     const apellido = nameParts.slice(1).join(' ') || ''
 
     // 1. Crear el usuario
-    const userResult = await client.query(`
+    const userResult = await query(`
       INSERT INTO prod.usuario (nombre, apellido, email)
       VALUES ($1, $2, $3)
       RETURNING id, nombre, apellido, email, creado_at
     `, [nombre, apellido, githubData.email])
 
-    const newUser = userResult.rows[0]
+    const newUser = userResult.rows[0] as unknown as Usuario
 
     // 2. Crear el registro de autenticación
-    await client.query(`
+    await query(`
       INSERT INTO prod.usuario_autenticacion 
       (usuario_id, tipo_autenticacion, external_id, datos_extra)
       VALUES ($1, 'github', $2, $3)
@@ -172,16 +164,14 @@ export async function createUserWithGitHub(githubData: GitHubUserData): Promise<
       })
     ])
 
-    await client.query('COMMIT')
+    await query('COMMIT')
     
-    return newUser
+    return newUser as unknown as Usuario
 
   } catch (error) {
-    await client.query('ROLLBACK')
+    await query('ROLLBACK')
     console.error('Database error creating user with GitHub:', error)
     throw error
-  } finally {
-    client.release()
   }
 }
 
@@ -189,11 +179,10 @@ export async function createUserWithGitHub(githubData: GitHubUserData): Promise<
  * Crea un nuevo usuario y su registro de autenticación Email/Password
  */
 export async function createUserWithEmailPassword(userData: EmailPasswordUserData): Promise<Usuario> {
-  const client = await pool.connect()
-  
   try {
-    await client.query('BEGIN')
-    await client.query(`SET search_path = prod, public`)
+    // Iniciar transacción para asegurar consistencia
+    await query('BEGIN', [])
+    await query(`SET search_path = prod, public`)
 
     // Parsear el nombre completo
     const fullName = userData.displayName || userData.email.split('@')[0]
@@ -202,16 +191,16 @@ export async function createUserWithEmailPassword(userData: EmailPasswordUserDat
     const apellido = nameParts.slice(1).join(' ') || ''
 
     // 1. Crear el usuario
-    const userResult = await client.query(`
+    const userResult = await query(`
       INSERT INTO prod.usuario (nombre, apellido, email)
       VALUES ($1, $2, $3)
       RETURNING id, nombre, apellido, email, creado_at
     `, [nombre, apellido, userData.email])
 
-    const newUser = userResult.rows[0]
+    const newUser = userResult.rows[0] as unknown as Usuario
 
     // 2. Crear el registro de autenticación
-    await client.query(`
+    await query(`
       INSERT INTO prod.usuario_autenticacion 
       (usuario_id, tipo_autenticacion, external_id, datos_extra)
       VALUES ($1, 'email', $2, $3)
@@ -224,16 +213,14 @@ export async function createUserWithEmailPassword(userData: EmailPasswordUserDat
       })
     ])
 
-    await client.query('COMMIT')
+    await query('COMMIT')
     
     return newUser
 
   } catch (error) {
-    await client.query('ROLLBACK')
+    await query('ROLLBACK')
     console.error('Database error creating user with Email/Password:', error)
     throw error
-  } finally {
-    client.release()
   }
 }
 
@@ -242,9 +229,9 @@ export async function createUserWithEmailPassword(userData: EmailPasswordUserDat
  */
 export async function updateGitHubAuthData(userId: number, githubData: GitHubUserData): Promise<void> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
     
-    await pool.query(`
+    await query(`
       UPDATE prod.usuario_autenticacion 
       SET datos_extra = $1
       WHERE usuario_id = $2 AND tipo_autenticacion = 'github'
@@ -283,8 +270,8 @@ export async function verifyOrCreateGitHubUser(githubData: GitHubUserData): Prom
     
     if (user) {
       // Usuario existe con el mismo email pero sin GitHub, agregar GitHub auth
-      await pool.query(`SET search_path = prod, public`)
-      await pool.query(`
+      await query(`SET search_path = prod, public`)
+      await query(`
         INSERT INTO prod.usuario_autenticacion 
         (usuario_id, tipo_autenticacion, external_id, datos_extra)
         VALUES ($1, 'github', $2, $3)
@@ -330,8 +317,8 @@ export async function verifyOrCreateEmailPasswordUser(userData: EmailPasswordUse
     
     if (user) {
       // Usuario existe con el mismo email pero sin Firebase auth, agregar Firebase auth
-      await pool.query(`SET search_path = prod, public`)
-      await pool.query(`
+      await query(`SET search_path = prod, public`)
+      await query(`
         INSERT INTO prod.usuario_autenticacion 
         (usuario_id, tipo_autenticacion, external_id, datos_extra)
         VALUES ($1, 'email', $2, $3)
@@ -363,10 +350,10 @@ export async function verifyOrCreateEmailPasswordUser(userData: EmailPasswordUse
  */
 export async function getUserWithAuth(userId: number): Promise<Usuario & { auth_methods: UsuarioAutenticacion[] } | null> {
   try {
-    await pool.query(`SET search_path = prod, public`)
+    await query(`SET search_path = prod, public`)
     
     // Obtener usuario
-    const userResult = await pool.query(`
+    const userResult = await query(`
       SELECT id, nombre, apellido, email, creado_at
       FROM prod.usuario
       WHERE id = $1
@@ -379,7 +366,7 @@ export async function getUserWithAuth(userId: number): Promise<Usuario & { auth_
     const user = userResult.rows[0]
 
     // Obtener métodos de autenticación
-    const authResult = await pool.query(`
+    const authResult = await query(`
       SELECT 
         usuario_id,
         tipo_autenticacion,
