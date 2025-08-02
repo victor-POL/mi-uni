@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { obtenerMateriasDisponiblesParaCurso } from '@/lib/database/materias-cursada.service'
+import { getMateriasEnCursoDisponibles } from '@/lib/database/materias-cursada.service'
 
 import type { MateriaCursadaDisponibleDB } from '@/models/database/materias-cursada.model'
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Consultar informacion
-    const materiasDB: MateriaCursadaDisponibleDB[] = await obtenerMateriasDisponiblesParaCurso(
+    const materiasDB: MateriaCursadaDisponibleDB[] = await getMateriasEnCursoDisponibles(
       userIdParsed,
       planEstudioIdParsed
     )

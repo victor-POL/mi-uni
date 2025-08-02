@@ -17,7 +17,7 @@ export interface MateriaEnCurso {
   tipo: 'cursable' | 'electiva'
 }
 
-export interface MateriaHistorial {
+export interface MateriaHistoriaAcademica {
   id: number
   codigo: string
   nombre: string
@@ -48,7 +48,7 @@ export interface CarreraDetalle {
     fechaEstimadaGraduacion?: Date
   }
   materiasEnCurso: MateriaEnCurso[]
-  historialAcademico: MateriaHistorial[]
+  historialAcademico: MateriaHistoriaAcademica[]
 }
 
 export interface EstadisticasMateriasEnCurso {
@@ -60,7 +60,7 @@ export interface EstadisticasMateriasEnCurso {
   materiasConParciales: number
 }
 
-export interface EstadisticasHistorial {
+export interface EstadisticasHistoriaAcademica {
   totalMaterias: number
   materiasAprobadas: number
   materiasEnFinal: number

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-import { getDetallePlan } from '@/lib/database/planes-estudio.service'
+import { getDetallePlanEstudio } from '@/lib/database/planes-estudio.service'
 
 import type { PlanEstudioDetalleDB } from '@/models/database/planes-estudio.model'
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Consultar informacion
-    const planDetalleDB: PlanEstudioDetalleDB | null = await getDetallePlan(planIdParsed, userIdParsed)
+    const planDetalleDB: PlanEstudioDetalleDB | null = await getDetallePlanEstudio(planIdParsed, userIdParsed)
 
     if (planDetalleDB === null) {
       return NextResponse.json(

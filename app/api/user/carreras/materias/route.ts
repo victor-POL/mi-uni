@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { query } from '@/lib/database/connection'
 
-import { obtenerEstadisticasHistorial, obtenerHistorialAcademico } from '@/lib/database/carreras.service'
+import { getEstadisticasHistoriaAcademica, getHistoriaAcademica } from '@/lib/database/carreras.service'
 
 /**
  * GET /api/user/carreras/materias?userId={id}&planEstudioId={id}
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
 
     // Consultar informacion
     const [historialDB, estadisticasDB] = await Promise.all([
-      obtenerHistorialAcademico(userIdParsed, planEstudioIdParsed),
-      obtenerEstadisticasHistorial(userIdParsed, planEstudioIdParsed),
+      getHistoriaAcademica(userIdParsed, planEstudioIdParsed),
+      getEstadisticasHistoriaAcademica(userIdParsed, planEstudioIdParsed),
     ])
 
     // Retornar respuesta

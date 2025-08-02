@@ -31,11 +31,6 @@ export interface MateriaCursadaPorCarrera {
   materias: MateriaCursada[]
 }
 
-export interface NuevaMateriaEnCurso {
-  planEstudioId: number
-  materiaId: number
-}
-
 export interface ActualizarNotasMateriaEnCurso {
   usuarioId: number
   planEstudioId: number

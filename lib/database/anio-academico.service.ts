@@ -1,8 +1,9 @@
-import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
 import { query } from '@/lib/database/connection'
 
+import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
+
 /**
- * Obtiene el año académico vigente desde la base de datos.
+ * Obtiene el año académico vigente desde la base de datos
  * @returns Promise<AnioAcademicoVigenteDB | null> - El año académico vigente o null si no se encuentra.
  */
 export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB | null> {
@@ -27,8 +28,12 @@ export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB 
   }
 }
 
-// Obtener el año académico actual del usuario
-export async function getAnioAcademicoUsuario(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
+/**
+ * Obtiene el año académico del usuario desde la base de datos
+ * @param usuarioId - ID del usuario para obtener su año académico
+ * @returns Promise con el año académico del usuario o null si no se encuentra
+ */
+export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
   try {
     const result = await query(
       `SELECT 
@@ -48,7 +53,11 @@ export async function getAnioAcademicoUsuario(usuarioId: number): Promise<AnioAc
   }
 }
 
-export async function setAnioAcademicoUsuario(usuarioID: number) {
+/**
+ * Inserta un nuevo año académico para el usuario
+ * @param usuarioId - ID del usuario
+ */
+export async function insertAnioAcademico(usuarioId: number): Promise<void> {
   try {
     const anioAcademicoVigente = await getAnioAcademicoVigente()
 
@@ -60,24 +69,21 @@ export async function setAnioAcademicoUsuario(usuarioID: number) {
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
        `,
-      [usuarioID, anioAcademicoVigente.anio_academico]
+      [usuarioId, anioAcademicoVigente.anio_academico]
     )
-
-    return true
   } catch (error) {
     console.error('Error estableciendo año académico del usuario:', error)
     throw new Error('Error al establecer el año académico del usuario')
   }
 }
 
-export async function unsetAnioAcademicoUsuario(usuarioID: number) {
+/**
+ * Elimina el año académico del usuario
+ * @param usuarioId - ID del usuario
+ */
+export async function deleteAnioAcademico(usuarioId: number): Promise<void> {
   try {
-    await query(
-      `DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`,
-      [usuarioID]
-    )
-
-    return true
+    await query(`DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`, [usuarioId])
   } catch (error) {
     console.error('Error desestableciendo año académico del usuario:', error)
     throw new Error('Error al desestablecer el año académico del usuario')

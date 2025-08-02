@@ -8,10 +8,10 @@ import type {
 
 /**
  * Obtiene un listado de todos los planes de estudio desde la base de datos (solo información básica: idPlan, nombreCarrera, anio)
- * @param idCarrera - ID de la carrera para filtrar los planes. Si no se proporciona, devuelve todos los planes
+ * @param carreraId - Opcional - ID de la carrera para filtrar los planes. Si no se proporciona, devuelve todos los planes
  * @returns Promise con array de planes de estudio con información básica
  */
-export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioDB[]> {
+export async function getPlanesEstudio(carreraId?: number): Promise<PlanEstudioDB[]> {
   try {
     await query(`SET search_path = prod, public`)
 
@@ -26,7 +26,7 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioD
       WHERE (COALESCE($1::int, 0) = 0 OR carrera.id = $1::int)
       ORDER BY carrera.nombre ASC, plan_estudio.anio DESC
       `,
-      [idCarrera || null]
+      [carreraId || null]
     )
 
     const planesDB: PlanEstudioDB[] = resultQueryPlanes.rows as unknown as PlanEstudioDB[]
@@ -40,12 +40,12 @@ export async function getListadoPlanes(idCarrera?: number): Promise<PlanEstudioD
 
 /**
  * Obtiene un detalle del plan con todas las materias desde la base de datos (anioCursada, cuatrimestreCursada, horasSemanales, tipo, estado, correlativas, etc)
- * @param planId - ID del plan de estudio a obtener su detalle
- * @param usuarioId - ID del usuario (opcional) para obtener el estado de las materias (Pendiente, Aprobado, Cursando, etc)
+ * @param planEstudioId - ID del plan de estudio a obtener su detalle
+ * @param usuarioId - Opcional - ID del usuario para obtener el estado de las materias (Pendiente, Aprobado, Cursando, etc)
  * @returns Promise con el detalle del plan de estudio o null si no se encuentra
  */
-export async function getDetallePlan(
-  planId: number,
+export async function getDetallePlanEstudio(
+  planEstudioId: number,
   usuarioId?: number
 ): Promise<PlanEstudioDetalleDB | null> {
   try {
@@ -62,14 +62,14 @@ export async function getDetallePlan(
       JOIN prod.carrera       ON plan_estudio.carrera_id = carrera.id
       WHERE plan_estudio.id = $1
     `,
-      [planId]
+      [planEstudioId]
     )
 
     if (resultQueryDatosPlan.rows.length === 0) {
       return null
     }
 
-    const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0] as any
+    const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0]
 
     // 2. Obtener todas las materias del plan con correlativas y estadísticas
     const resultQueryDetallePlan = await query(
@@ -161,7 +161,7 @@ export async function getDetallePlan(
         materias_plan.cuatrimestre ASC, 
         materias_plan.codigo_materia ASC
     `,
-      [planId, usuarioId]
+      [planEstudioId, usuarioId]
     )
 
     const materiasPlanDB: MateriaPlanEstudioDetalleDB[] =

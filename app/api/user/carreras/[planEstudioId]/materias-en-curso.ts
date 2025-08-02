@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { obtenerMateriasEnCurso, obtenerEstadisticasMateriasEnCurso } from '@/lib/database/carreras.service'
+import { getMateriasEnCurso, getEstadisticasMateriasEnCurso } from '@/lib/database/carreras.service'
 
 /**
  * GET /api/user/carreras/[planEstudioId]/materias-en-curso?userId={id}
@@ -64,8 +64,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // Consultar informacion
     const [materiasDB, estadisticasDB] = await Promise.all([
-      obtenerMateriasEnCurso(userIdParsed, planIdParsed),
-      obtenerEstadisticasMateriasEnCurso(userIdParsed, planIdParsed),
+      getMateriasEnCurso(userIdParsed, planIdParsed),
+      getEstadisticasMateriasEnCurso(userIdParsed, planIdParsed),
     ])
 
     return NextResponse.json({

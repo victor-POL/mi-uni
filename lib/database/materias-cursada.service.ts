@@ -1,17 +1,19 @@
 import { query } from '@/lib/database/connection'
+
 import type {
   EstadisticasMateriasEnCursoDB,
   MateriaCursadaDisponibleDB,
   MateriaEnCursoUsuarioDB,
 } from '@/models/database/materias-cursada.model'
-import type {
-  NuevaMateriaEnCurso,
-  ActualizarNotasMateriaEnCurso,
-  EstadisticasMateriasEnCurso,
-} from '@/models/materias-cursada.model'
 
-// Obtener materias en curso agrupadas por carrera
-export async function obtenerMateriasEnCursoPorCarrera(usuarioId: number): Promise<MateriaEnCursoUsuarioDB[]> {
+import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-cursada.model'
+
+/**
+ * Obtiene un listado de materias en curso del usuario desde la base de datos
+ * @param usuarioId - ID del usuario para obtener sus materias en curso
+ * @returns Promise con array de materias en curso del usuario
+ */
+export async function getMateriasEnCurso(usuarioId: number): Promise<MateriaEnCursoUsuarioDB[]> {
   try {
     const result = await query(
       `SELECT 
@@ -52,8 +54,13 @@ export async function obtenerMateriasEnCursoPorCarrera(usuarioId: number): Promi
   }
 }
 
-// Obtener materias disponibles para agregar a curso (de un plan específico)
-export async function obtenerMateriasDisponiblesParaCurso(
+/**
+ * Obtiene un listado de las materias disponibles que tiene un usuario para agregar a sus materias en curso
+ * @param usuarioId - ID del usuario para obtener sus planes de estudio
+ * @param planEstudioId - ID del plan de estudio específico a obtener
+ * @returns Promise con array de materias disponibles para agregar a materias en curso
+ */
+export async function getMateriasEnCursoDisponibles(
   usuarioId: number,
   planEstudioId: number
 ): Promise<MateriaCursadaDisponibleDB[]> {
@@ -90,13 +97,18 @@ export async function obtenerMateriasDisponiblesParaCurso(
   }
 }
 
-// Agregar nueva materia en curso
-export async function agregarMateriaEnCurso(usuarioId: number, datos: NuevaMateriaEnCurso): Promise<void> {
+/**
+ * Inserta una nueva materia en curso para el usuario
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio al que pertenece la materia
+ * @param materiaId - ID de la materia a agregar
+ */
+export async function insertMateriaEnCurso(usuarioId: number, planEstudioId: number, materiaId: number): Promise<void> {
   try {
     // Verificar que el usuario esté inscrito en el plan
     const usuarioEnPlan = await query(
       'SELECT 1 FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
-      [usuarioId, datos.planEstudioId]
+      [usuarioId, planEstudioId]
     )
 
     if (usuarioEnPlan.rows.length === 0) {
@@ -106,7 +118,7 @@ export async function agregarMateriaEnCurso(usuarioId: number, datos: NuevaMater
     // Verificar que la materia pertenezca al plan
     const materiaEnPlan = await query(
       'SELECT 1 FROM prod.plan_materia WHERE plan_estudio_id = $1 AND materia_id = $2',
-      [datos.planEstudioId, datos.materiaId]
+      [planEstudioId, materiaId]
     )
 
     if (materiaEnPlan.rows.length === 0) {
@@ -125,7 +137,7 @@ export async function agregarMateriaEnCurso(usuarioId: number, datos: NuevaMater
     // Verificar que no esté ya cursando la materia
     const yaEstaEnCurso = await query(
       'SELECT 1 FROM prod.usuario_materia_cursada WHERE usuario_id = $1 AND plan_estudio_id = $2 AND materia_id = $3',
-      [usuarioId, datos.planEstudioId, datos.materiaId]
+      [usuarioId, planEstudioId, materiaId]
     )
 
     if (yaEstaEnCurso.rows.length > 0) {
@@ -137,7 +149,7 @@ export async function agregarMateriaEnCurso(usuarioId: number, datos: NuevaMater
       `INSERT INTO prod.usuario_materia_cursada 
        (usuario_id, plan_estudio_id, materia_id, fecha_actualizacion)
        VALUES ($1, $2, $3, NOW())`,
-      [usuarioId, datos.planEstudioId, datos.materiaId]
+      [usuarioId, planEstudioId, materiaId]
     )
   } catch (error) {
     console.error('Error agregando materia en curso:', error)
@@ -148,8 +160,11 @@ export async function agregarMateriaEnCurso(usuarioId: number, datos: NuevaMater
   }
 }
 
-// Actualizar notas de una materia en curso
-export async function actualizarNotasMateriaEnCurso(datos: ActualizarNotasMateriaEnCurso): Promise<void> {
+/**
+ * Actualiza las notas de una materia en curso del usuario
+ * @param datos - Datos de la materia en curso a actualizar
+ */
+export async function updateNotasMateriaEnCurso(datos: ActualizarNotasMateriaEnCurso): Promise<void> {
   try {
     await query(
       `UPDATE prod.usuario_materia_cursada 
@@ -177,12 +192,13 @@ export async function actualizarNotasMateriaEnCurso(datos: ActualizarNotasMateri
   }
 }
 
-// Eliminar materia en curso
-export async function eliminarMateriaEnCurso(
-  usuarioId: number,
-  planEstudioId: number,
-  materiaId: number
-): Promise<void> {
+/**
+ *
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio al que pertenece la materia
+ * @param materiaId - ID de la materia a eliminar
+ */
+export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: number, materiaId: number): Promise<void> {
   try {
     const result = await query(
       `DELETE FROM prod.usuario_materia_cursada 
@@ -204,8 +220,12 @@ export async function eliminarMateriaEnCurso(
   }
 }
 
-// Obtener estadísticas de materias en curso
-export async function obtenerEstadisticasMateriasEnCurso(usuarioId: number): Promise<EstadisticasMateriasEnCursoDB> {
+/**
+ * Obtiene estadísticas de las materias en curso del usuario
+ * @param usuarioId - ID del usuario para obtener sus estadísticas de materias en curso
+ * @returns Promise con las estadísticas de materias en curso del usuario
+ */
+export async function getEstadisticasMateriasEnCurso(usuarioId: number): Promise<EstadisticasMateriasEnCursoDB> {
   try {
     const result = await query(
       `SELECT 

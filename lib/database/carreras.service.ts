@@ -1,18 +1,7 @@
-import {
-  adaptCarrerasUsuarioDBToAPIResponse,
-  adaptEstadisticaCarreraDBToAPIResponse,
-} from '@/adapters/carreras.adapter'
 import { query } from '@/lib/database/connection'
-import type {
-  CarreraEstadisticasAPIResponse,
-  CarreraUsuarioAPIResponse,
-} from '@/models/api/carreras.model'
-import type {
-  MateriaEnCurso,
-  MateriaHistorial,
-  EstadisticasMateriasEnCurso,
-  EstadisticasHistorial,
-} from '@/models/carrera-detalle.model'
+
+import type { CarreraEstadisticasAPIResponse } from '@/models/api/carreras.model'
+
 import type {
   CarreraDB,
   CarreraEstadisticaCursandoDB,
@@ -20,6 +9,15 @@ import type {
   CarreraUsuarioDB,
   MateriaDelPlanDB,
 } from '@/models/database/carreras.model'
+
+import type {
+  MateriaEnCurso,
+  MateriaHistoriaAcademica,
+  EstadisticasMateriasEnCurso,
+  EstadisticasHistoriaAcademica,
+} from '@/models/carrera-detalle.model'
+
+import { adaptEstadisticaCarreraDBToAPIResponse } from '@/adapters/carreras.adapter'
 
 export interface EstadoMateriaUsuario {
   materia_id: number
@@ -36,13 +34,12 @@ export interface EstadoMateriaUsuario {
   fecha_actualizacion: Date
 }
 
-
 /**
  * Obtiene un listado de todas las carreras del usuario que el usuario agregó a su perfil
  * @param usuarioId - ID del usuario
- * @returns Promise<CarreraUsuarioDB[]> - Promise con array de carreras del usuario
+ * @returns Promise con array de carreras del usuario
  */
-export async function obtenerCarrerasUsuario(usuarioId: number): Promise<CarreraUsuarioDB[]> {
+export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]> {
   try {
     const carrerasResult = await query(
       `SELECT 
@@ -73,9 +70,9 @@ export async function obtenerCarrerasUsuario(usuarioId: number): Promise<Carrera
 /**
  * Obtiene un listado de todas las carreras (solo información basica: carrera_id, nombre_carrera) disponibles para que un usuario agregue a su perfil
  * @param usuarioId - ID del usuario
- * @returns Promise<CarreraDB[]> - Lista de carreras disponibles
+ * @returns Promise con array de carreras disponibles para el usuario
  */
-export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): Promise<CarreraDB[]> {
+export async function getCarrerasDisponibles(usuarioId: number): Promise<CarreraDB[]> {
   try {
     const carrerasResult = await query(
       `SELECT DISTINCT
@@ -102,11 +99,11 @@ export async function obtenerCarrerasDisponiblesParaUsuario(usuarioId: number): 
 }
 
 /**
- * Agrega una carrera al usuario
+ * Inserta una carrera al usuario
  * @param usuarioId - ID del usuario
  * @param planEstudioId - ID del plan de estudio a agregar
  */
-export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: number): Promise<void> {
+export async function insertCarrera(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
     const planAsociadoAUsuario = await query(
       'SELECT 1 FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
@@ -175,7 +172,7 @@ export async function agregarCarreraUsuario(usuarioId: number, planEstudioId: nu
  * @param usuarioId - ID del usuario
  * @param planEstudioId - ID del plan de estudio
  */
-export async function eliminarCarreraUsuario(usuarioId: number, planEstudioId: number): Promise<void> {
+export async function eliminarCarrera(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
     const result = await query('DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2', [
       usuarioId,
@@ -194,47 +191,13 @@ export async function eliminarCarreraUsuario(usuarioId: number, planEstudioId: n
   }
 }
 
-// Obtener progreso de materias del usuario en un plan específico
-export async function obtenerProgresoUsuarioPlan(
-  usuarioId: number,
-  planEstudioId: number
-): Promise<EstadoMateriaUsuario[]> {
-  try {
-    const result = await query(
-      `SELECT 
-         ume.materia_id,
-         m.codigo_materia,
-         m.nombre_materia,
-         m.tipo,
-         m.horas_semanales,
-         pm.anio_cursada as anio_cursada_plan,
-         pm.cuatrimestre as cuatrimestre_plan,
-         ume.estado,
-         ume.nota,
-         ume.anio_cursada as anio_cursada_real,
-         ume.cuatrimestre as cuatrimestre_real,
-         ume.fecha_actualizacion
-       FROM prod.usuario_materia_estado ume
-       JOIN prod.materia m ON ume.materia_id = m.id
-       JOIN prod.plan_materia pm ON ume.plan_estudio_id = pm.plan_estudio_id AND ume.materia_id = pm.materia_id
-       WHERE ume.usuario_id = $1 AND ume.plan_estudio_id = $2
-       ORDER BY pm.anio_cursada, pm.cuatrimestre, m.nombre_materia`,
-      [usuarioId, planEstudioId]
-    )
-    return result.rows as unknown as EstadoMateriaUsuario[]
-  } catch (error) {
-    console.error('Error obteniendo progreso del usuario:', error)
-    throw new Error('No se pudo obtener el progreso del usuario')
-  }
-}
-
 /**
  * Obtiene estadisticas de progreso del usuario en un plan de estudio
  * @param usuarioId - ID del usuario
  * @param planEstudioId - ID del plan de estudio
- * @returns Promise<CarreraEstadisticasAPIResponse> - Promise con estadísticas de progreso
+ * @returns Promise con estadísticas de progreso
  */
-export async function obtenerEstadisticasProgreso(
+export async function getEstadisticasProgreso(
   usuarioId: number,
   planEstudioId: number
 ): Promise<CarreraEstadisticasAPIResponse> {
@@ -281,8 +244,13 @@ export async function obtenerEstadisticasProgreso(
   }
 }
 
-// Obtener materias en curso para un usuario y plan de estudio
-export async function obtenerMateriasEnCurso(usuarioId: number, planEstudioId: number): Promise<MateriaEnCurso[]> {
+/**
+ * Obtiene un listado de las materias en curso del usuario
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId  - ID del plan de estudio
+ * @returns Promise con array de materias en curso del usuario
+ */
+export async function getMateriasEnCurso(usuarioId: number, planEstudioId: number): Promise<MateriaEnCurso[]> {
   try {
     const result = await query(
       `SELECT 
@@ -334,8 +302,13 @@ export async function obtenerMateriasEnCurso(usuarioId: number, planEstudioId: n
   }
 }
 
-// Obtener historial académico para un usuario y plan de estudio
-export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId: number): Promise<MateriaHistorial[]> {
+/**
+ * Obtiene la historia académica del usuario en un plan de estudio
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio
+ * @returns Promise con la historia academica del usuario en el plan de estudio
+ */
+export async function getHistoriaAcademica(usuarioId: number, planEstudioId: number): Promise<MateriaHistoriaAcademica[]> {
   try {
     // Consultar todas las materias del usuario (incluyendo las en curso)
     const result = await query(
@@ -384,13 +357,18 @@ export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId
       tipo: row.tipo as 'cursable' | 'electiva',
     }))
   } catch (error) {
-    console.error('Error obteniendo historial académico:', error)
-    throw new Error('No se pudo obtener el historial académico')
+    console.error('Error obteniendo historia academica:', error)
+    throw new Error('No se pudo obtener el historia academica')
   }
 }
 
-// Obtener estadísticas de materias en curso
-export async function obtenerEstadisticasMateriasEnCurso(
+/**
+ * Obtiene las estadisticas de las materias en curso del usuario en un plan de estudio
+ * @param usuarioId 
+ * @param planEstudioId 
+ * @returns 
+ */
+export async function getEstadisticasMateriasEnCurso(
   usuarioId: number,
   planEstudioId: number
 ): Promise<EstadisticasMateriasEnCurso> {
@@ -422,7 +400,7 @@ export async function obtenerEstadisticasMateriasEnCurso(
       [usuarioId, planEstudioId]
     )
 
-    const stats = result.rows[0] as any
+    const stats = result.rows[0]
     return {
       totalMaterias: parseInt(stats.total_materias) || 0,
       materiasAnual: parseInt(stats.materias_anual) || 0,
@@ -437,11 +415,16 @@ export async function obtenerEstadisticasMateriasEnCurso(
   }
 }
 
-// Obtener estadísticas del historial académico
-export async function obtenerEstadisticasHistorial(
+/**
+ * Obtiene estadísticas de la historia academica del usuario en un plan de estudio
+ * @param usuarioId - ID del usuario
+ * @param planEstudioId - ID del plan de estudio
+ * @returns Promise con las estadísticas de la historia académica del usuario
+ */
+export async function getEstadisticasHistoriaAcademica(
   usuarioId: number,
   planEstudioId: number
-): Promise<EstadisticasHistorial> {
+): Promise<EstadisticasHistoriaAcademica> {
   try {
     // Obtener estadísticas completas incluyendo materias en curso
     const result = await query(
@@ -464,8 +447,8 @@ export async function obtenerEstadisticasHistorial(
       [planEstudioId]
     )
 
-    const stats = result.rows[0] as any
-    const statsTotal = resultTotal.rows[0] as any
+    const stats = result.rows[0]
+    const statsTotal = resultTotal.rows[0]
 
     return {
       totalMaterias: parseInt(statsTotal.total_materias_plan) || 0,
@@ -476,7 +459,7 @@ export async function obtenerEstadisticasHistorial(
       promedioGeneral: stats.promedio_general || undefined,
     }
   } catch (error) {
-    console.error('Error obteniendo estadísticas del historial:', error)
-    throw new Error('No se pudieron obtener las estadísticas del historial')
+    console.error('Error obteniendo estadísticas de la historia academica:', error)
+    throw new Error('No se pudieron obtener las estadísticas de la historia academica')
   }
 }

@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import {
-  obtenerMateriasEnCursoPorCarrera,
-  obtenerEstadisticasMateriasEnCurso,
-  agregarMateriaEnCurso,
-  eliminarMateriaEnCurso,
-  actualizarNotasMateriaEnCurso,
+  getMateriasEnCurso,
+  getEstadisticasMateriasEnCurso,
+  insertMateriaEnCurso,
+  deleteMateriaEnCurso,
+  updateNotasMateriaEnCurso,
 } from '@/lib/database/materias-cursada.service'
 
 import type { EstadisticasMateriasEnCursoDB, MateriaEnCursoUsuarioDB } from '@/models/database/materias-cursada.model'
@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
     // Consultar informacion
     const [materiasPorCarreraDB, estadisticasDB]: [MateriaEnCursoUsuarioDB[], EstadisticasMateriasEnCursoDB] =
       await Promise.all([
-        obtenerMateriasEnCursoPorCarrera(userIdParsed),
-        obtenerEstadisticasMateriasEnCurso(userIdParsed),
+        getMateriasEnCurso(userIdParsed),
+        getEstadisticasMateriasEnCurso(userIdParsed),
       ])
 
     // Transformar consulta a formato API
@@ -118,10 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Operaciones
-    await agregarMateriaEnCurso(usuario_id, {
-      planEstudioId: plan_estudio_id,
-      materiaId: materia_id,
-    })
+    await insertMateriaEnCurso(usuario_id, plan_estudio_id, materia_id)
 
     // Retornar respuesta
     return NextResponse.json({ success: true, message: 'Materia en curso agregada exitosamente' })
@@ -181,7 +178,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Operaciones
-    await eliminarMateriaEnCurso(userIdParsed, planEstudioIdParsed, materiaIdParsed)
+    await deleteMateriaEnCurso(userIdParsed, planEstudioIdParsed, materiaIdParsed)
 
     // Retornar respuesta
     return NextResponse.json({ success: true, message: 'Materia en curso eliminada exitosamente' })
@@ -232,7 +229,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Operaciones
-    await actualizarNotasMateriaEnCurso({
+    await updateNotasMateriaEnCurso({
       usuarioId: userId,
       planEstudioId,
       materiaId,

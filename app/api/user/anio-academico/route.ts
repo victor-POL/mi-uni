@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import {
-  unsetAnioAcademicoUsuario,
-  setAnioAcademicoUsuario,
-  getAnioAcademicoUsuario,
+  deleteAnioAcademico,
+  insertAnioAcademico,
+  getAnioAcademico,
 } from '@/lib/database/anio-academico.service'
 
 import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.model'
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Consultar informacion
-    const anioAcademicoUsuarioDB: AnioAcademicoUsuarioDB | null = await getAnioAcademicoUsuario(userIdParsed)
+    const anioAcademicoUsuarioDB: AnioAcademicoUsuarioDB | null = await getAnioAcademico(userIdParsed)
 
     // Transformar consulta a formato API
     const anioAcademicoUsuarioResponse: AnioAcademicoUsuarioAPIResponse =
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Operaciones
-    await setAnioAcademicoUsuario(usuario_id)
+    await insertAnioAcademico(usuario_id)
 
     // Retornar respuesta
     return NextResponse.json({
@@ -156,7 +156,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Operaciones
-    await unsetAnioAcademicoUsuario(userIdParsed)
+    await deleteAnioAcademico(userIdParsed)
 
     // Retornar respuesta
     return NextResponse.json({ success: true, message: 'Año académico del usuario desestablecido exitosamente' })

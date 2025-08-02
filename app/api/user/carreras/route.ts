@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import {
-  agregarCarreraUsuario,
-  eliminarCarreraUsuario,
-  obtenerCarrerasUsuario,
-  obtenerEstadisticasProgreso,
+  insertCarrera,
+  eliminarCarrera,
+  getCarreras,
+  getEstadisticasProgreso,
 } from '@/lib/database/carreras.service'
 
 import type {
@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Consultar informacion
-    const carrerasUsuarioDB: CarreraUsuarioDB[] = await obtenerCarrerasUsuario(userIdParsed)
+    const carrerasUsuarioDB: CarreraUsuarioDB[] = await getCarreras(userIdParsed)
 
     // Obtener estadísticas para cada carrera
     const carrerasUsuarioConEstadisticasResponse: CarreraUsuarioConEstadisticasAPIResponse[] = await Promise.all(
       carrerasUsuarioDB.map(async (carrera): Promise<CarreraUsuarioConEstadisticasAPIResponse> => {
-        const estadisticas: CarreraEstadisticasAPIResponse = await obtenerEstadisticasProgreso(
+        const estadisticas: CarreraEstadisticasAPIResponse = await getEstadisticasProgreso(
           userIdParsed,
           carrera.plan_estudio_id
         )
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Operaciones
-    await agregarCarreraUsuario(usuario_id, plan_estudio_id)
+    await insertCarrera(usuario_id, plan_estudio_id)
 
     // Retornar respuesta
     return NextResponse.json({
@@ -176,7 +176,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Operaciones
-    await eliminarCarreraUsuario(userIdParsed, planEstudioIdParsed)
+    await eliminarCarrera(userIdParsed, planEstudioIdParsed)
 
     // Retornar respuesta
     return NextResponse.json({

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { obtenerCarrerasDisponiblesParaUsuario } from '@/lib/database/carreras.service'
+import { getCarrerasDisponibles } from '@/lib/database/carreras.service'
 
 import type { CarreraDB } from '@/models/database/carreras.model'
 
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Consultar informacion
-    const carrerasDB: CarreraDB[] = await obtenerCarrerasDisponiblesParaUsuario(userIdParsed)
+    const carrerasDB: CarreraDB[] = await getCarrerasDisponibles(userIdParsed)
 
     // Transformar consulta a formato API
     const carrerasResponse: CarreraUsuarioDisponibleAPIResponse[] = adaptCarrerasDisponiblesDBToAPIResponse(carrerasDB)

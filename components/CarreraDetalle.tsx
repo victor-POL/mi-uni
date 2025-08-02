@@ -15,9 +15,9 @@ import { useToast } from '@/hooks/use-toast'
 import type { CarreraResumen } from '@/models/mis-carreras.model'
 import type {
   MateriaEnCurso,
-  MateriaHistorial,
+  MateriaHistoriaAcademica,
   EstadisticasMateriasEnCurso,
-  EstadisticasHistorial,
+  EstadisticasHistoriaAcademica,
 } from '@/models/carrera-detalle.model'
 import type { ApiResponse } from '@/models/api/api.model'
 
@@ -32,8 +32,8 @@ interface MateriasEnCursoData {
 }
 
 interface HistorialData {
-  historial: MateriaHistorial[]
-  estadisticas: EstadisticasHistorial
+  historial: MateriaHistoriaAcademica[]
+  estadisticas: EstadisticasHistoriaAcademica
 }
 
 // Componente Skeleton para loading
@@ -70,7 +70,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
   const [materiasEnCurso, setMateriasEnCurso] = useState<MateriasEnCursoData | null>(null)
   const [historial, setHistorial] = useState<HistorialData | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [materiaAEditar, setMateriaAEditar] = useState<MateriaHistorial | null>(null)
+  const [materiaAEditar, setMateriaAEditar] = useState<MateriaHistoriaAcademica | null>(null)
 
   // Cargar materias en curso cuando se active esa tab
   useEffect(() => {
@@ -149,7 +149,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
   }
 
   // Función para editar materia
-  const handleEditarMateria = (materia: MateriaHistorial) => {
+  const handleEditarMateria = (materia: MateriaHistoriaAcademica) => {
     setMateriaAEditar(materia)
     setEditModalOpen(true)
   }

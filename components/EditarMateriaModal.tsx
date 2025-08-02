@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import type { MateriaHistorial } from '@/models/carrera-detalle.model'
+import type { MateriaHistoriaAcademica } from '@/models/carrera-detalle.model'
 
 interface EditarMateriaModalProps {
   isOpen: boolean
   onClose: () => void
-  materia: MateriaHistorial | null
+  materia: MateriaHistoriaAcademica | null
   usuarioId: number
   planEstudioId: number
   onSuccess: () => void

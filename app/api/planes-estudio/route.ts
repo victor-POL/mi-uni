@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getListadoPlanes } from '@/lib/database/planes-estudio.service'
+import { getPlanesEstudio } from '@/lib/database/planes-estudio.service'
 
 import type { PlanEstudioDB } from '@/models/database/planes-estudio.model'
 
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
     // Consultar informacion
     if (!carreraIdParam) {
-      planesDB = await getListadoPlanes()
+      planesDB = await getPlanesEstudio()
     } else {
       const carreraIdParsed = parseInt(carreraIdParam)
       if (Number.isNaN(carreraIdParsed)) {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
           { status: 400 }
         )
       }
-      planesDB = await getListadoPlanes(carreraIdParsed)
+      planesDB = await getPlanesEstudio(carreraIdParsed)
     }
 
     // Transformar consulta a formato API
