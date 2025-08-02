@@ -107,13 +107,13 @@ export default function MateriasEnCursoPage() {
             </div>
           </div>
           {/* Loading Icon */}
-          <LoadingSpinner text="Obteniendo año academico y materias en curso" />
+          <LoadingSpinner className='my-5' text="Obteniendo año academico y materias en curso" />
         </AppLayout>
       </ProtectedRoute>
     )
   }
 
-  if (!loadinfoInfoMateriasEnCurso && infoMateriasEnCurso === null) {
+  if (infoMateriasEnCurso === null) {
     return (
       <ProtectedRoute>
         <AppLayout title="Materias en Curso">
@@ -187,76 +187,74 @@ export default function MateriasEnCursoPage() {
 
           {/* Año Académico y Estadísticas */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            {infoMateriasEnCurso?.estadisticas && anioAcademico && !esNuevo && (
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">Estadísticas del Curso</CardTitle>
-                        <CardDescription>Año Académico: {anioAcademico}</CardDescription>
-                      </div>
-                      <DesestablecerAnioAcademicoUsuarioModal
-                        desestablecerAnioAcademico={desestablecerAnioAcademico}
-                        loading={loadingAnioAcademico}
-                        onDesestablecerAnio={refrescarAnioAcademico}
-                      />
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg">Estadísticas del Curso</CardTitle>
+                      <CardDescription>Año Académico: {anioAcademico}</CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center space-x-1 mb-1">
-                          <BookOpen className="h-4 w-4 text-blue-600" />
-                          <p className="text-sm text-gray-600">Total</p>
-                        </div>
-                        <p className="text-xl font-bold text-blue-600">
-                          {infoMateriasEnCurso.estadisticas.totalMaterias}
-                        </p>
+                    <DesestablecerAnioAcademicoUsuarioModal
+                      desestablecerAnioAcademico={desestablecerAnioAcademico}
+                      loading={loadingAnioAcademico}
+                      onDesestablecerAnio={refrescarAnioAcademico}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-1 mb-1">
+                        <BookOpen className="h-4 w-4 text-blue-600" />
+                        <p className="text-sm text-gray-600">Total</p>
                       </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center justify-center space-x-1 mb-1">
-                          <Calendar className="h-4 w-4 text-purple-600" />
-                          <p className="text-sm text-gray-600">Anuales</p>
-                        </div>
-                        <p className="text-xl font-bold text-purple-600">
-                          {infoMateriasEnCurso.estadisticas.materiasAnual}
-                        </p>
-                      </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center justify-center space-x-1 mb-1">
-                          <Clock className="h-4 w-4 text-green-600" />
-                          <p className="text-sm text-gray-600">1er Cuatr.</p>
-                        </div>
-                        <p className="text-xl font-bold text-green-600">
-                          {infoMateriasEnCurso.estadisticas.materiasPrimero}
-                        </p>
-                      </div>
-
-                      <div className="text-center">
-                        <div className="flex items-center justify-center space-x-1 mb-1">
-                          <Clock className="h-4 w-4 text-orange-600" />
-                          <p className="text-sm text-gray-600">2do Cuatr.</p>
-                        </div>
-                        <p className="text-xl font-bold text-orange-600">
-                          {infoMateriasEnCurso.estadisticas.materiasSegundo}
-                        </p>
-                      </div>
+                      <p className="text-xl font-bold text-blue-600">
+                        {infoMateriasEnCurso.estadisticasCursada.totalMaterias}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-1 mb-1">
+                        <Calendar className="h-4 w-4 text-purple-600" />
+                        <p className="text-sm text-gray-600">Anuales</p>
+                      </div>
+                      <p className="text-xl font-bold text-purple-600">
+                        {infoMateriasEnCurso.estadisticasCursada.materiasAnual}
+                      </p>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-1 mb-1">
+                        <Clock className="h-4 w-4 text-green-600" />
+                        <p className="text-sm text-gray-600">1er Cuatr.</p>
+                      </div>
+                      <p className="text-xl font-bold text-green-600">
+                        {infoMateriasEnCurso.estadisticasCursada.materiasPrimero}
+                      </p>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-1 mb-1">
+                        <Clock className="h-4 w-4 text-orange-600" />
+                        <p className="text-sm text-gray-600">2do Cuatr.</p>
+                      </div>
+                      <p className="text-xl font-bold text-orange-600">
+                        {infoMateriasEnCurso.estadisticasCursada.materiasSegundo}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {infoMateriasEnCurso?.materiasPorCarrera && infoMateriasEnCurso.materiasPorCarrera.length > 0 && (
+          {infoMateriasEnCurso.materiasPorCarrera.length > 0 && (
             <AgregarMateriaEnCursoModal onCarreraAgregada={refrescarInfoMateriasEnCurso} />
           )}
 
           {/* Materias por Carrera */}
-          {infoMateriasEnCurso?.materiasPorCarrera.length === 0 ? (
+          {infoMateriasEnCurso.materiasPorCarrera.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center flex flex-col items-center">
                 <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -266,7 +264,7 @@ export default function MateriasEnCursoPage() {
               </CardContent>
             </Card>
           ) : (
-            infoMateriasEnCurso?.materiasPorCarrera.map((carrera) => (
+            infoMateriasEnCurso.materiasPorCarrera.map((carrera) => (
               <Card key={`${carrera.carreraId}-${carrera.planEstudioId}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
