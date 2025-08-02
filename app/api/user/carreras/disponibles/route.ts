@@ -1,46 +1,72 @@
-import { NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+
 import { obtenerCarrerasDisponiblesParaUsuario } from '@/lib/database/carreras.service'
+
 import type { CarreraDB } from '@/models/database/carreras.model'
+
 import type { CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
 
+import { adaptCarrerasDisponiblesDBToAPIResponse } from '@/adapters/carreras.adapter'
+
 /**
- * GET /api/user/carreras/disponibles
+ * GET /api/user/carreras/disponibles?userId={id}
  * Obtiene las carreras disponibles para un usuario (carreras en las que no está inscrito)
- * Parameters:
- * - usuarioId: ID del usuario para obtener sus carreras disponibles
+ * @descripcion Parametro requerido: "userId" para identificar al usuario
  */
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     // Obtener parametros
     const { searchParams } = new URL(request.url)
-    const usuarioId = searchParams.get('usuarioId')
+    const userIdParam = searchParams.get('userId')
 
-    if (!usuarioId) {
-      return NextResponse.json({ error: 'Usuario ID es requerido' }, { status: 400 })
+    if (!userIdParam) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" es requerido',
+        },
+        { status: 400 }
+      )
     }
 
-    const usuarioIdNum = parseInt(usuarioId)
-    if (Number.isNaN(usuarioIdNum)) {
-      return NextResponse.json({ error: 'Usuario ID debe ser un número válido' }, { status: 400 })
+    const userIdParsed = parseInt(userIdParam)
+
+    if (Number.isNaN(userIdParsed)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" inválido',
+        },
+        { status: 400 }
+      )
     }
 
     // Consultar informacion
-    const carrerasDB: CarreraDB[] = await obtenerCarrerasDisponiblesParaUsuario(usuarioIdNum)
+    const carrerasDB: CarreraDB[] = await obtenerCarrerasDisponiblesParaUsuario(userIdParsed)
 
     // Transformar consulta a formato API
-    const carrerasFormatted: CarreraUsuarioDisponibleAPIResponse[] = carrerasDB.map((carrera) => ({
-      carrera_id: carrera.carrera_id,
-      nombre_carrera: carrera.carrera_nombre,
-    }))
+    const carrerasResponse: CarreraUsuarioDisponibleAPIResponse[] = adaptCarrerasDisponiblesDBToAPIResponse(carrerasDB)
 
     // Retornar respuesta
     return NextResponse.json({
       success: true,
-      data: carrerasFormatted,
-      count: carrerasFormatted.length,
+      data: carrerasResponse,
+      count: carrerasResponse.length,
     })
   } catch (error) {
-    console.error('Error en API carreras disponibles:', error)
-    return NextResponse.json({ error: 'No se pudieron obtener las carreras disponibles' }, { status: 500 })
+    console.error('Error GET carreras disponibles del usuario')
+
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No se pudo obtener las carreras disponibles del usuario',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

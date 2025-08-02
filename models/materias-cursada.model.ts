@@ -66,3 +66,8 @@ export interface AnioAcademicoVigente {
   fechaInicio: string
   fechaFin: string
 }
+
+export interface MateriasEnCurso {
+  materiasPorCarrera: MateriaCursadaPorCarrera[]
+  estadisticasCursada: EstadisticasMateriasEnCurso
+}

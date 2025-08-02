@@ -1,26 +1,36 @@
 import { NextResponse } from 'next/server'
-import { obtenerAnioAcademicoVigente } from '@/lib/database/anio-academico.service'
+
+import { getAnioAcademicoVigente } from '@/lib/database/anio-academico.service'
+
+import type { AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
+
 import type { AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-cursada.model'
+
 import { adaptAnioAcademicoVigenteDBToAPIResponse } from '@/adapters/materias-cursada.model'
 
 /**
  * GET /api/anio-academico
- * Obtiene el año académico vigente desde la base de datos.
+ * Obtiene el año académico vigente o null si no hay uno vigente
  */
 export async function GET() {
   try {
-    const anioAcademicoUsuarioDB = await obtenerAnioAcademicoVigente()
+    // Obtener parametros
 
-    if (!anioAcademicoUsuarioDB) {
+    // Consultar informacion
+    const anioAcademicoVigenteDB: AnioAcademicoVigenteDB | null = await getAnioAcademicoVigente()
+
+    if (!anioAcademicoVigenteDB) {
       return NextResponse.json({
         success: true,
         data: null,
       })
     }
 
+    // Transformar consulta a formato API
     const anioAcademicoVigenteResponse: AnioAcademicoVigenteAPIResponse =
-      adaptAnioAcademicoVigenteDBToAPIResponse(anioAcademicoUsuarioDB)
+      adaptAnioAcademicoVigenteDBToAPIResponse(anioAcademicoVigenteDB)
 
+    // Retornar respuesta
     return NextResponse.json({
       success: true,
       data: anioAcademicoVigenteResponse,

@@ -55,7 +55,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
 
   /**
    * Establece el año academico del usuario en funcion al año vigente cargado en el sistema
-   * @returns true si se estableció correctamente el año académico, false en caso contrario
+   * @returns true si se estableció exitosamente el año académico, false en caso contrario
    */
   const establecerAnioAcademicoVigente = async () => {
     if (!options.userId) return false
@@ -88,7 +88,7 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
 
   /**
    * Desestablece el año académico del usuario, eliminando la relación con el año académico vigente
-   * @returns true si se desestableció correctamente el año académico, false en caso contrario
+   * @returns true si se desestableció exitosamente el año académico, false en caso contrario
    */
   const desestablecerAnioAcademico = async () => {
     if (!options.userId) return false

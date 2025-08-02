@@ -1,33 +1,61 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { query } from '@/connection'
-import { establecerAnioAcademicoUsuario, obtenerAnioAcademicoUsuario } from '@/lib/database/anio-academico.service'
+
+import {
+  unsetAnioAcademicoUsuario,
+  setAnioAcademicoUsuario,
+  getAnioAcademicoUsuario,
+} from '@/lib/database/anio-academico.service'
+
+import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.model'
+
 import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
+
 import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.model'
 
-// GET: Obtener año académico actual del usuario
+/**
+ * GET /api/user/anio-academico?userId={id}
+ * Obtiene el año académico del usuario o null si no tiene uno establecido
+ * @description Parametro requerido: "userId" para identificar al usuario
+ */
 export async function GET(request: NextRequest) {
   try {
+    // Obtener parametros
     const { searchParams } = new URL(request.url)
     const userIdParam = searchParams.get('userId')
 
     if (!userIdParam) {
-      return NextResponse.json({ error: 'ID de usuario requerido' }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" es requerido',
+        },
+        { status: 400 }
+      )
     }
 
-    const userId = parseInt(userIdParam)
+    const userIdParsed = parseInt(userIdParam)
 
-    if (Number.isNaN(userId)) {
-      return NextResponse.json({ error: 'ID de usuario inválido' }, { status: 400 })
+    if (Number.isNaN(userIdParsed)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" inválido',
+        },
+        { status: 400 }
+      )
     }
 
-    const anioAcademicoUsuarioDB = await obtenerAnioAcademicoUsuario(userId)
+    // Consultar informacion
+    const anioAcademicoUsuarioDB: AnioAcademicoUsuarioDB | null = await getAnioAcademicoUsuario(userIdParsed)
 
-    const anioAcademicoResponse: AnioAcademicoUsuarioAPIResponse =
+    // Transformar consulta a formato API
+    const anioAcademicoUsuarioResponse: AnioAcademicoUsuarioAPIResponse =
       adaptAnioAcademicoUsuarioDBToAPIResponse(anioAcademicoUsuarioDB)
 
+    // Retornar respuesta
     return NextResponse.json({
       success: true,
-      data: anioAcademicoResponse,
+      data: anioAcademicoUsuarioResponse,
     })
   } catch (error) {
     console.error('Error GET año academico del usuario')
@@ -50,88 +78,102 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/user/anio-academico
  * Establece el año académico del usuario con el anio vigente
+ * @description Body requerido: { usuario_id: number }
  */
 export async function POST(request: NextRequest) {
   try {
+    // Obtener parametros
     const body = await request.json()
     const { usuario_id } = body
 
     if (!usuario_id) {
-      return NextResponse.json({ error: 'Parametro "usuario_id" es requerido' }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "usuario_id" es requerido en body',
+        },
+        { status: 400 }
+      )
     }
 
-    await establecerAnioAcademicoUsuario(usuario_id)
+    // Operaciones
+    await setAnioAcademicoUsuario(usuario_id)
 
+    // Retornar respuesta
     return NextResponse.json({
-      message: `Año académico establecido exitosamente`,
+      success: true,
+      message: 'Año académico del usuario establecido exitosamente',
     })
   } catch (error) {
-    console.error('Error en API establecer año academico:', error)
+    console.error('Error POST establecer año academico usuario')
 
-    const message = error instanceof Error ? error.message : 'No se pudo establecer el año académico'
-
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
-}
-
-// PUT: Cambiar año académico (afecta todas las materias en curso)
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { userId, nuevoAnioAcademico } = body
-
-    if (!userId || !nuevoAnioAcademico) {
-      return NextResponse.json({ error: 'Usuario y nuevo año académico requeridos' }, { status: 400 })
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
     }
 
-    // Validar año académico
-    const anioActual = new Date().getFullYear()
-    if (nuevoAnioAcademico < anioActual - 1 || nuevoAnioAcademico > anioActual) {
-      return NextResponse.json({ error: 'Año académico inválido' }, { status: 400 })
-    }
-
-    // Crear/actualizar registro de año académico
-    await query(
-      `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (usuario_id) 
-       DO UPDATE SET anio_academico = EXCLUDED.anio_academico, fecha_actualizacion = NOW()`,
-      [parseInt(userId), parseInt(nuevoAnioAcademico)]
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No se pudo establecer el año académico del usuario',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
     )
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Error cambiando año académico:', error)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
 
 /**
  * DELETE /api/user/anio-academico?userId={id}
+ * Desestablece el año académico del usuario
+ * @description Parametro requerido: "userId" para identificar al usuario
  */
 export async function DELETE(request: NextRequest) {
   try {
+    // Obtener parametros
     const { searchParams } = new URL(request.url)
     const userIdParam = searchParams.get('userId')
 
     if (!userIdParam) {
-      return NextResponse.json({ error: 'ID de usuario requerido' }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" es requerido',
+        },
+        { status: 400 }
+      )
     }
 
-    const userId = parseInt(userIdParam)
+    const userIdParsed = parseInt(userIdParam)
 
-    if (Number.isNaN(userId)) {
-      return NextResponse.json({ error: 'ID de usuario inválido' }, { status: 400 })
+    if (Number.isNaN(userIdParsed)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "userId" inválido',
+        },
+        { status: 400 }
+      )
     }
 
-    await query(
-      `DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`,
-      [userId]
-    )
+    // Operaciones
+    await unsetAnioAcademicoUsuario(userIdParsed)
 
-    return NextResponse.json({ success: true })
+    // Retornar respuesta
+    return NextResponse.json({ success: true, message: 'Año académico del usuario desestablecido exitosamente' })
   } catch (error) {
-    console.error('Error desestableciendo año académico:', error)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    console.error('Error DELETE desestablecer año academico usuario')
+
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No se pudo desestablecer el año académico del usuario',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }

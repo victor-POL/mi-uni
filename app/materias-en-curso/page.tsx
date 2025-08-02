@@ -68,7 +68,7 @@ export default function MateriasEnCursoPage() {
 
     try {
       const params = new URLSearchParams({
-        usuarioId: userId.toString(),
+        userId: userId.toString(),
         planEstudioId: materia.planEstudioId.toString(),
         materiaId: materia.materiaId.toString(),
       })
@@ -81,7 +81,7 @@ export default function MateriasEnCursoPage() {
 
       toast({
         title: 'Éxito',
-        description: 'Materia eliminada correctamente',
+        description: 'Materia eliminada exitosamente',
       })
 
       refrescarInfoMateriasEnCurso()
@@ -113,10 +113,7 @@ export default function MateriasEnCursoPage() {
     )
   }
 
-  if (
-    (!loadingAnioAcademico && anioAcademico === null) ||
-    (!loadinfoInfoMateriasEnCurso && infoMateriasEnCurso === null)
-  ) {
+  if (!loadinfoInfoMateriasEnCurso && infoMateriasEnCurso === null) {
     return (
       <ProtectedRoute>
         <AppLayout title="Materias en Curso">
@@ -354,7 +351,7 @@ export default function MateriasEnCursoPage() {
             refrescarInfoMateriasEnCurso()
             toast({
               title: 'Éxito',
-              description: 'Notas actualizadas correctamente',
+              description: 'Notas actualizadas exitosamente',
             })
           }}
         />

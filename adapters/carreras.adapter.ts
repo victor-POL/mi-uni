@@ -4,11 +4,11 @@ import type {
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
 } from '@/models/api/carreras.model'
-import type { CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
+import type { CarreraDB, CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
 import type { Carrera, CarreraResumen } from '@/models/mis-carreras.model'
 
 /**
- * Adapta la respuesta de la API /api/user/carreras/resumen?usuarioId=${options.userID} al modelo local CarreraResumen
+ * Adapta la respuesta de la API /api/user/carreras/resumen?userId=${options.userID} al modelo local CarreraResumen
  * @param carreras - CarreraUsuarioConEstadisticasAPIResponse[] - Lista de carreras del usuario con estadísticas desde la API
  * @returns CarreraResumen[] - Lista de carreras adaptada al modelo local
  */
@@ -29,13 +29,23 @@ export const adaptCarrerasUsuariosConEstadisticasAPIResponse = (
   }))
 }
 
+export const adaptCarrerasDisponiblesDBToAPIResponse = (
+  carreras: CarreraDB[]
+): CarreraUsuarioDisponibleAPIResponse[] => {
+  return carreras.map((carrera) => ({
+    carrera_id: carrera.carrera_id,
+    nombre_carrera: carrera.carrera_nombre,
+  }))
+}
 
 /**
- * Adapta la respuesta de la API /api/user/carreras/disponibles?usuarioId=${options.userID} al modelo local Carrera
+ * Adapta la respuesta de la API /api/user/carreras/disponibles?userId=${options.userID} al modelo local Carrera
  * @param carreras - CarreraUsuarioDisponibleAPIResponse[] - Lista de carreras disponibles del usuario desde la API
  * @returns Carrera[] - Lista de carreras adaptada al modelo local
  */
-export const adaptCarrerasDisponiblesUsuarioAPIResponse = (carreras: CarreraUsuarioDisponibleAPIResponse[]): Carrera[] => {
+export const adaptCarrerasDisponiblesUsuarioAPIResponse = (
+  carreras: CarreraUsuarioDisponibleAPIResponse[]
+): Carrera[] => {
   return carreras.map((carrera) => ({
     idCarrera: carrera.carrera_id,
     nombreCarrera: carrera.nombre_carrera,

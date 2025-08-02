@@ -53,7 +53,7 @@ export function EditarMateriaModal({
     setLoading(true)
     try {
       const requestBody = {
-        usuarioId,
+        userId: usuarioId,
         planEstudioId,
         materiaId: materia.id,
         estado: formData.estado,
@@ -63,8 +63,8 @@ export function EditarMateriaModal({
       }
 
 
-      const response = await fetch('/api/user/carreras/materias/actualizar-estado', {
-        method: 'PUT',
+      const response = await fetch('/api/user/carreras/materias', {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -79,7 +79,7 @@ export function EditarMateriaModal({
 
       toast({
         title: "Éxito",
-        description: "Materia actualizada correctamente",
+        description: "Materia actualizada exitosamente",
       })
 
       onSuccess()

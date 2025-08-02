@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
           {success ? (
             <div className="text-center space-y-4">
               <div className="p-4 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
-                <p className="font-semibold">Email enviado correctamente</p>
+                <p className="font-semibold">Email enviado exitosamente</p>
                 <p>Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.</p>
               </div>
               <Button onClick={() => setSuccess(false)} variant="outline" className="w-full">

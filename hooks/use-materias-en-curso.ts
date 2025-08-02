@@ -1,5 +1,10 @@
-import type { EstadisticasMateriasEnCurso } from '@/models/carrera-detalle.model'
-import type { MateriaCursadaPorCarrera } from '@/models/materias-cursada.model'
+import {
+  adaptEstadisticasMateriasEnCursoAPIResponseToLocal,
+  adaptMateriasPorCarreraCursadaAPIResponseToLocal,
+} from '@/adapters/materias-cursada.model'
+import type { ApiResponse } from '@/models/api/api.model'
+import type { MateriasEnCursoAPIResponse } from '@/models/api/materias-cursada.model'
+import type { MateriasEnCurso } from '@/models/materias-cursada.model'
 import { useEffect, useState } from 'react'
 
 interface UseCarerrasOptions {
@@ -9,10 +14,7 @@ interface UseCarerrasOptions {
 }
 
 export const useMateriasEnCurso = (options: UseCarerrasOptions = { autoFetch: true }) => {
-  const [infoMateriasEnCurso, setInfoMateriasEnCurso] = useState<{
-    materiasPorCarrera: MateriaCursadaPorCarrera[]
-    estadisticas: EstadisticasMateriasEnCurso
-  } | null>(null)
+  const [infoMateriasEnCurso, setInfoMateriasEnCurso] = useState<MateriasEnCurso | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,15 +28,21 @@ export const useMateriasEnCurso = (options: UseCarerrasOptions = { autoFetch: tr
     }
 
     try {
-      const url = `/api/user/materias-en-curso?usuarioId=${options.userId}`
+      const url = `/api/user/materias-en-curso?userId=${options.userId}`
       const response = await fetch(url)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
-      setInfoMateriasEnCurso(data)
+      const result: ApiResponse<MateriasEnCursoAPIResponse> = await response.json()
+
+      const formattedMaterias: MateriasEnCurso = {
+        materiasPorCarrera: adaptMateriasPorCarreraCursadaAPIResponseToLocal(result.data.materias_por_carrera),
+        estadisticasCursada: adaptEstadisticasMateriasEnCursoAPIResponseToLocal(result.data.estadisticas_cursada),
+      }
+
+      setInfoMateriasEnCurso(formattedMaterias)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
       setError(errorMessage)

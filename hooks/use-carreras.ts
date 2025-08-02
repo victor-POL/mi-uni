@@ -39,7 +39,7 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
         throw new Error('Se requiere un userID para obtener las carreras del usuario')
       }
 
-      const url = `/api/user/carreras/resumen?usuarioId=${options.userID}`
+      const url = `/api/user/carreras/?userId=${options.userID}`
       const response = await fetch(url)
 
       if (!response.ok) {
@@ -104,7 +104,7 @@ export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsu
         throw new Error('Se requiere un userID para obtener las carreras disponibles')
       }
 
-      const url = `/api/user/carreras/disponibles?usuarioId=${options.userID}`
+      const url = `/api/user/carreras/disponibles?userId=${options.userID}`
       const response = await fetch(url)
 
       if (!response.ok) {

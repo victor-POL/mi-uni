@@ -5,7 +5,7 @@ import { query } from './connection'
  * Obtiene el año académico vigente desde la base de datos.
  * @returns Promise<AnioAcademicoVigenteDB | null> - El año académico vigente o null si no se encuentra.
  */
-export async function obtenerAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB | null> {
+export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB | null> {
   try {
     const result = await query(
       `SELECT
@@ -28,7 +28,7 @@ export async function obtenerAnioAcademicoVigente(): Promise<AnioAcademicoVigent
 }
 
 // Obtener el año académico actual del usuario
-export async function obtenerAnioAcademicoUsuario(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
+export async function getAnioAcademicoUsuario(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
   try {
     const result = await query(
       `SELECT 
@@ -48,9 +48,9 @@ export async function obtenerAnioAcademicoUsuario(usuarioId: number): Promise<An
   }
 }
 
-export async function establecerAnioAcademicoUsuario(usuarioID: number) {
+export async function setAnioAcademicoUsuario(usuarioID: number) {
   try {
-    const anioAcademicoVigente = await obtenerAnioAcademicoVigente()
+    const anioAcademicoVigente = await getAnioAcademicoVigente()
 
     if (!anioAcademicoVigente) {
       throw new Error('No se encontró un año académico vigente')
@@ -67,5 +67,19 @@ export async function establecerAnioAcademicoUsuario(usuarioID: number) {
   } catch (error) {
     console.error('Error estableciendo año académico del usuario:', error)
     throw new Error('Error al establecer el año académico del usuario')
+  }
+}
+
+export async function unsetAnioAcademicoUsuario(usuarioID: number) {
+  try {
+    await query(
+      `DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`,
+      [usuarioID]
+    )
+
+    return true
+  } catch (error) {
+    console.error('Error desestableciendo año académico del usuario:', error)
+    throw new Error('Error al desestablecer el año académico del usuario')
   }
 }

@@ -75,17 +75,14 @@ export default function MisCarrerasPage() {
 
     setCarreraEliminandose(carreraAEliminar.planEstudioId)
     setShowDeleteDialog(false)
-    
+
     try {
-      const response = await fetch(`/api/user/carreras/${carreraAEliminar.planEstudioId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-        }),
-      })
+      const response = await fetch(
+        `/api/user/carreras?userId=${userId}&planEstudioId=${carreraAEliminar.planEstudioId}`,
+        {
+          method: 'DELETE',
+        }
+      )
 
       if (!response.ok) {
         const error = await response.json()
@@ -94,7 +91,7 @@ export default function MisCarrerasPage() {
 
       toast({
         title: '¡Éxito!',
-        description: 'Carrera eliminada correctamente',
+        description: 'Carrera eliminada exitosamente',
       })
 
       // Si la carrera eliminada era la que estaba seleccionada, limpiar detalle
@@ -104,7 +101,6 @@ export default function MisCarrerasPage() {
 
       // Refrescar la lista de carreras
       await refetchCarreras()
-      
     } catch (error) {
       console.error('Error:', error)
       toast({
@@ -141,11 +137,12 @@ export default function MisCarrerasPage() {
 
   if (carreras === null) return <MisCarrerasLayout forError />
 
-  if (carreras.length === 0) return (
-    <MisCarrerasLayout emptyCarreras>
-      <AgregarCarreraModal onCarreraAgregada={refetchCarreras} />
-    </MisCarrerasLayout>
-  )
+  if (carreras.length === 0)
+    return (
+      <MisCarrerasLayout emptyCarreras>
+        <AgregarCarreraModal onCarreraAgregada={refetchCarreras} />
+      </MisCarrerasLayout>
+    )
 
   return (
     <MisCarrerasLayout>
@@ -230,15 +227,13 @@ export default function MisCarrerasPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará permanentemente la carrera "{carreraAEliminar?.nombre}" de tu perfil.
-              Se perderán todos los datos asociados a esta carrera, incluyendo el progreso y las materias cursadas.
-              Esta acción no se puede deshacer.
+              Esta acción eliminará permanentemente la carrera "{carreraAEliminar?.nombre}" de tu perfil. Se perderán
+              todos los datos asociados a esta carrera, incluyendo el progreso y las materias cursadas. Esta acción no
+              se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelarEliminacion}>
-              Cancelar
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCancelarEliminacion}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleEliminarCarrera}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"

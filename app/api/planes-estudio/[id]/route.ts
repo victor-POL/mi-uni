@@ -1,45 +1,60 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
 import { getDetallePlan } from '@/lib/database/planes-estudio.service'
-import type {
-  DetalleMateriaAPIResponse,
-  EstadisticasPlanAPIResponse,
-  PlanEstudioDetalleAPIResponse,
-} from '@/models/api/planes-estudio.model'
+
 import type { PlanEstudioDetalleDB } from '@/models/database/planes-estudio.model'
+
+import type { PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
+
+import { adaptPlanEstudioDetalleDBToAPIResponse } from '@/adapters/planes-estudio.adapter'
 
 /**
  * GET /api/planes-estudio/[id]
  * Obtiene el detalle completo de un plan de estudio específico
  * @param params.id - ID del plan de estudio para obtener su detalle
- * @param searchParams.usuarioId - ID del usuario (opcional) para obtener el estado de las materias
+ * @description Parametro opcional: "userId" para obtener el estado de las materias del usuario
  */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Obtener parametros
-    const planId = parseInt(params.id, 10)
+    // PlanId
+    const planIdParam = params.id
 
-    if (Number.isNaN(planId)) {
+    if (Number.isNaN(planIdParam)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'ID de plan inválido',
+          error: 'Parametro "planId" inválido',
         },
         { status: 400 }
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const usuarioIdParam = searchParams.get('usuarioId')
+    const planIdParsed = parseInt(planIdParam)
 
-    let usuarioId: number | undefined
-    if (usuarioIdParam) {
-      usuarioId = parseInt(usuarioIdParam, 10)
-      if (Number.isNaN(usuarioId)) {
+    if (Number.isNaN(planIdParsed)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Parametro "planId" inválido',
+        },
+        { status: 400 }
+      )
+    }
+
+    // userId (opcional)
+    const { searchParams } = new URL(request.url)
+    const userIdParam = searchParams.get('userId')
+
+    let userIdParsed: number | undefined
+    if (userIdParam) {
+      userIdParsed = parseInt(userIdParam, 10)
+      if (Number.isNaN(userIdParsed)) {
         return NextResponse.json(
           {
             success: false,
-            error: 'ID de usuario inválido',
+            error: 'Parametro "userId" inválido',
           },
           { status: 400 }
         )
@@ -47,7 +62,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Consultar informacion
-    const planDetalleDB: PlanEstudioDetalleDB | null = await getDetallePlan(planId, usuarioId)
+    const planDetalleDB: PlanEstudioDetalleDB | null = await getDetallePlan(planIdParsed, userIdParsed)
 
     if (planDetalleDB === null) {
       return NextResponse.json(
@@ -60,40 +75,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Transformar consulta a formato API
-    const materias: DetalleMateriaAPIResponse[] = planDetalleDB.materias.map((materia) => ({
-      codigo_materia: materia.codigo_materia,
-      nombre_materia: materia.nombre_materia,
-      anio_cursada: materia.anio_cursada,
-      cuatrimestre_cursada: materia.cuatrimestre,
-      horas_semanales: materia.horas_semanales,
-      tipo: materia.tipo,
-      estado_materia_usuario: materia.estado_materia_usuario,
-      lista_correlativas: materia.lista_correlativas.map((correlativa) => ({
-        codigo_materia: correlativa.codigo_materia,
-        nombre_materia: correlativa.nombre_materia,
-      })),
-    }))
-
-    // Transformar consulta a formato API
-    const estadisticas: EstadisticasPlanAPIResponse = {
-      total_materias: planDetalleDB.estadisticas.total_materias,
-      horas_totales: planDetalleDB.estadisticas.horas_totales,
-      duracion_plan: planDetalleDB.estadisticas.duracion_plan,
-      materias_sin_correlativas: planDetalleDB.estadisticas.materias_sin_correlativas,
-    }
-
-    const planDetalle: PlanEstudioDetalleAPIResponse = {
-      plan_id: planDetalleDB.plan_id,
-      nombre_carrera: planDetalleDB.nombre_carrera,
-      anio: planDetalleDB.anio,
-      estadisticas,
-      materias,
-    }
+    const planDetalleResponse: PlanEstudioDetalleAPIResponse = adaptPlanEstudioDetalleDBToAPIResponse(planDetalleDB)
 
     // Retornar respuesta
     return NextResponse.json({
       success: true,
-      data: planDetalle,
+      data: planDetalleResponse,
     })
   } catch (error) {
     console.error('Error GET detalle de plan de estudio')

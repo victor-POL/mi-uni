@@ -1,31 +1,51 @@
 import { NextResponse } from 'next/server'
+
 import { getListadoPlanes } from '@/lib/database/planes-estudio.service'
+
 import type { PlanEstudioDB } from '@/models/database/planes-estudio.model'
+
 import type { PlanEstudioAPIResponse } from '@/models/api/planes-estudio.model'
 
+import { adaptPlanEstudioDBToAPIResponse } from '@/adapters/planes-estudio.adapter'
+
 /**
- * GET /api/planes-estudio
+ * GET /api/planes-estudio/?carreraId={id}
  * Obtiene un listado básico de todos los planes de estudio
+ * @description Parametro opcional: "carreraId" para filtrar por carrera
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Obtener parametros
+    const { searchParams } = new URL(request.url)
+    const carreraIdParam = searchParams.get('carreraId')
+
+    let planesDB: PlanEstudioDB[] = []
 
     // Consultar informacion
-    const planesDB: PlanEstudioDB[] = await getListadoPlanes()
+    if (!carreraIdParam) {
+      planesDB = await getListadoPlanes()
+    } else {
+      const carreraIdParsed = parseInt(carreraIdParam)
+      if (Number.isNaN(carreraIdParsed)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Parametro "carreraId" inválido',
+          },
+          { status: 400 }
+        )
+      }
+      planesDB = await getListadoPlanes(carreraIdParsed)
+    }
 
     // Transformar consulta a formato API
-    const planesFormatted: PlanEstudioAPIResponse[] = planesDB.map((plan) => ({
-      plan_id: plan.plan_id,
-      nombre_carrera: plan.nombre_carrera,
-      anio: plan.anio,
-    }))
+    const planesResponse: PlanEstudioAPIResponse[] = adaptPlanEstudioDBToAPIResponse(planesDB)
 
     // Retornar respuesta
     return NextResponse.json({
       success: true,
-      data: planesFormatted,
-      count: planesFormatted.length,
+      data: planesResponse,
+      count: planesResponse.length,
     })
   } catch (error) {
     console.error('Error GET planes de estudio')

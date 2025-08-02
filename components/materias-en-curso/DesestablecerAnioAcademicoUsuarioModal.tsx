@@ -36,7 +36,7 @@ export function DesestablecerAnioAcademicoUsuarioModal({
     if (exito) {
       toast({
         title: 'Año académico quitado de tu perfil',
-        description: 'Tu año académico ha sido eliminado correctamente',
+        description: 'Tu año académico ha sido eliminado exitosamente',
       })
       onDesestablecerAnio?.()
     } else {

@@ -82,7 +82,7 @@ export function EstablecerAnioAcademicoUsuarioModal({
     if (exito) {
       toast({
         title: '¡Éxito!',
-        description: 'Año académico establecido correctamente',
+        description: 'Año académico establecido exitosamente',
       })
 
       // Llamar al callback para refrescar la pantalla padre

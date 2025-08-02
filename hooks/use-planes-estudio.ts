@@ -107,7 +107,9 @@ export function usePlanesEstudio(options: UsePlanesEstudioListadoOptions = {}) {
 
     try {
       // Construir URL según si se especifica carreraId o no
-      const url = options.carreraId ? `/api/carreras/${options.carreraId}/planes` : '/api/planes-estudio'
+      const url = options.carreraId ?
+        `/api/planes-estudio?carreraId=${options.carreraId}` :
+        '/api/planes-estudio'
 
       const response = await fetch(url)
 

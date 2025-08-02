@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { Materia } from '@/models/materias.model'
+import { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-cursada.model'
+import { ApiResponse } from '@/models/api/api.model'
+import { adaptMateriaCursadaDisponibleAPIResponseToLocal } from '@/adapters/materias-cursada.model'
 
 interface UseMateriasDisponiblesOptions {
   usuarioId: number | null
@@ -27,7 +30,7 @@ export function useMateriasDisponibles(options: UseMateriasDisponiblesOptions) {
         throw new Error('Se requiere usuarioId y planEstudioId para obtener materias')
       }
 
-      const url = `/api/user/materias-en-curso/disponibles?usuarioId=${options.usuarioId}&planEstudioId=${options.planEstudioId}`
+      const url = `/api/user/materias-en-curso/disponibles?userId=${options.usuarioId}&planEstudioId=${options.planEstudioId}`
 
       const response = await fetch(url)
 
@@ -35,13 +38,9 @@ export function useMateriasDisponibles(options: UseMateriasDisponiblesOptions) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data = await response.json()
+      const result: ApiResponse<MateriaCursadaDisponibleAPIResponse[]> = await response.json()
 
-      const dataFormatted: Materia[] = data.materiasDisponibles.map((materia: any) => ({
-        idMateria: materia.id,
-        codigoMateria: materia.codigo,
-        nombreMateria: materia.nombre,
-      }))
+      const dataFormatted: Materia[] = adaptMateriaCursadaDisponibleAPIResponseToLocal(result.data)
 
       setMaterias(dataFormatted)
     } catch (err) {

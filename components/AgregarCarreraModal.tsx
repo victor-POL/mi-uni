@@ -96,7 +96,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
 
       toast({
         title: '¡Éxito!',
-        description: 'Carrera agregada correctamente',
+        description: 'Carrera agregada exitosamente',
       })
 
       // Llamar al callback para refrescar la lista en el componente padre

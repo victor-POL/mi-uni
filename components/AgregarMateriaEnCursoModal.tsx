@@ -84,9 +84,9 @@ export function AgregarMateriaEnCursoModal({ onCarreraAgregada }: Readonly<Agreg
 
     try {
       const bodyPost = {
-        usuarioId: userId as number,
-        planEstudioId: parseInt(selectedCarrera),
-        materiaId: parseInt(selectedMateria),
+        usuario_id: userId,
+        plan_estudio_id: parseInt(selectedCarrera),
+        materia_id: parseInt(selectedMateria),
       }
 
       const response = await fetch('/api/user/materias-en-curso/', {
@@ -104,7 +104,7 @@ export function AgregarMateriaEnCursoModal({ onCarreraAgregada }: Readonly<Agreg
 
       toast({
         title: 'Éxito',
-        description: 'Materia agregada correctamente',
+        description: 'Materia agregada exitosamente',
       })
 
       onCarreraAgregada?.()

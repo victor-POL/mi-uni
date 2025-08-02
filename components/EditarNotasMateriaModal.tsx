@@ -76,7 +76,7 @@ export function EditarNotasMateriaModal({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          usuarioId: materia.usuarioId,
+          userId: materia.usuarioId,
           planEstudioId: materia.planEstudioId,
           materiaId: materia.materiaId,
           notaPrimerParcial: formData.notaPrimerParcial ? parseFloat(formData.notaPrimerParcial) : null,
@@ -93,7 +93,7 @@ export function EditarNotasMateriaModal({
 
       toast({
         title: "Éxito",
-        description: "Notas actualizadas correctamente",
+        description: "Notas actualizadas exitosamente",
       })
 
       onSuccess()

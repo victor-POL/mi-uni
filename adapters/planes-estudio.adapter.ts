@@ -1,4 +1,5 @@
 import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
+import type { PlanEstudioDB, PlanEstudioDetalleDB } from '@/models/database/planes-estudio.model'
 import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
 import { getGenericErrorMessage, getErrorType, ErrorType } from '@/utils/error.util'
@@ -65,4 +66,44 @@ export const getPlanesEstudioErrorMessage = (error: unknown): string => {
 
   // Para otros tipos de errores, usar el mensaje genérico
   return getGenericErrorMessage(error)
+}
+
+
+export const adaptPlanEstudioDBToAPIResponse = (
+  planEstudioDB: PlanEstudioDB[]
+): PlanEstudioAPIResponse[] => {
+  return planEstudioDB.map((plan) => ({
+    plan_id: plan.plan_id,
+    nombre_carrera: plan.nombre_carrera,
+    anio: plan.anio,
+  }))
+}
+
+export const adaptPlanEstudioDetalleDBToAPIResponse = (
+  planDetalleDB: PlanEstudioDetalleDB
+): PlanEstudioDetalleAPIResponse => {
+  return {
+    plan_id: planDetalleDB.plan_id,
+    nombre_carrera: planDetalleDB.nombre_carrera,
+    anio: planDetalleDB.anio,
+    estadisticas: {
+      total_materias: planDetalleDB.estadisticas.total_materias,
+      horas_totales: planDetalleDB.estadisticas.horas_totales,
+      duracion_plan: planDetalleDB.estadisticas.duracion_plan,
+      materias_sin_correlativas: planDetalleDB.estadisticas.materias_sin_correlativas,
+    },
+    materias: planDetalleDB.materias.map((materia) => ({
+      codigo_materia: materia.codigo_materia,
+      nombre_materia: materia.nombre_materia,
+      anio_cursada: materia.anio_cursada,
+      cuatrimestre_cursada: materia.cuatrimestre,
+      horas_semanales: materia.horas_semanales,
+      tipo: materia.tipo,
+      estado_materia_usuario: materia.estado_materia_usuario,
+      lista_correlativas: materia.lista_correlativas.map((correlativa) => ({
+        codigo_materia: correlativa.codigo_materia,
+        nombre_materia: correlativa.nombre_materia,
+      })),
+    })),
+  }
 }

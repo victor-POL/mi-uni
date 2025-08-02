@@ -346,7 +346,7 @@ export async function obtenerHistorialAcademico(usuarioId: number, planEstudioId
          pm.anio_cursada as anio,
          pm.cuatrimestre,
          ume.nota,
-         ume.anio_cursada as anio_cursada,
+         ume.anio_academico as anio_cursada,
          ume.cuatrimestre as cuatrimestre_cursada,
          ume.estado,
          ume.fecha_actualizacion,

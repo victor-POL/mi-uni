@@ -23,7 +23,7 @@ export const getGenericErrorMessage = (error: unknown): string => {
   }
   
   if (message.includes('obtener el listado') || message.includes('database') || message.includes('conexión')) {
-    return 'La base de datos no está disponible. Verifica que el servicio esté funcionando correctamente.'
+    return 'La base de datos no está disponible. Verifica que el servicio esté funcionando exitosamente.'
   }
   
   if (message.includes('404') || message.includes('not found')) {
