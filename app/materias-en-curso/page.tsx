@@ -8,7 +8,7 @@ import { useMateriasEnCurso } from '@/hooks/use-materias-en-curso'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BookOpen, Clock, Edit, GraduationCap, Trash2, Calendar } from 'lucide-react'
+import { BookOpen, Clock, Edit, GraduationCap, Calendar } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 /* ------------------------------- COMPONENTES ------------------------------ */
 import { AppLayout } from '@/components/AppLayout'
@@ -18,6 +18,7 @@ import { AgregarMateriaEnCursoModal } from '@/components/AgregarMateriaEnCursoMo
 import { EditarNotasMateriaModal } from '@/components/EditarNotasMateriaModal'
 import { EstablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/EstablecerAnioAcademicoUsuarioModal'
 import { DesestablecerAnioAcademicoUsuarioModal } from '@/components/materias-en-curso/DesestablecerAnioAcademicoUsuarioModal'
+import { EliminarMateriaEnCursoModal } from '@/components/materias-en-curso/EliminarMateriaEnCursoModal'
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 /* --------------------------------- MODELS --------------------------------- */
@@ -54,17 +55,19 @@ export default function MateriasEnCursoPage() {
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [materiaEditando, setMateriaEditando] = useState<MateriaCursada | null>(null)
 
+  // Estado para el loading de eliminar materia
+  const [eliminandoMateria, setEliminandoMateria] = useState(false)
+
   // Handler para editar notas de una materia
   const handleEditarNotas = (materia: MateriaCursada) => {
     setMateriaEditando(materia)
     setModalEditarAbierto(true)
   }
 
-  const handleEliminarMateria = async (materia: MateriaCursada) => {
+  const eliminarMateria = async (materia: MateriaCursada) => {
     if (!userId) return
 
-    const confirmacion = window.confirm('¿Estás seguro de que deseas eliminar esta materia en curso?')
-    if (!confirmacion) return
+    setEliminandoMateria(true)
 
     try {
       const params = new URLSearchParams({
@@ -77,21 +80,32 @@ export default function MateriasEnCursoPage() {
         method: 'DELETE',
       })
 
-      if (!response.ok) throw new Error('Error eliminando materia')
+      const responseData = await response.json()
 
-      toast({
-        title: 'Éxito',
-        description: 'Materia eliminada exitosamente',
-      })
+      if (!responseData.success) {
+        toast({
+          title: 'Error',
+          description: responseData.error ,
+          variant: 'destructive',
+        })
 
-      refrescarInfoMateriasEnCurso()
-    } catch (error) {
-      console.error('Error:', error)
+        return
+      } else {
+        toast({
+          title: '¡Éxito!',
+          description: responseData.message,
+        })
+
+        refrescarInfoMateriasEnCurso()
+      }
+    } catch (err) {
       toast({
-        title: 'Error',
-        description: 'No se pudo eliminar la materia',
+        title: 'Error al eliminar materia',
+        description: err instanceof Error ? err.message : 'Ocurrió un error inesperado al eliminar la materia.',
         variant: 'destructive',
       })
+    } finally {
+      setEliminandoMateria(false)
     }
   }
 
@@ -107,7 +121,7 @@ export default function MateriasEnCursoPage() {
             </div>
           </div>
           {/* Loading Icon */}
-          <LoadingSpinner className='my-5' text="Obteniendo año academico y materias en curso" />
+          <LoadingSpinner className="my-5" text="Obteniendo año academico y materias en curso" />
         </AppLayout>
       </ProtectedRoute>
     )
@@ -299,9 +313,11 @@ export default function MateriasEnCursoPage() {
                             <Button size="sm" variant="outline" onClick={() => handleEditarNotas(materia)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => handleEliminarMateria(materia)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <EliminarMateriaEnCursoModal
+                              loading={eliminandoMateria}
+                              materia={materia}
+                              onConfirm={eliminarMateria}
+                            />
                           </div>
                         </div>
 
