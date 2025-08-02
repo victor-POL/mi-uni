@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { query } from '@/connection'
+import { query } from '@/lib/database/connection'
 
 import { obtenerEstadisticasHistorial, obtenerHistorialAcademico } from '@/lib/database/carreras.service'
 

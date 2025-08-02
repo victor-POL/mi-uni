@@ -1,4 +1,4 @@
-import { query } from '@/connection'
+import { query } from '@/lib/database/connection'
 import type {
   PlanEstudioDB,
   MateriaPlanEstudioDetalleDB,

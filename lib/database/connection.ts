@@ -14,7 +14,7 @@ const pool = new Pool({
   max: 20, // máximo número de conexiones en el pool
   idleTimeoutMillis: 30000, // tiempo de inactividad antes de cerrar la conexión
   connectionTimeoutMillis: 10000, // tiempo de espera para conectar (aumentado)
-  ssl: false // Explícitamente deshabilitar SSL para desarrollo local
+  ssl: false, // Explícitamente deshabilitar SSL para desarrollo local
 })
 
 // Función para ejecutar queries

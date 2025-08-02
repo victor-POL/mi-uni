@@ -2,7 +2,7 @@ import {
   adaptCarrerasUsuarioDBToAPIResponse,
   adaptEstadisticaCarreraDBToAPIResponse,
 } from '@/adapters/carreras.adapter'
-import { query } from '@/connection'
+import { query } from '@/lib/database/connection'
 import type {
   CarreraEstadisticasAPIResponse,
   CarreraUsuarioAPIResponse,

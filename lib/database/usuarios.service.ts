@@ -1,4 +1,4 @@
-import { query } from '@/connection'
+import { query } from '@/lib/database/connection'
 
 // Tipos para el usuario
 export interface Usuario {
