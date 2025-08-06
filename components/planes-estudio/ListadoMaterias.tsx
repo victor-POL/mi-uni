@@ -42,7 +42,7 @@ export function ListadoMaterias({ materiaResaltada, onClickCorrelativa }: Readon
                           {getNombreCuatrimestre(cuatrimestreCursada)}
                         </AccordionTrigger>
                         <AccordionContent className="pl-4">
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 m-1">
                             {materiasAgrupadas[anio][cuatrimestreCursada].map((materia) => (
                               <CardMateriaPlanEstudio
                                 key={materia.codigoMateria}
