@@ -222,7 +222,6 @@ export function SeccionFiltros() {
               <div className="col-span-1">
                 <Label htmlFor="filter-estadoMateriaUsuario" className="block text-sm font-medium text-gray-700 mb-2">
                   Estado
-                  {getWarningFilterEstadoMateriaUsuario()}
                 </Label>
                 <Select
                   value={filtersPlan.estadoMateriaUsuario}
@@ -257,6 +256,9 @@ export function SeccionFiltros() {
                   </Label>
                 </div>
               </div>
+
+              {/* Warning Message - Full Width */}
+              <div className="col-span-full">{getWarningFilterEstadoMateriaUsuario()}</div>
             </div>
           </div>
         )}

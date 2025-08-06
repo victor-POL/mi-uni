@@ -36,7 +36,7 @@ export default function PlanesEstudioPage() {
   } = useDetallePlanEstudio({
     planId: selectedPlanId,
     usuarioId: userId,
-    autoFetch: true,
+    autoFetch: selectedPlanId !== null,
   })
 
   // Auxiliar para ir a la materia resaltada
@@ -57,6 +57,7 @@ export default function PlanesEstudioPage() {
     }
   }, [errorPlanDetalle, toast])
 
+  // Consultar detalle del plan seleccionado
   const handleSubmitPlan = (planId: string) => {
     const planIdNum = parseInt(planId)
     if (planIdNum === selectedPlanId) return
@@ -75,6 +76,7 @@ export default function PlanesEstudioPage() {
     }
   }
 
+  /* ------------------------------- VISTA PAGE ------------------------------- */
   if (isLoadingPlanes) {
     return <PlanesEstudioLayout loading />
   }
@@ -100,27 +102,24 @@ export default function PlanesEstudioPage() {
       {/* Detalle del Plan Consultado */}
       {/* Placeholder detalle */}
       {isLoadingPlanDetalle && (
-        <div className="space-y-6">
+        <>
           <SkeletonEstadisticasPlanEstudio />
           <SkeletonMateriasPlanEstudio />
-        </div>
+        </>
       )}
 
       {/* Detalle real */}
       {!isLoadingPlanDetalle && detallePlanConsultado !== null && (
         <PlanesEstudioFiltrosProvider plan={detallePlanConsultado} isLoggedIn={isLoggedIn}>
-          <div className="space-y-6">
-            <div className="space-y-6">
-              <EstadisticasPlanComponent
-                nombreCarrera={detallePlanConsultado.nombreCarrera}
-                anioPlan={detallePlanConsultado.anio}
-                estadisticas={detallePlanConsultado.estadisticas}
-              />
-              <SeccionFiltros />
-            </div>
+          <EstadisticasPlanComponent
+            nombreCarrera={detallePlanConsultado.nombreCarrera}
+            anioPlan={detallePlanConsultado.anio}
+            estadisticas={detallePlanConsultado.estadisticas}
+          />
 
-            <ListadoMaterias materiaResaltada={materiaResaltada} onClickCorrelativa={navegarACorrelativa} />
-          </div>
+          <SeccionFiltros />
+
+          <ListadoMaterias materiaResaltada={materiaResaltada} onClickCorrelativa={navegarACorrelativa} />
         </PlanesEstudioFiltrosProvider>
       )}
     </PlanesEstudioLayout>

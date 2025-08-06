@@ -26,7 +26,7 @@ interface UsePlanesEstudioOptions {
  */
 export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planId: null, autoFetch: true }) {
   const [detallePlan, setDetallePlan] = useState<PlanDeEstudioDetalle | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(options.autoFetch)
   const [error, setError] = useState<string | null>(null)
 
   const fetchPlanes = async () => {
@@ -149,10 +149,11 @@ export function usePlanesEstudio(options: UsePlanesEstudioListadoOptions = {}) {
 
 /**
  * Hook específico para obtener listado básico de todos los planes
+ * Hara autofetch automáticamente
  * @returns Hook con lista básica de planes, loading, error y métodos de refetch
  */
 export function useAllPlanes() {
-  return usePlanesEstudio({ autoFetch: true })
+  return usePlanesEstudio({ carreraId: null, autoFetch: true })
 }
 
 /**
