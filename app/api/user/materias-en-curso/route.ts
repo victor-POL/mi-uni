@@ -19,7 +19,7 @@ import type {
 import {
   adaptEstadisticasMateriasEnCursoDBToLocal,
   agruparMateriasEnCursoPorCarrera,
-} from '@/adapters/materias-cursada.model'
+} from '@/adapters/materias-cursada.adapter'
 
 /**
  * GET /api/user/materias-en-curso?userId={id}

@@ -40,7 +40,7 @@ export interface EstadoMateriaUsuario {
  */
 export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]> {
   try {
-    const carrerasResult = await query(
+    const estadisticasResQuery = await query(
       `SELECT 
               usuario_plan_estudio.usuario_id, 
               usuario_plan_estudio.plan_estudio_id, 
@@ -57,7 +57,7 @@ export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]
       [usuarioId]
     )
 
-    const carrerrasDB: CarreraUsuarioDB[] = carrerasResult.rows as unknown as CarreraUsuarioDB[]
+    const carrerrasDB: CarreraUsuarioDB[] = estadisticasResQuery.rows as unknown as CarreraUsuarioDB[]
 
     return carrerrasDB
   } catch (error) {
@@ -73,7 +73,7 @@ export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]
  */
 export async function getCarrerasDisponibles(usuarioId: number): Promise<CarreraDB[]> {
   try {
-    const carrerasResult = await query(
+    const estadisticasResQuery = await query(
       `SELECT DISTINCT
               carrera.id      as carrera_id, 
               carrera.nombre  as carrera_nombre
@@ -88,7 +88,7 @@ export async function getCarrerasDisponibles(usuarioId: number): Promise<Carrera
       [usuarioId]
     )
 
-    const carrerasDB: CarreraDB[] = carrerasResult.rows as unknown as CarreraDB[]
+    const carrerasDB: CarreraDB[] = estadisticasResQuery.rows as unknown as CarreraDB[]
 
     return carrerasDB
   } catch (error) {
@@ -124,14 +124,14 @@ export async function insertCarrera(usuarioId: number, planEstudioId: number): P
       ])
 
       // 2. Obtener todas las materias del plan de estudio
-      const materiasPlanResult = await query(
+      const estadisticasResQuery = await query(
         `SELECT plan_materia.materia_id 
          FROM prod.plan_materia 
          WHERE plan_materia.plan_estudio_id = $1`,
         [planEstudioId]
       )
 
-      const materiasPlan: MateriaDelPlanDB[] = materiasPlanResult.rows as unknown as MateriaDelPlanDB[]
+      const materiasPlan: MateriaDelPlanDB[] = estadisticasResQuery.rows as unknown as MateriaDelPlanDB[]
 
       // 3. Crear registros de estado inicial para todas las materias
       if (materiasPlan.length > 0) {
@@ -173,12 +173,12 @@ export async function insertCarrera(usuarioId: number, planEstudioId: number): P
  */
 export async function eliminarCarrera(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
-    const result = await query('DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2', [
-      usuarioId,
-      planEstudioId,
-    ])
+    const estadisticasResQuery = await query(
+      'DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
+      [usuarioId, planEstudioId]
+    )
 
-    if (result.rowCount === 0) {
+    if (estadisticasResQuery.rowCount === 0) {
       throw new Error('No se encontró la carrera para eliminar')
     }
   } catch (error) {
@@ -201,7 +201,7 @@ export async function getEstadisticasProgreso(
   planEstudioId: number
 ): Promise<CarreraEstadisticasAPIResponse> {
   try {
-    const estadisticasResult = await query(
+    const estadisticasResQuery = await query(
       `SELECT 
          (SELECT COUNT(*) FROM prod.plan_materia WHERE plan_estudio_id = $2)      as total_materias_plan,
          COUNT(CASE WHEN usuario_materia_estado.estado = 'Aprobada' THEN 1 END)   as materias_aprobadas,
@@ -213,7 +213,7 @@ export async function getEstadisticasProgreso(
       [usuarioId, planEstudioId]
     )
 
-    const estadisticaCarrera: CarreraEstadisticasDB = estadisticasResult.rows[0] as unknown as CarreraEstadisticasDB
+    const estadisticaCarrera: CarreraEstadisticasDB = estadisticasResQuery.rows[0] as unknown as CarreraEstadisticasDB
 
     // Para "En Curso" consultamos la tabla usuario_materia_estado
     const cursandoResult = await query(
@@ -249,10 +249,13 @@ export async function getEstadisticasProgreso(
  * @param planEstudioId - ID del plan de estudio
  * @returns Promise con la historia academica del usuario en el plan de estudio
  */
-export async function getHistoriaAcademica(usuarioId: number, planEstudioId: number): Promise<MateriaHistoriaAcademica[]> {
+export async function getHistoriaAcademica(
+  usuarioId: number,
+  planEstudioId: number
+): Promise<MateriaHistoriaAcademica[]> {
   try {
     // Consultar todas las materias del usuario (incluyendo las en curso)
-    const result = await query(
+    const estadisticasResQuery = await query(
       `SELECT 
          ume.materia_id as id,
          m.codigo_materia as codigo,
@@ -283,7 +286,7 @@ export async function getHistoriaAcademica(usuarioId: number, planEstudioId: num
       [usuarioId, planEstudioId]
     )
 
-    return result.rows.map((row: any) => ({
+    return estadisticasResQuery.rows.map((row: any) => ({
       id: row.id,
       codigo: row.codigo,
       nombre: row.nombre,
@@ -305,16 +308,16 @@ export async function getHistoriaAcademica(usuarioId: number, planEstudioId: num
 
 /**
  * Obtiene las estadisticas de las materias en curso del usuario en un plan de estudio
- * @param usuarioId 
- * @param planEstudioId 
- * @returns 
+ * @param usuarioId
+ * @param planEstudioId
+ * @returns
  */
 export async function getEstadisticasMateriasEnCurso(
   usuarioId: number,
   planEstudioId: number
 ): Promise<EstadisticasMateriasEnCurso> {
   try {
-    const result = await query(
+    const estadisticasResQuery = await query(
       `SELECT 
          COUNT(*) as total_materias,
          COUNT(CASE WHEN ume.cuatrimestre = 0 THEN 1 END) as materias_anual,
@@ -341,7 +344,7 @@ export async function getEstadisticasMateriasEnCurso(
       [usuarioId, planEstudioId]
     )
 
-    const stats = result.rows[0]
+    const stats = estadisticasResQuery.rows[0]
     return {
       totalMaterias: parseInt(stats.total_materias) || 0,
       materiasAnual: parseInt(stats.materias_anual) || 0,
@@ -368,7 +371,7 @@ export async function getEstadisticasHistoriaAcademica(
 ): Promise<EstadisticasHistoriaAcademica> {
   try {
     // Obtener estadísticas completas incluyendo materias en curso
-    const result = await query(
+    const estadisticasResQuery = await query(
       `SELECT 
          COUNT(CASE WHEN ume.estado = 'Aprobada' THEN 1 END) as materias_aprobadas,
          COUNT(CASE WHEN ume.estado = 'Pendiente' THEN 1 END) as materias_pendientes,
@@ -381,15 +384,15 @@ export async function getEstadisticasHistoriaAcademica(
     )
 
     // Obtener total de materias en el plan
-    const resultTotal = await query(
+    const totalestadisticasResQuery = await query(
       `SELECT COUNT(*) as total_materias_plan
        FROM prod.plan_materia 
        WHERE plan_estudio_id = $1`,
       [planEstudioId]
     )
 
-    const stats = result.rows[0]
-    const statsTotal = resultTotal.rows[0]
+    const stats = estadisticasResQuery.rows[0]
+    const statsTotal = totalestadisticasResQuery.rows[0]
 
     return {
       totalMaterias: parseInt(statsTotal.total_materias_plan) || 0,

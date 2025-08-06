@@ -10,7 +10,15 @@ import { usePlanesCarrera } from '@/hooks/use-planes-estudio'
 import { SelectorNuevoPlan } from '@/components/mis-carreras/nueva-carrera/SelectorNuevoPlanEstudio'
 import { SelectorNuevaCarrera } from '@/components/mis-carreras/nueva-carrera/SelectorNuevaCarrera'
 /* ------------------------------ COMPONENTS UI ----------------------------- */
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
@@ -144,9 +152,7 @@ export const AgregarCarreraModal = ({ onCarreraAgregada }: AgregarCarreraModalPr
             <GraduationCap className="h-5 w-5" />
             Agregar Nueva Carrera
           </DialogTitle>
-          <DialogDescription>
-            Selecciona una carrera y su plan de estudio para agregarlo a tu cuenta
-          </DialogDescription>
+          <DialogDescription>Selecciona una carrera y su plan de estudio para agregarlo a tu cuenta</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

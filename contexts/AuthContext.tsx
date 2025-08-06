@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import type React from 'react'
 import { createContext, useContext, useEffect, useState, useMemo } from 'react'
@@ -10,11 +10,11 @@ import { mapFirebaseUserToPageUser } from '@/utils/user.util'
 import { createUnifiedUser } from '@/models/unified-user.model'
 
 interface AuthContextType {
-  user: UnifiedUser | null     // Usuario unificado
+  user: UnifiedUser | null // Usuario unificado
   loading: boolean
   isUserInitialized: boolean
-  isLoggedIn: boolean         // Nueva propiedad calculada
-  userId: number | undefined  // ID del usuario para API calls
+  isLoggedIn: boolean // Nueva propiedad calculada
+  userId: number | undefined // ID del usuario para API calls
   signOut: () => Promise<void>
 }
 
@@ -49,14 +49,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       // Mapear usuario de Firebase
       const user: PageUser = mapFirebaseUserToPageUser(firebaseUser)
-      
+
       // Determinar el tipo de proveedor
       const providerData = firebaseUser.providerData[0]
       const isGitHubProvider = providerData?.providerId === 'github.com'
-      
-      let response: Response | undefined = undefined
+
+      let response: Response | undefined
       let dbUser = null
-      
+
       if (isGitHubProvider) {
         // Extraer información para la API de GitHub
         const githubData = {
@@ -64,14 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || '',
           login: firebaseUser.email?.split('@')[0] || '',
-          avatar_url: firebaseUser.photoURL || undefined
+          avatar_url: firebaseUser.photoURL || undefined,
         }
-        
+
         // Sincronizar con base de datos como GitHub
         response = await fetch('/api/auth/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ githubData })
+          body: JSON.stringify({ githubData }),
         })
       } else {
         // Es email/password - extraer información para la API
@@ -79,14 +79,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
           displayName: firebaseUser.displayName || undefined,
-          photoURL: firebaseUser.photoURL || undefined
+          photoURL: firebaseUser.photoURL || undefined,
         }
-        
+
         // Sincronizar con base de datos como Email/Password
         response = await fetch('/api/auth/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ emailPasswordData })
+          body: JSON.stringify({ emailPasswordData }),
         })
       }
 
@@ -102,10 +102,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const providerType = isGitHubProvider ? 'github.com' : 'password'
       const unifiedUser = createUnifiedUser(user, dbUser, providerType)
       setUser(unifiedUser)
-            
     } catch (error) {
       console.error('💥 Error sincronizando usuario:', error)
-      
+
       // En caso de error, crear usuario solo con datos de Firebase
       const user: PageUser = mapFirebaseUserToPageUser(firebaseUser)
       const fallbackUser = createUnifiedUser(user, null, 'unknown')
@@ -115,17 +114,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     console.log('🔧 1.Configurando listener de autenticación...')
-    
+
     const unsubscribe = onAuthStateChanged(async (firebaseUser: User | null) => {
       console.log('🔔 1. Estado de autenticación cambió:', firebaseUser ? 'Logueado' : 'Deslogueado')
-      
+
       if (firebaseUser) {
         console.log('👤 2. Usuario Firebase:', {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          displayName: firebaseUser.displayName
+          displayName: firebaseUser.displayName,
         })
-        
+
         await syncCompleteUser(firebaseUser)
       } else {
         console.log('🚪 2. Limpiando usuario...')
@@ -167,9 +166,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user, loading, isUserInitialized])
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

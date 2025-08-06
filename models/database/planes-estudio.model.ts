@@ -5,7 +5,6 @@ export interface PlanEstudioDB {
   nombre_carrera: string
 }
 
-
 export interface MateriasPlanDB {
   plan_estudio_id: number
   materia_id: number
@@ -32,7 +31,6 @@ export interface EstadisticasPlanDB {
   duracion_plan: number
   materias_sin_correlativas: number
 }
-
 
 export interface MateriaPlanEstudioDetalleDB {
   plan_estudio_id: number

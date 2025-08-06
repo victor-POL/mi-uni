@@ -85,7 +85,7 @@ export default function MateriasEnCursoPage() {
       if (!responseData.success) {
         toast({
           title: 'Error',
-          description: responseData.error ,
+          description: responseData.error,
           variant: 'destructive',
         })
 

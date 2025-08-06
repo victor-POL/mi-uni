@@ -22,7 +22,7 @@ export const transformPlanAPIResponseToLocal = (
       duracion: detallePlanAPIResponse.estadisticas.duracion_plan,
       materiasSinCorrelativas: detallePlanAPIResponse.estadisticas.materias_sin_correlativas,
     },
-    materias: detallePlanAPIResponse.materias.map((materia: any) => ({
+    materias: detallePlanAPIResponse.materias.map((materia) => ({
       codigoMateria: materia.codigo_materia,
       nombreMateria: materia.nombre_materia,
       anioCursada: materia.anio_cursada,
@@ -37,7 +37,6 @@ export const transformPlanAPIResponseToLocal = (
     })),
   }
 }
-
 
 /**
  * Adapta la respuesta de la API /api/planes-estudio al modelo local PlanEstudio
@@ -68,10 +67,7 @@ export const getPlanesEstudioErrorMessage = (error: unknown): string => {
   return getGenericErrorMessage(error)
 }
 
-
-export const adaptPlanEstudioDBToAPIResponse = (
-  planEstudioDB: PlanEstudioDB[]
-): PlanEstudioAPIResponse[] => {
+export const adaptPlanEstudioDBToAPIResponse = (planEstudioDB: PlanEstudioDB[]): PlanEstudioAPIResponse[] => {
   return planEstudioDB.map((plan) => ({
     plan_id: plan.plan_id,
     nombre_carrera: plan.nombre_carrera,

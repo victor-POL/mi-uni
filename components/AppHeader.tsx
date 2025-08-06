@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import type React from "react"
-import Link from "next/link"
-import { useRouter, usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
-import { UserAvatar } from "@/components/UserAvatar"
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import type React from 'react'
+import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { UserAvatar } from '@/components/UserAvatar'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 
 interface AppHeaderProps {
   title?: string
@@ -15,7 +15,7 @@ interface AppHeaderProps {
   backHref?: string
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButton = true, backHref }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ title = '-', showBackButton = true, backHref }) => {
   const router = useRouter()
   const pathname = usePathname()
   const { user, isUserInitialized } = useAuth()
@@ -30,7 +30,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButto
   }
 
   // Determinar si la sidebar está visible
-  const isSidebarVisible = isMobile ? openMobile : state === "expanded"
+  const isSidebarVisible = isMobile ? openMobile : state === 'expanded'
 
   const renderUserSection = () => {
     if (!isUserInitialized) {
@@ -50,7 +50,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButto
       if (isSidebarVisible) {
         return <UserAvatar user={user} size={32} />
       }
-      
+
       // Si la sidebar no está visible, mostrar información completa
       return (
         <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButto
           {/* Left side */}
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            {showBackButton && pathname !== "/" && (
+            {showBackButton && pathname !== '/' && (
               <Button variant="ghost" size="icon" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -99,9 +99,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ title = "-", showBackButto
           </div>
 
           {/* Right side - solo UserAvatar cuando sidebar está visible */}
-          <div className="flex items-center gap-3">
-            {renderUserSection()}
-          </div>
+          <div className="flex items-center gap-3">{renderUserSection()}</div>
         </div>
       </div>
     </header>

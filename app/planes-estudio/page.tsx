@@ -27,16 +27,16 @@ export default function PlanesEstudioPage() {
 
   // Plan seleccionado para consultar detalles
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
-  
+
   // Hook para obtener detalles del plan (con autoFetch habilitado)
-  const { 
-    detallePlan: detallePlanConsultado, 
-    loading: isLoadingPlanDetalle, 
-    error: errorPlanDetalle
-  } = useDetallePlanEstudio({ 
-    planId: selectedPlanId, 
+  const {
+    detallePlan: detallePlanConsultado,
+    loading: isLoadingPlanDetalle,
+    error: errorPlanDetalle,
+  } = useDetallePlanEstudio({
+    planId: selectedPlanId,
     usuarioId: userId,
-    autoFetch: true 
+    autoFetch: true,
   })
 
   // Auxiliar para ir a la materia resaltada

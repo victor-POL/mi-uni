@@ -19,25 +19,16 @@ export async function POST(request: NextRequest) {
 
     // Validar que tenemos algún tipo de datos
     if (!githubData && !emailPasswordData) {
-      return NextResponse.json(
-        { error: 'Either GitHub data or Email/Password data is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Either GitHub data or Email/Password data is required' }, { status: 400 })
     }
 
     // Validar datos específicos según el tipo
     if (githubData && (!githubData.id || !githubData.email)) {
-      return NextResponse.json(
-        { error: 'GitHub data requires id and email' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'GitHub data requires id and email' }, { status: 400 })
     }
 
     if (emailPasswordData && (!emailPasswordData.id || !emailPasswordData.email)) {
-      return NextResponse.json(
-        { error: 'Email/Password data requires id (Firebase UID) and email' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email/Password data requires id (Firebase UID) and email' }, { status: 400 })
     }
 
     try {
@@ -68,31 +59,29 @@ export async function POST(request: NextRequest) {
             nombre: user.nombre,
             apellido: user.apellido,
             email: user.email,
-            creado_at: user.creado_at
-          }
+            creado_at: user.creado_at,
+          },
         },
-        message: 'User authenticated successfully'
+        message: 'User authenticated successfully',
       })
-
     } catch (error) {
       console.error('Error in user authentication:', error)
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Database error during authentication',
-          message: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
+          message: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error',
         },
         { status: 500 }
       )
     }
-
   } catch (error) {
     console.error('API Error in auth:', error)
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Invalid request',
-        message: 'Could not parse request body'
+        message: 'Could not parse request body',
       },
       { status: 400 }
     )
@@ -105,10 +94,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'userId parameter is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'userId parameter is required' }, { status: 400 })
     }
 
     try {
@@ -118,37 +104,32 @@ export async function GET(request: NextRequest) {
       }
 
       const userWithAuth = await usuariosService.getUserWithAuth(parseInt(userId))
-      
+
       if (!userWithAuth) {
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
       }
 
       return NextResponse.json({
         success: true,
-        data: userWithAuth
+        data: userWithAuth,
       })
-
     } catch (error) {
       console.error('Error getting user:', error)
       return NextResponse.json(
-        { 
+        {
           success: false,
           error: 'Database error',
-          message: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error'
+          message: process.env.NODE_ENV === 'development' ? (error as Error).message : 'Internal server error',
         },
         { status: 500 }
       )
     }
-
   } catch (error) {
     console.error('API Error:', error)
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
       },
       { status: 500 }
     )

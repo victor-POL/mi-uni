@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import type React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, BookOpen, Calendar, GraduationCap, User, LogOut } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
-import { UserAvatar } from "@/components/UserAvatar"
-import { Button } from "@/components/ui/button"
+import type React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Home, BookOpen, Calendar, GraduationCap, User, LogOut } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { UserAvatar } from '@/components/UserAvatar'
+import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 export const AppSidebar: React.FC = () => {
   const pathname = usePathname()
@@ -27,44 +27,44 @@ export const AppSidebar: React.FC = () => {
 
   const publicItems = [
     {
-      name: "Inicio",
-      href: "/",
+      name: 'Inicio',
+      href: '/',
       icon: Home,
     },
     {
-      name: "Planes de Estudio",
-      href: "/planes-estudio",
+      name: 'Planes de Estudio',
+      href: '/planes-estudio',
       icon: GraduationCap,
     },
     {
-      name: "Oferta de Materias",
-      href: "/oferta-materias",
+      name: 'Oferta de Materias',
+      href: '/oferta-materias',
       icon: Calendar,
     },
   ]
 
   const privateItems = [
     {
-      name: "Mis Carreras",
-      href: "/mis-carreras",
+      name: 'Mis Carreras',
+      href: '/mis-carreras',
       icon: User,
     },
     {
-      name: "Materias en Curso",
-      href: "/materias-en-curso",
+      name: 'Materias en Curso',
+      href: '/materias-en-curso',
       icon: BookOpen,
     },
   ]
 
   const devItems = [
     {
-      name: "Test Auth Firebase",
-      href: "/test-firebase-auth",
+      name: 'Test Auth Firebase',
+      href: '/test-firebase-auth',
       icon: User,
     },
     {
-      name: "Configuración Cuenta",
-      href: "/account-settings",
+      name: 'Configuración Cuenta',
+      href: '/account-settings',
       icon: User,
     },
   ]
@@ -88,7 +88,9 @@ export const AppSidebar: React.FC = () => {
           <div className="flex items-center gap-3 p-2">
             <UserAvatar user={user} size={32} />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user.firebaseDisplayName || user.nombre || user.email}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {user.firebaseDisplayName || user.nombre || user.email}
+              </p>
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
           </div>
@@ -184,7 +186,7 @@ export const AppSidebar: React.FC = () => {
               </>
             )
           }
-          
+
           if (user) {
             // Operaciones privadas para usuarios autenticados
             return (
@@ -234,7 +236,7 @@ export const AppSidebar: React.FC = () => {
               </>
             )
           }
-          
+
           return null
         })()}
       </SidebarContent>

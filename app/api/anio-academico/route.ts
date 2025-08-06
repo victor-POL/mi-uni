@@ -6,7 +6,7 @@ import type { AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.
 
 import type { AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-cursada.model'
 
-import { adaptAnioAcademicoVigenteDBToAPIResponse } from '@/adapters/materias-cursada.model'
+import { adaptAnioAcademicoVigenteDBToAPIResponse } from '@/adapters/materias-cursada.adapter'
 
 /**
  * GET /api/anio-academico

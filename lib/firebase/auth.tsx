@@ -4,13 +4,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile,
   onAuthStateChanged as _onAuthStateChanged,
   onIdTokenChanged as _onIdTokenChanged,
   linkWithCredential,
   EmailAuthProvider,
   fetchSignInMethodsForEmail,
-  signInWithCredential,
 } from 'firebase/auth'
 
 import { auth } from '@/lib/firebase/clientApp'
@@ -46,7 +44,7 @@ export async function signInWithEmailAdvanced(email: string, password: string) {
     if (error.code === 'auth/user-not-found') {
       // Verificar si la cuenta existe con otro proveedor
       const signInMethods = await fetchSignInMethodsForEmail(auth, email)
-      
+
       if (signInMethods.includes('github.com')) {
         throw new Error(`Esta cuenta existe con GitHub. Por favor inicia sesión con GitHub primero.`)
       }
@@ -69,9 +67,11 @@ export async function signUpWithEmailAdvanced(email: string, password: string) {
     if (error.code === 'auth/email-already-in-use') {
       // Verificar qué métodos están disponibles para este email
       const signInMethods = await fetchSignInMethodsForEmail(auth, email)
-      
+
       if (signInMethods.includes('github.com')) {
-        throw new Error(`Esta cuenta ya existe con GitHub. Inicia sesión con GitHub y luego podrás vincular email/password en configuraciones.`)
+        throw new Error(
+          `Esta cuenta ya existe con GitHub. Inicia sesión con GitHub y luego podrás vincular email/password en configuraciones.`
+        )
       } else if (signInMethods.includes('password')) {
         throw new Error(`Ya existe una cuenta con este email. Por favor inicia sesión.`)
       }
@@ -95,7 +95,7 @@ export async function linkEmailPassword(email: string, password: string) {
   if (!user) {
     throw new Error('No user is currently signed in')
   }
-  
+
   const credential = EmailAuthProvider.credential(email, password)
   return linkWithCredential(user, credential)
 }
@@ -105,25 +105,27 @@ export async function handleAccountExistsError(error: any, email: string, passwo
   if (error.code === 'auth/account-exists-with-different-credential') {
     // Obtener los métodos de login disponibles para este email
     const signInMethods = await fetchSignInMethodsForEmail(auth, email)
-    
+
     if (signInMethods.includes('password')) {
       // El usuario ya tiene una cuenta con email/password
       // Intentar hacer login con email/password primero
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      
+
       // Luego vincular la credencial de GitHub
       if (error.credential) {
         await linkWithCredential(userCredential.user, error.credential)
       }
-      
+
       return userCredential
     } else if (signInMethods.includes('github.com')) {
       // El usuario ya tiene una cuenta con GitHub
       // Necesitamos que se autentique primero con GitHub
-      throw new Error('Esta cuenta ya existe con GitHub. Por favor inicia sesión con GitHub primero y luego podrás vincular email/password en configuraciones.')
+      throw new Error(
+        'Esta cuenta ya existe con GitHub. Por favor inicia sesión con GitHub primero y luego podrás vincular email/password en configuraciones.'
+      )
     }
   }
-  
+
   throw error
 }
 
@@ -142,7 +144,7 @@ function handleGitHubError(error: any): string {
 // Función auxiliar para manejar conflictos de cuenta
 async function handleAccountConflict(error: any): Promise<string> {
   const email = error.customData?.email || error.email
-  
+
   if (!email) {
     return `Ya existe una cuenta con este email usando un método diferente. Por favor:
 1. Inicia sesión con email/contraseña si tienes una cuenta registrada
@@ -152,7 +154,7 @@ async function handleAccountConflict(error: any): Promise<string> {
 
   try {
     const signInMethods = await fetchSignInMethodsForEmail(auth, email)
-    
+
     if (signInMethods.includes('password')) {
       return `Esta cuenta ya existe con email/password (${email}). Por favor:
 1. Inicia sesión con tu email y contraseña
@@ -172,12 +174,11 @@ export async function signInWithGitHubAdvanced() {
     const provider = new GithubAuthProvider()
     return await signInWithPopup(auth, provider)
   } catch (error: any) {
-    
     if (error.code === 'auth/account-exists-with-different-credential') {
       const errorMessage = await handleAccountConflict(error)
       throw new Error(errorMessage)
     }
-    
+
     const errorMessage = handleGitHubError(error)
     throw new Error(errorMessage)
   }

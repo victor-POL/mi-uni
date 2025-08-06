@@ -51,11 +51,7 @@ export function DesestablecerAnioAcademicoUsuarioModal({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-500 hover:text-red-600"
-        >
+        <Button variant="ghost" size="sm" className="text-gray-500 hover:text-red-600">
           Quitar
         </Button>
       </AlertDialogTrigger>
@@ -63,10 +59,10 @@ export function DesestablecerAnioAcademicoUsuarioModal({
         <AlertDialogHeader>
           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción eliminará permanentemente el año académico establecido en tu perfil. Se perderán todos los
-            datos cargados a tus materias en curso y no podrás recuperarlos. Las mismas regresarán al estado en el
-            que estaban antes de establecer el año académico y podrás agregarlas a tus materias en curso una vez que
-            establezcas un nuevo año académico.
+            Esta acción eliminará permanentemente el año académico establecido en tu perfil. Se perderán todos los datos
+            cargados a tus materias en curso y no podrás recuperarlos. Las mismas regresarán al estado en el que estaban
+            antes de establecer el año académico y podrás agregarlas a tus materias en curso una vez que establezcas un
+            nuevo año académico.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

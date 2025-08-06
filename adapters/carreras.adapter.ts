@@ -4,7 +4,7 @@ import type {
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
 } from '@/models/api/carreras.model'
-import type { CarreraDB, CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
+import type { CarreraDB, CarreraEstadisticasDB } from '@/models/database/carreras.model'
 import type { Carrera, CarreraResumen } from '@/models/mis-carreras.model'
 
 /**
@@ -49,21 +49,6 @@ export const adaptCarrerasDisponiblesUsuarioAPIResponse = (
   return carreras.map((carrera) => ({
     idCarrera: carrera.carrera_id,
     nombreCarrera: carrera.nombre_carrera,
-  }))
-}
-
-/**
- * Adapta la respuesta de la DB CarreraUsuarioDB al modelo API CarreraUsuarioAPIResponse
- * @param carreras - CarreraUsuarioDB[] - Lista de carreras del usuario desde la DB
- * @returns CarreraUsuarioAPIResponse[] - Lista de carreras adaptada al modelo API
- */
-export const adaptCarrerasUsuarioDBToAPIResponse = (carreras: CarreraUsuarioDB[]): CarreraUsuarioAPIResponse[] => {
-  return carreras.map((carrera) => ({
-    usuario_id: carrera.usuario_id,
-    plan_estudio_id: carrera.plan_estudio_id,
-    carrera_id: carrera.carrera_id,
-    anio: carrera.anio,
-    carrera_nombre: carrera.carrera_nombre,
   }))
 }
 

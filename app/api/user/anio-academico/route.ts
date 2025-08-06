@@ -1,16 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import {
-  deleteAnioAcademico,
-  insertAnioAcademico,
-  getAnioAcademico,
-} from '@/lib/database/anio-academico.service'
+import { deleteAnioAcademico, insertAnioAcademico, getAnioAcademico } from '@/lib/database/anio-academico.service'
 
 import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.model'
 
 import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
 
-import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.model'
+import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.adapter'
 
 /**
  * GET /api/user/anio-academico?userId={id}

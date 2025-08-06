@@ -58,7 +58,10 @@ export default function MateriaDetallePage() {
                 <CardTitle className="text-2xl">{materia.nombreMateria}</CardTitle>
                 <CardDescription className="text-lg mt-2">{materia.descripcion}</CardDescription>
               </div>
-              <Badge variant="secondary" className="flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5">
+              <Badge
+                variant="secondary"
+                className="flex items-center justify-center gap-2 whitespace-nowrap px-3 py-1.5"
+              >
                 <Clock className="h-4 w-4 flex-shrink-0" />
                 <span className="leading-none">{materia.horasSemanales} horas/semana</span>
               </Badge>
@@ -72,8 +75,8 @@ export default function MateriaDetallePage() {
                   Profesores
                 </h3>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  {materia.profesores.map((profesor, index) => (
-                    <li key={index}>{profesor}</li>
+                  {materia.profesores.map((profesor) => (
+                    <li key={profesor}>{profesor}</li>
                   ))}
                 </ul>
               </div>
@@ -97,9 +100,9 @@ export default function MateriaDetallePage() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {materia.correlativas.map((correlativa) => (
-                  <Link key={correlativa} href={`/materias/${correlativa}`}>
+                  <Link key={correlativa.codigoMateria} href={`/materias/${correlativa.codigoMateria}`}>
                     <Badge variant="outline" className="hover:bg-gray-100 cursor-pointer">
-                      {correlativa}
+                      {correlativa.nombreMateria}
                     </Badge>
                   </Link>
                 ))}
@@ -115,8 +118,8 @@ export default function MateriaDetallePage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {materia.objetivos.map((objetivo, index) => (
-                <li key={index} className="flex items-start gap-2">
+              {materia.objetivos.map((objetivo) => (
+                <li key={objetivo} className="flex items-start gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-gray-700">{objetivo}</span>
                 </li>
@@ -135,9 +138,9 @@ export default function MateriaDetallePage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
-              {materia.linksUtiles.map((link, index) => (
+              {materia.linksUtiles.map((link) => (
                 <a
-                  key={index}
+                  key={link.titulo}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -161,8 +164,8 @@ export default function MateriaDetallePage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {materia.bibliografia.map((libro, index) => (
-                <li key={index} className="flex items-start gap-2">
+              {materia.bibliografia.map((libro) => (
+                <li key={libro} className="flex items-start gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                   <span className="text-gray-700">{libro}</span>
                 </li>

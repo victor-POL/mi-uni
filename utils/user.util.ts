@@ -1,11 +1,11 @@
-import type { PageUser, UserFirebase } from "@/models/user.model"
+import type { PageUser, UserFirebase } from '@/models/user.model'
 
 export const mapFirebaseUserToPageUser = (user: UserFirebase): PageUser => {
   return {
     id: user.uid,
-    email: user.email || "",
-    displayName: user.displayName || "",
-    photoURL: user.photoURL || "",
+    email: user.email || '',
+    displayName: user.displayName || '',
+    photoURL: user.photoURL || '',
   }
 }
 
@@ -45,6 +45,6 @@ export const getUserIdToPass = (user: any): number | undefined => {
   if (!isAuthenticatedWithValidId(user)) {
     return undefined
   }
-  
+
   return extractUserId(user)
 }

@@ -1,4 +1,4 @@
-import type { PlanDeEstudioMateriasEnCurso } from "@/models/plan-estudio.model";
+import type { PlanDeEstudioMateriasEnCurso } from '@/models/plan-estudio.model'
 
 export const planesDeEstudioMateriasEnCurso: PlanDeEstudioMateriasEnCurso[] = [
   {

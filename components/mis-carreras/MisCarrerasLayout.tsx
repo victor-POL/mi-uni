@@ -48,9 +48,7 @@ export function MisCarrerasLayout({
                   <p className="text-gray-500 mb-6">
                     Comienza agregando tu primera carrera para ver tu progreso académico
                   </p>
-                  <div className="flex justify-center">
-                    {children || <AgregarCarreraModal />}
-                  </div>
+                  <div className="flex justify-center">{children || <AgregarCarreraModal />}</div>
                 </CardContent>
               </Card>
             </div>

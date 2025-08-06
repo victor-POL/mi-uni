@@ -62,7 +62,7 @@ const TabSkeleton = () => (
   </div>
 )
 
-export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
+export function CarreraDetalle({ carrera, usuarioId }: Readonly<CarreraDetalleProps>) {
   const { toast } = useToast()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('resumen')
@@ -101,7 +101,7 @@ export function CarreraDetalle({ carrera, usuarioId }: CarreraDetalleProps) {
         throw new Error(result.error || 'Error desconocido al cargar materias en curso')
       }
 
-      if(result.data.materias_por_carrera.length === 0) {
+      if (result.data.materias_por_carrera.length === 0) {
         setMateriasEnCurso({
           materias: [],
           estadisticas: {

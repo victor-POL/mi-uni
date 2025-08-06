@@ -14,9 +14,12 @@ import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-cursada.mo
  * @param planEstudioId - Opcional - ID del plan de estudio específico a obtener
  * @returns Promise con array de materias en curso del usuario
  */
-export async function getMateriasEnCurso(usuarioId: number, planEstudioId?: number): Promise<MateriaEnCursoUsuarioDB[]> {
+export async function getMateriasEnCurso(
+  usuarioId: number,
+  planEstudioId?: number
+): Promise<MateriaEnCursoUsuarioDB[]> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `SELECT 
          umc.usuario_id,
          umc.plan_estudio_id,
@@ -47,7 +50,7 @@ export async function getMateriasEnCurso(usuarioId: number, planEstudioId?: numb
       [usuarioId, planEstudioId || null]
     )
 
-    const materiasEnCursoDB: MateriaEnCursoUsuarioDB[] = result.rows as unknown as MateriaEnCursoUsuarioDB[]
+    const materiasEnCursoDB: MateriaEnCursoUsuarioDB[] = resQuery.rows as unknown as MateriaEnCursoUsuarioDB[]
 
     return materiasEnCursoDB
   } catch (error) {
@@ -67,7 +70,7 @@ export async function getMateriasEnCursoDisponibles(
   planEstudioId: number
 ): Promise<MateriaCursadaDisponibleDB[]> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `SELECT 
          m.id,
          m.codigo_materia,
@@ -90,7 +93,7 @@ export async function getMateriasEnCursoDisponibles(
       [planEstudioId, usuarioId]
     )
 
-    const materiasDisponibles = result.rows as unknown as MateriaCursadaDisponibleDB[]
+    const materiasDisponibles = resQuery.rows as unknown as MateriaCursadaDisponibleDB[]
 
     return materiasDisponibles
   } catch (error) {
@@ -202,7 +205,7 @@ export async function updateNotasMateriaEnCurso(datos: ActualizarNotasMateriaEnC
  */
 export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: number, materiaId: number): Promise<void> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `DELETE FROM prod.usuario_materia_cursada 
        WHERE usuario_id = $1 
          AND plan_estudio_id = $2 
@@ -210,7 +213,7 @@ export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: num
       [usuarioId, planEstudioId, materiaId]
     )
 
-    if (result.rowCount === 0) {
+    if (resQuery.rowCount === 0) {
       throw new Error('Materia en curso no encontrada')
     }
   } catch (error) {
@@ -227,9 +230,12 @@ export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: num
  * @param usuarioId - ID del usuario para obtener sus estadísticas de materias en curso
  * @returns Promise con las estadísticas de materias en curso del usuario
  */
-export async function getEstadisticasMateriasEnCurso(usuarioId: number, planEstudioId?: number): Promise<EstadisticasMateriasEnCursoDB> {
+export async function getEstadisticasMateriasEnCurso(
+  usuarioId: number,
+  planEstudioId?: number
+): Promise<EstadisticasMateriasEnCursoDB> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `SELECT 
          COUNT(*) as total_materias,
          COUNT(CASE WHEN pm.cuatrimestre = 0 THEN 1 END) as materias_anual,
@@ -254,7 +260,7 @@ export async function getEstadisticasMateriasEnCurso(usuarioId: number, planEstu
       [usuarioId, planEstudioId || null]
     )
 
-    const estadisticasMaterias = result.rows[0] as unknown as EstadisticasMateriasEnCursoDB
+    const estadisticasMaterias = resQuery.rows[0] as unknown as EstadisticasMateriasEnCursoDB
 
     return estadisticasMaterias
   } catch (error) {

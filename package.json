@@ -6,7 +6,10 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "type-check": "tsc",
+    "biome-format": "biome format --write ./components/planes-estudio/",
+    "biome-lint": "biome check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

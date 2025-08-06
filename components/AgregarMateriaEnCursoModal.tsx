@@ -8,7 +8,14 @@ import { useMateriasDisponibles } from '@/hooks/use-materias-disponibles'
 /* ------------------------------- COMPONENTES ------------------------------ */
 import { SelectorCarreraUsuario } from '@/components/materias-en-curso/SelectorCarreraUsuario'
 /* ----------------------------- COMPONENTES UI ----------------------------- */
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { DialogTrigger } from '@radix-ui/react-dialog'
@@ -148,7 +155,9 @@ export function AgregarMateriaEnCursoModal({ onCarreraAgregada }: Readonly<Agreg
             <NotebookPen className="h-5 w-5" />
             Agregar Materia en Curso
           </DialogTitle>
-          <DialogDescription>Selecciona una carrera y una materia para agregarla a tus materias en curso</DialogDescription>
+          <DialogDescription>
+            Selecciona una carrera y una materia para agregarla a tus materias en curso
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

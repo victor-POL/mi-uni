@@ -1,7 +1,7 @@
 import {
   adaptEstadisticasMateriasEnCursoAPIResponseToLocal,
   adaptMateriasPorCarreraCursadaAPIResponseToLocal,
-} from '@/adapters/materias-cursada.model'
+} from '@/adapters/materias-cursada.adapter'
 import type { ApiResponse } from '@/models/api/api.model'
 import type { MateriasEnCursoAPIResponse } from '@/models/api/materias-cursada.model'
 import type { MateriasEnCurso } from '@/models/materias-cursada.model'

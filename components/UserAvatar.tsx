@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import Image from "next/image"
-import type React from "react"
-import { User as UserIcon } from "lucide-react"
+import Image from 'next/image'
+import type React from 'react'
+import { User as UserIcon } from 'lucide-react'
 
 interface UserAvatarProps {
   user: {
@@ -17,36 +17,35 @@ interface UserAvatarProps {
   showPlaceholder?: boolean
 }
 
-export const UserAvatar: React.FC<UserAvatarProps> = ({ 
-  user, 
-  size = 32, 
-  className = "",
-  showPlaceholder = true 
-}) => {
+export const UserAvatar: React.FC<UserAvatarProps> = ({ user, size = 32, className = '', showPlaceholder = true }) => {
   const baseClasses = `rounded-full ${className}`
-  
+
   // Si hay usuario y tiene foto
   if (user?.firebasePhotoURL) {
     return (
-      <Image 
-        src={user.firebasePhotoURL} 
-        alt={user.firebaseDisplayName || user.nombre || user.email || "Avatar"} 
+      <Image
+        src={user.firebasePhotoURL}
+        alt={user.firebaseDisplayName || user.nombre || user.email || 'Avatar'}
         width={size}
         height={size}
         className={`${baseClasses} object-cover`}
       />
     )
   }
-  
+
   // Si hay usuario pero no tiene foto, mostrar iniciales
   if (user && !user.firebasePhotoURL) {
     const displayName = user.firebaseDisplayName || `${user.nombre || ''} ${user.apellido || ''}`.trim()
-    const initials = displayName 
-      ? displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    const initials = displayName
+      ? displayName
+          .split(' ')
+          .map((n: string) => n[0])
+          .join('')
+          .toUpperCase()
       : user.email?.charAt(0).toUpperCase() || '?'
-    
+
     return (
-      <div 
+      <div
         className={`${baseClasses} bg-blue-500 text-white flex items-center justify-center text-sm font-medium`}
         style={{ width: size, height: size }}
       >
@@ -54,11 +53,11 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       </div>
     )
   }
-  
+
   // Placeholder cuando no hay usuario o está cargando
   if (showPlaceholder) {
     return (
-      <div 
+      <div
         className={`${baseClasses} bg-gray-200 text-gray-400 flex items-center justify-center animate-pulse`}
         style={{ width: size, height: size }}
       >
@@ -66,6 +65,6 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       </div>
     )
   }
-  
+
   return null
 }

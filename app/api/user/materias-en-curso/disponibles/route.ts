@@ -6,7 +6,7 @@ import type { MateriaCursadaDisponibleDB } from '@/models/database/materias-curs
 
 import type { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-cursada.model'
 
-import { adaptMateriaCursadaDisponibleDBToAPIResponse } from '@/adapters/materias-cursada.model'
+import { adaptMateriaCursadaDisponibleDBToAPIResponse } from '@/adapters/materias-cursada.adapter'
 
 /**
  * GET /api/user/materias-en-curso/disponibles?userId={id}&planEstudioId={planId}

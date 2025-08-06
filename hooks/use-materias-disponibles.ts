@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { Materia } from '@/models/materias.model'
-import { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-cursada.model'
-import { ApiResponse } from '@/models/api/api.model'
-import { adaptMateriaCursadaDisponibleAPIResponseToLocal } from '@/adapters/materias-cursada.model'
+import type { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-cursada.model'
+import type { ApiResponse } from '@/models/api/api.model'
+import { adaptMateriaCursadaDisponibleAPIResponseToLocal } from '@/adapters/materias-cursada.adapter'
 
 interface UseMateriasDisponiblesOptions {
   usuarioId: number | null

@@ -10,7 +10,7 @@ import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materi
 import {
   adaptAnioAcademicoUsuarioAPIResponseToLocal,
   adaptAnioAcademicoVigenteAPIResponseToLocal,
-} from '@/adapters/materias-cursada.model'
+} from '@/adapters/materias-cursada.adapter'
 
 interface UseCarerrasOptions {
   userId?: number
@@ -132,15 +132,15 @@ export function useAnioAcademico(options: UseCarerrasOptions = { autoFetch: true
 }
 
 export const useAnioAcademicoUsuario = (usuarioId: number) => {
-  const { 
-    anioAcademico, 
-    esNuevo, 
-    fechaActualizacion, 
-    loading, 
-    error, 
+  const {
+    anioAcademico,
+    esNuevo,
+    fechaActualizacion,
+    loading,
+    error,
     establecerAnioAcademicoVigente,
     desestablecerAnioAcademico,
-    refrescar 
+    refrescar,
   } = useAnioAcademico({
     userId: usuarioId,
     autoFetch: true,

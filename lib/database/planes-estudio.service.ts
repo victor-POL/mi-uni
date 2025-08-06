@@ -15,7 +15,7 @@ export async function getPlanesEstudio(carreraId?: number): Promise<PlanEstudioD
   try {
     await query(`SET search_path = prod, public`)
 
-    const resultQueryPlanes = await query(
+    const planesResQuery = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
@@ -29,7 +29,7 @@ export async function getPlanesEstudio(carreraId?: number): Promise<PlanEstudioD
       [carreraId || null]
     )
 
-    const planesDB: PlanEstudioDB[] = resultQueryPlanes.rows as unknown as PlanEstudioDB[]
+    const planesDB: PlanEstudioDB[] = planesResQuery.rows as unknown as PlanEstudioDB[]
 
     return planesDB
   } catch (error) {
@@ -52,7 +52,7 @@ export async function getDetallePlanEstudio(
     await query(`SET search_path = prod, public`)
 
     // 1. Obtener la información básica del plan
-    const resultQueryDatosPlan = await query(
+    const datosPlanResQuery = await query(
       `
       SELECT 
         plan_estudio.id       as plan_id,
@@ -65,14 +65,14 @@ export async function getDetallePlanEstudio(
       [planEstudioId]
     )
 
-    if (resultQueryDatosPlan.rows.length === 0) {
+    if (datosPlanResQuery.rows.length === 0) {
       return null
     }
 
-    const planEstudioDB: PlanEstudioDB = resultQueryDatosPlan.rows[0]
+    const planEstudioDB: PlanEstudioDB = datosPlanResQuery.rows[0]
 
     // 2. Obtener todas las materias del plan con correlativas y estadísticas
-    const resultQueryDetallePlan = await query(
+    const detallePlanResQuery = await query(
       `
       WITH materias_plan AS (
         SELECT 
@@ -165,7 +165,7 @@ export async function getDetallePlanEstudio(
     )
 
     const materiasPlanDB: MateriaPlanEstudioDetalleDB[] =
-      resultQueryDetallePlan.rows as unknown as MateriaPlanEstudioDetalleDB[]
+      detallePlanResQuery.rows as unknown as MateriaPlanEstudioDetalleDB[]
 
     // 3. Obtener las estadísticas del plan, tomo la primera fila ya que es la misma para todas las materias
     const estadisticasPlanDB: EstadisticasPlanDB = materiasPlanDB[0]

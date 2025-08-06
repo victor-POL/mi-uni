@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import {
-  insertCarrera,
-  eliminarCarrera,
-  getCarreras,
-  getEstadisticasProgreso,
-} from '@/lib/database/carreras.service'
+import { insertCarrera, eliminarCarrera, getCarreras, getEstadisticasProgreso } from '@/lib/database/carreras.service'
 
 import type {
   CarreraEstadisticasAPIResponse,

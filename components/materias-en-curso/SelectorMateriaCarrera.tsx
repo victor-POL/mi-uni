@@ -26,7 +26,7 @@ export const SelectorMateriaCarrera = ({
         </SelectTrigger>
         <SelectContent>
           {materias.map((materia) => (
-            <SelectItem key={materia.idMateria} value={materia.idMateria.toString()}>
+            <SelectItem key={materia.codigoMateria} value={materia.codigoMateria}>
               {`${materia.codigoMateria} - ${materia.nombreMateria}`}
             </SelectItem>
           ))}

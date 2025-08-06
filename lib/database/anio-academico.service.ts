@@ -8,7 +8,7 @@ import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/da
  */
 export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB | null> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `SELECT
           anio as anio_academico,
           fecha_inicio,
@@ -19,7 +19,7 @@ export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB 
       LIMIT 1`
     )
 
-    const anioAcademicoVigente: AnioAcademicoVigenteDB | null = result.rows.length > 0 ? result.rows[0] : null
+    const anioAcademicoVigente: AnioAcademicoVigenteDB | null = resQuery.rows.length > 0 ? resQuery.rows[0] : null
 
     return anioAcademicoVigente
   } catch (error) {
@@ -35,7 +35,7 @@ export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB 
  */
 export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
   try {
-    const result = await query(
+    const resQuery = await query(
       `SELECT 
           anio_academico, 
           fecha_actualizacion
@@ -46,7 +46,7 @@ export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademico
       [usuarioId]
     )
 
-    return result.rows.length > 0 ? result.rows[0] : null
+    return resQuery.rows.length > 0 ? (resQuery.rows[0] as unknown as AnioAcademicoUsuarioDB) : null
   } catch (error) {
     console.error('Error obteniendo año académico:', error)
     throw new Error('Error al obtener el año académico')
@@ -59,9 +59,9 @@ export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademico
  */
 export async function insertAnioAcademico(usuarioId: number): Promise<void> {
   try {
-    const anioAcademicoVigente = await getAnioAcademicoVigente()
+    const anioAcademicoVigenteDB: AnioAcademicoVigenteDB | null = await getAnioAcademicoVigente()
 
-    if (!anioAcademicoVigente) {
+    if (!anioAcademicoVigenteDB) {
       throw new Error('No se encontró un año académico vigente')
     }
 
@@ -69,7 +69,7 @@ export async function insertAnioAcademico(usuarioId: number): Promise<void> {
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
        `,
-      [usuarioId, anioAcademicoVigente.anio_academico]
+      [usuarioId, anioAcademicoVigenteDB.anio_academico]
     )
   } catch (error) {
     console.error('Error estableciendo año académico del usuario:', error)

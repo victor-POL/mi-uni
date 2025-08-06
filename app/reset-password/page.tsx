@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
       alert('Las contraseñas no coinciden')
       return
     }
-    
+
     // Simular cambio exitoso
     alert('Contraseña cambiada exitosamente')
     router.push('/login')

@@ -29,10 +29,10 @@ interface EstablecerAnioAcademicoUsuarioModalProps {
   loadingEstablecimiento: boolean
 }
 
-export function EstablecerAnioAcademicoUsuarioModal({ 
-  onEstablecerAnio, 
+export function EstablecerAnioAcademicoUsuarioModal({
+  onEstablecerAnio,
   establecerAnioAcademicoVigente,
-  loadingEstablecimiento 
+  loadingEstablecimiento,
 }: Readonly<EstablecerAnioAcademicoUsuarioModalProps>) {
   // Control del modal
   const [isOpen, setIsOpen] = useState(false)

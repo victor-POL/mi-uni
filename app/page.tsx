@@ -53,9 +53,7 @@ export default function HomePage() {
         {isUserInitialized && !user && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-900">Inicia sesión para acceder a más funciones</h2>
-            <p className="text-gray-600">
-              Gestiona tus carreras, consulta tu progreso académico y más.
-            </p>
+            <p className="text-gray-600">Gestiona tus carreras, consulta tu progreso académico y más.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {privateOperations.map((operation) => (
                 <Card key={operation.href} className="opacity-60 cursor-not-allowed">

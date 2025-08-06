@@ -9,7 +9,11 @@ interface EstadisticasPlanComponentProps {
   estadisticas: EstadisticasPlan
 }
 
-export function EstadisticasPlanComponent({ nombreCarrera, anioPlan, estadisticas }: Readonly<EstadisticasPlanComponentProps>) {
+export function EstadisticasPlanComponent({
+  nombreCarrera,
+  anioPlan,
+  estadisticas,
+}: Readonly<EstadisticasPlanComponentProps>) {
   return (
     <Card className="bg-white shadow-sm">
       <CardHeader>
