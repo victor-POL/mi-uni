@@ -6,7 +6,7 @@ import {
   insertMateriaEnCurso,
   deleteMateriaEnCurso,
   updateNotasMateriaEnCurso,
-} from '@/lib/database/materias-cursada.service'
+} from '@/lib/database/materias-en-curso.service'
 
 import type { EstadisticasMateriasEnCursoDB, MateriaEnCursoUsuarioDB } from '@/models/database/materias-en-curso.model'
 

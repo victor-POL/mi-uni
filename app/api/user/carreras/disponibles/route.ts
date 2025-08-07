@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { getCarrerasDisponibles } from '@/lib/database/carreras.service'
+import { getCarrerasDisponibles } from '@/lib/database/mis-carreras.service'
 
 import type { CarreraDB } from '@/models/database/mis-carreras.model'
 

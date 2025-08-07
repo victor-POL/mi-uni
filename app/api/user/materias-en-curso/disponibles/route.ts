@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { getMateriasEnCursoDisponibles } from '@/lib/database/materias-cursada.service'
+import { getMateriasEnCursoDisponibles } from '@/lib/database/materias-en-curso.service'
 
 import type { MateriaCursadaDisponibleDB } from '@/models/database/materias-en-curso.model'
 

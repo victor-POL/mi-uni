@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { query } from '@/lib/database/connection'
 
-import { getEstadisticasHistoriaAcademica, getHistoriaAcademica } from '@/lib/database/carreras.service'
+import { getEstadisticasHistoriaAcademica, getHistoriaAcademica } from '@/lib/database/mis-carreras.service'
 
 /**
  * GET /api/user/carreras/materias?userId={id}&planEstudioId={id}
