@@ -10,7 +10,7 @@ import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materi
 import {
   adaptAnioAcademicoUsuarioAPIResponseToLocal,
   adaptAnioAcademicoVigenteAPIResponseToLocal,
-} from '@/adapters/materias-cursada.adapter'
+} from '@/adapters/materias-en-curso.adapter'
 
 interface UseCarerrasOptions {
   userId?: number

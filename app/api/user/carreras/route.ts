@@ -5,7 +5,7 @@ import { insertCarrera, eliminarCarrera, getCarreras, getEstadisticasProgreso } 
 import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/carreras.model'
 import type { CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
 
-import { joinEstadisticaToCarreraAPIResponse } from '@/adapters/carreras.adapter'
+import { joinEstadisticaToCarreraAPIResponse } from '@/adapters/mis-carreras.adapter'
 
 /**
  *

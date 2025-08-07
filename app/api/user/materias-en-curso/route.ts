@@ -19,7 +19,7 @@ import type {
 import {
   adaptEstadisticasMateriasEnCursoDBToAPIResponse,
   adaptMateriasPorCarreraCursadaDBToAPIResponse,
-} from '@/adapters/materias-cursada.adapter'
+} from '@/adapters/materias-en-curso.adapter'
 
 /**
  * GET /api/user/materias-en-curso?userId={id}

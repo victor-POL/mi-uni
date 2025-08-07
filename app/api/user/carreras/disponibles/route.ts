@@ -6,7 +6,7 @@ import type { CarreraDB } from '@/models/database/carreras.model'
 
 import type { CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
 
-import { adaptCarrerasDisponiblesUsuarioDBToAPIResponse } from '@/adapters/carreras.adapter'
+import { adaptCarrerasDisponiblesUsuarioDBToAPIResponse } from '@/adapters/mis-carreras.adapter'
 
 /**
  * GET /api/user/carreras/disponibles?userId={id}

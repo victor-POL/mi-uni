@@ -6,7 +6,7 @@ import type { AnioAcademicoUsuarioDB } from '@/models/database/materias-cursada.
 
 import type { AnioAcademicoUsuarioAPIResponse } from '@/models/api/materias-cursada.model'
 
-import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-cursada.adapter'
+import { adaptAnioAcademicoUsuarioDBToAPIResponse } from '@/adapters/materias-en-curso.adapter'
 
 /**
  * GET /api/user/anio-academico?userId={id}

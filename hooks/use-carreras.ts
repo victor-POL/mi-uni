@@ -11,7 +11,7 @@ import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
 import {
   adaptCarrerasDisponiblesUsuarioAPIResponseToLocal,
   adaptCarrerasUsuariosConEstadisticasAPIResponseToLocal,
-} from '@/adapters/carreras.adapter'
+} from '@/adapters/mis-carreras.adapter'
 
 interface UseCarerrasOptions {
   userID?: number
