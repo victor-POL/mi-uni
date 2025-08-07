@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { GraduationCap, Plus } from 'lucide-react'
-import type { BodyPostNuevaCarreraEnUsuario } from '@/models/api/carreras.model'
+import type { BodyPostNuevaCarreraEnUsuario } from '@/models/api/mis-carreras.model'
 
 interface AgregarCarreraModalProps {
   onCarreraAgregada?: () => void

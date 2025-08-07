@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { insertCarrera, eliminarCarrera, getCarreras, getEstadisticasProgreso } from '@/lib/database/carreras.service'
 
-import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/carreras.model'
-import type { CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
+import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/mis-carreras.model'
+import type { CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/mis-carreras.model'
 
 import { joinEstadisticaToCarreraAPIResponse } from '@/adapters/mis-carreras.adapter'
 

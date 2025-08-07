@@ -5,7 +5,7 @@ import type {
   CarreraEstadisticasDB,
   CarreraUsuarioDB,
   MateriaDelPlanDB,
-} from '@/models/database/carreras.model'
+} from '@/models/database/mis-carreras.model'
 
 import type {
   MateriaHistoriaAcademica,

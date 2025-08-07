@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server'
 
 import { getAnioAcademicoVigente } from '@/lib/database/anio-academico.service'
 
-import type { AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
+import type { AnioAcademicoVigenteDB } from '@/models/database/materias-en-curso.model'
 
-import type { AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-cursada.model'
+import type { AnioAcademicoVigenteAPIResponse } from '@/models/api/materias-en-curso.model'
 
 import { adaptAnioAcademicoVigenteDBToAPIResponse } from '@/adapters/materias-en-curso.adapter'
 

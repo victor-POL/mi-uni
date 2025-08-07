@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import type { MateriaPlanEstudio, EstadoMateriaPlanEstudio } from '@/models/materias.model'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import type { PlanDeEstudioDetalle } from '@/models/planes-estudio.model'
 
 export interface PlanesEstudioFilters {
   anioCursada: string

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import type { MateriaCursada } from '@/models/materias-cursada.model'
+import type { MateriaCursada } from '@/models/materias-en-curso.model'
 
 interface EditarNotasMateriaModalProps {
   readonly isOpen: boolean

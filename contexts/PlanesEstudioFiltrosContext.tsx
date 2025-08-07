@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo } from 'react'
 import { usePlanesEstudioFiltros } from '@/hooks/use-planes-estudio-filtros'
-import type { PlanDeEstudioDetalle } from '@/models/plan-estudio.model'
+import type { PlanDeEstudioDetalle } from '@/models/planes-estudio.model'
 import type { ReactNode } from 'react'
 
 interface PlanesEstudioFiltrosContextType {

@@ -2,7 +2,7 @@ import type { PlanEstudioDB, PlanEstudioDetalleDB } from '@/models/database/plan
 
 import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
 
-import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
+import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/planes-estudio.model'
 import type { EstadoMateriaPlanEstudio } from '@/models/materias.model'
 
 import { getGenericErrorMessage, getErrorType, ErrorType } from '@/utils/error.util'

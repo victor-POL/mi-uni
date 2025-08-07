@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 /* --------------------------------- MODELS --------------------------------- */
 import type { ApiResponse } from '@/models/api/api.model'
 import type { PlanEstudioAPIResponse, PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
-import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.model'
+import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/planes-estudio.model'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import {
   adaptPlanesEstudioAPIResponseToLocal,

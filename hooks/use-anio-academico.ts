@@ -5,8 +5,8 @@ import type { ApiResponse } from '@/models/api/api.model'
 import type {
   AnioAcademicoUsuarioAPIResponse,
   AnioAcademicoVigenteAPIResponse,
-} from '@/models/api/materias-cursada.model'
-import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materias-cursada.model'
+} from '@/models/api/materias-en-curso.model'
+import type { UsuarioAnioAcademico, AnioAcademicoVigente } from '@/models/materias-en-curso.model'
 import {
   adaptAnioAcademicoUsuarioAPIResponseToLocal,
   adaptAnioAcademicoVigenteAPIResponseToLocal,

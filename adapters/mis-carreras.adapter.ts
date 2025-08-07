@@ -1,9 +1,9 @@
-import type { CarreraDB, CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
+import type { CarreraDB, CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/mis-carreras.model'
 
 import type {
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
-} from '@/models/api/carreras.model'
+} from '@/models/api/mis-carreras.model'
 
 import type { Carrera, CarreraResumen } from '@/models/mis-carreras.model'
 

@@ -2,9 +2,9 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { getCarrerasDisponibles } from '@/lib/database/carreras.service'
 
-import type { CarreraDB } from '@/models/database/carreras.model'
+import type { CarreraDB } from '@/models/database/mis-carreras.model'
 
-import type { CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
+import type { CarreraUsuarioDisponibleAPIResponse } from '@/models/api/mis-carreras.model'
 
 import { adaptCarrerasDisponiblesUsuarioDBToAPIResponse } from '@/adapters/mis-carreras.adapter'
 

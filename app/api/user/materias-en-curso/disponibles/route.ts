@@ -2,9 +2,9 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { getMateriasEnCursoDisponibles } from '@/lib/database/materias-cursada.service'
 
-import type { MateriaCursadaDisponibleDB } from '@/models/database/materias-cursada.model'
+import type { MateriaCursadaDisponibleDB } from '@/models/database/materias-en-curso.model'
 
-import type { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-cursada.model'
+import type { MateriaCursadaDisponibleAPIResponse } from '@/models/api/materias-en-curso.model'
 
 import { adaptMateriaCursadaDisponibleDBToAPIResponse } from '@/adapters/materias-en-curso.adapter'
 

@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import type { PlanEstudio } from '@/models/plan-estudio.model'
+import type { PlanEstudio } from '@/models/planes-estudio.model'
 
 interface SelectorNuevoPlanProps {
   readonly planes: PlanEstudio[]

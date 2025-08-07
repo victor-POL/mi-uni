@@ -15,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
-import type { MateriaCursada } from '@/models/materias-cursada.model'
+import type { MateriaCursada } from '@/models/materias-en-curso.model'
 
 interface EliminarMateriaEnCursoModalProps {
   materia: MateriaCursada

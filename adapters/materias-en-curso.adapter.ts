@@ -4,7 +4,7 @@ import type {
   EstadisticasMateriasEnCursoDB,
   MateriaCursadaDisponibleDB,
   MateriaEnCursoUsuarioDB,
-} from '@/models/database/materias-cursada.model'
+} from '@/models/database/materias-en-curso.model'
 
 import type {
   AnioAcademicoUsuarioAPIResponse,
@@ -13,14 +13,14 @@ import type {
   MateriaCursadaAPIResponse,
   MateriaCursadaDisponibleAPIResponse,
   MateriasPorCarreraCursadaAPIResponse,
-} from '@/models/api/materias-cursada.model'
+} from '@/models/api/materias-en-curso.model'
 
 import type {
   AnioAcademicoVigente,
   EstadisticasMateriasEnCurso,
   MateriaCursadaPorCarrera,
   UsuarioAnioAcademico,
-} from '@/models/materias-cursada.model'
+} from '@/models/materias-en-curso.model'
 
 import type { Materia } from '@/models/materias.model'
 

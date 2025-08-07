@@ -20,7 +20,7 @@ import type {
   EstadisticasHistoriaAcademica,
 } from '@/models/carrera-detalle.model'
 import type { ApiResponse } from '@/models/api/api.model'
-import type { MateriasEnCursoAPIResponse } from '@/models/api/materias-cursada.model'
+import type { MateriasEnCursoAPIResponse } from '@/models/api/materias-en-curso.model'
 
 interface CarreraDetalleProps {
   carrera: CarreraResumen

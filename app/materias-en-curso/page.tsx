@@ -22,7 +22,7 @@ import { EliminarMateriaEnCursoModal } from '@/components/materias-en-curso/Elim
 /* -------------------------------- CONTEXTS -------------------------------- */
 import { useAuth } from '@/contexts/AuthContext'
 /* --------------------------------- MODELS --------------------------------- */
-import type { MateriaCursada } from '@/models/materias-cursada.model'
+import type { MateriaCursada } from '@/models/materias-en-curso.model'
 /* --------------------------------- UTILES --------------------------------- */
 import { formatearNota, calcularPromedioMaterias } from '@/lib/utils'
 

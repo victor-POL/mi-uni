@@ -1,6 +1,6 @@
 import { query } from '@/lib/database/connection'
 
-import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-cursada.model'
+import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-en-curso.model'
 
 /**
  * Obtiene el año académico vigente desde la base de datos

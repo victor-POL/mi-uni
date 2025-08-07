@@ -8,13 +8,13 @@ import {
   updateNotasMateriaEnCurso,
 } from '@/lib/database/materias-cursada.service'
 
-import type { EstadisticasMateriasEnCursoDB, MateriaEnCursoUsuarioDB } from '@/models/database/materias-cursada.model'
+import type { EstadisticasMateriasEnCursoDB, MateriaEnCursoUsuarioDB } from '@/models/database/materias-en-curso.model'
 
 import type {
   EstadisticasCursadaAPIResponse,
   MateriasEnCursoAPIResponse,
   MateriasPorCarreraCursadaAPIResponse,
-} from '@/models/api/materias-cursada.model'
+} from '@/models/api/materias-en-curso.model'
 
 import {
   adaptEstadisticasMateriasEnCursoDBToAPIResponse,

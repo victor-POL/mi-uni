@@ -4,9 +4,9 @@ import type {
   EstadisticasMateriasEnCursoDB,
   MateriaCursadaDisponibleDB,
   MateriaEnCursoUsuarioDB,
-} from '@/models/database/materias-cursada.model'
+} from '@/models/database/materias-en-curso.model'
 
-import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-cursada.model'
+import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-en-curso.model'
 
 /**
  * Obtiene un listado de materias en curso del usuario desde la base de datos

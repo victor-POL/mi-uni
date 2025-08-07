@@ -5,7 +5,7 @@ import type { ApiResponse } from '@/models/api/api.model'
 import type {
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
-} from '@/models/api/carreras.model'
+} from '@/models/api/mis-carreras.model'
 import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import {
