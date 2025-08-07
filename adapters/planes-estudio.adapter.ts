@@ -29,7 +29,7 @@ export const transformPlanAPIResponseToLocal = (
       cuatrimestreCursada: materia.cuatrimestre_cursada,
       horasSemanales: materia.horas_semanales,
       tipo: materia.tipo as 'cursable' | 'electiva',
-      estado: materia.estado_materia_usuario as EstadoMateriaPlanEstudio | null,
+      estado: (materia.estado_materia_usuario as EstadoMateriaPlanEstudio) ?? null,
       listaCorrelativas: materia.lista_correlativas.map((correlativa: any) => ({
         codigoMateria: correlativa.codigo_materia,
         nombreMateria: correlativa.nombre_materia,

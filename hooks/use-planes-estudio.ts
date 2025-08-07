@@ -40,7 +40,7 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planI
 
       let url = `/api/planes-estudio/${options.planId}`
       if (options.usuarioId) {
-        url += `?usuarioId=${options.usuarioId}`
+        url += `?userId=${options.usuarioId}`
       }
 
       const response = await fetch(url)
