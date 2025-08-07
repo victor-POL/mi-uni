@@ -142,7 +142,7 @@ export function EditarMateriaModal({
       }
     }
     // Nota es requerida para estados Aprobada y En Final
-    if (estado === 'Aprobada' || estado === 'En Final') {
+    if ((estado === 'Aprobada' || estado === 'En Final') && !nota) {
       return `Para materias ${estado} se requiere una nota`
     }
 
