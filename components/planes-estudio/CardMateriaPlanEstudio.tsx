@@ -35,7 +35,7 @@ const renderCorrelativas = (
             variant="outline"
             size="sm"
             onClick={() => onClickCorrelativa?.(correlativa.codigoMateria)}
-            className="text-left break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto"
+            className="break-words whitespace-normal text-xs bg-gray-100 hover:bg-blue-100 border-gray-300 px-2 py-1 h-auto w-full justify-start text-left"
           >
             {`${correlativa.codigoMateria} - ${correlativa.nombreMateria}`}
           </Button>
@@ -82,18 +82,21 @@ export const CardMateriaPlanEstudio = ({
     >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1 min-w-0">
             <CardTitle className="text-base text-gray-900">{materia.nombreMateria}</CardTitle>
-            <CardDescription className="font-mono text-sm text-gray-600">{materia.codigoMateria}</CardDescription>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <Badge variant="secondary" className="flex items-center gap-1 bg-gray-100 text-gray-800">
-              <Clock className="h-3 w-3" />
-              {materia.horasSemanales}h
-            </Badge>
-            {showEstado && estadoMateria !== null && (
-              <Badge className={`text-xs ${getStatusBadgeColor(estadoMateria)}`}>{estadoMateria}</Badge>
-            )}
+            <CardDescription className="font-mono text-sm text-gray-600 flex flex-wrap gap-1">
+              <p>{materia.codigoMateria}</p>
+              <Badge
+                variant="secondary"
+                className="flex justify-center items-center gap-1 bg-gray-100 text-gray-800 text-xs"
+              >
+                <Clock className="h-3 w-3" />
+                {materia.horasSemanales}h
+              </Badge>
+              {showEstado && estadoMateria !== null && (
+                <Badge className={`w-20 text-xs ${getStatusBadgeColor(estadoMateria)}`}>{estadoMateria}</Badge>
+              )}
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
