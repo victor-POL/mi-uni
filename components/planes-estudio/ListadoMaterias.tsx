@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Separator } from '@/components/ui/separator'
 import { CardMateriaPlanEstudio } from '@/components/planes-estudio/CardMateriaPlanEstudio'
@@ -13,9 +14,88 @@ interface ListadoMateriasProps {
 
 export function ListadoMaterias({ materiaResaltada, onClickCorrelativa }: Readonly<ListadoMateriasProps>) {
   const { materiasAgrupadas, filtersPlan } = usePlanesEstudioFiltrosContext()
+  
+  // Inicializar con todos los accordions abiertos por defecto
+  const [openAccordions, setOpenAccordions] = useState<string[]>(() => {
+    const allAccordionValues: string[] = []
+    
+    Object.keys(materiasAgrupadas).forEach(anio => {
+      const anioAccordion = `anio-${anio}`
+      allAccordionValues.push(anioAccordion)
+      
+      Object.keys(materiasAgrupadas[Number(anio)]).forEach(cuatrimestre => {
+        const cuatrimestreAccordion = `cuatrimestreCursada-${anio}-${cuatrimestre}`
+        allAccordionValues.push(cuatrimestreAccordion)
+      })
+    })
+    
+    return allAccordionValues
+  })
+
+  // Función para encontrar el año y cuatrimestre de una materia
+  const findMateriaLocation = (codigoMateria: string) => {
+    for (const anio of Object.keys(materiasAgrupadas).map(Number)) {
+      for (const cuatrimestre of Object.keys(materiasAgrupadas[anio]).map(Number)) {
+        const materia = materiasAgrupadas[anio][cuatrimestre].find(
+          (m) => m.codigoMateria === codigoMateria
+        )
+        if (materia) {
+          return { anio, cuatrimestre }
+        }
+      }
+    }
+    return null
+  }
+
+  // Efecto para mantener todos los accordions abiertos cuando cambien los datos
+  useEffect(() => {
+    const allAccordionValues: string[] = []
+    
+    Object.keys(materiasAgrupadas).forEach(anio => {
+      const anioAccordion = `anio-${anio}`
+      allAccordionValues.push(anioAccordion)
+      
+      Object.keys(materiasAgrupadas[Number(anio)]).forEach(cuatrimestre => {
+        const cuatrimestreAccordion = `cuatrimestreCursada-${anio}-${cuatrimestre}`
+        allAccordionValues.push(cuatrimestreAccordion)
+      })
+    })
+    
+    setOpenAccordions(prev => {
+      // Mantener los accordions que ya estaban abiertos y agregar los nuevos
+      const merged = [...new Set([...prev, ...allAccordionValues])]
+      return merged
+    })
+  }, [materiasAgrupadas])
+
+  // Efecto para abrir accordions cuando se resalta una materia
+  useEffect(() => {
+    if (materiaResaltada) {
+      const location = findMateriaLocation(materiaResaltada)
+      if (location) {
+        const anioAccordion = `anio-${location.anio}`
+        const cuatrimestreAccordion = `cuatrimestreCursada-${location.anio}-${location.cuatrimestre}`
+        
+        setOpenAccordions(prev => {
+          const newOpen = [...prev]
+          if (!newOpen.includes(anioAccordion)) {
+            newOpen.push(anioAccordion)
+          }
+          if (!newOpen.includes(cuatrimestreAccordion)) {
+            newOpen.push(cuatrimestreAccordion)
+          }
+          return newOpen
+        })
+      }
+    }
+  }, [materiaResaltada, materiasAgrupadas])
+
+  const handleAccordionChange = (value: string[]) => {
+    setOpenAccordions(value)
+  }
 
   return (
-    <Accordion type="multiple" className="w-full">
+    <Accordion type="multiple" className="w-full" value={openAccordions} onValueChange={handleAccordionChange}>
       {Object.keys(materiasAgrupadas)
         .map(Number)
         .sort((a, b) => a - b)
@@ -27,7 +107,7 @@ export function ListadoMaterias({ materiaResaltada, onClickCorrelativa }: Readon
                 {`${anio}°`} Año
               </AccordionTrigger>
               <AccordionContent className="pl-4 space-y-4">
-                <Accordion type="multiple" className="w-full">
+                <Accordion type="multiple" className="w-full" value={openAccordions} onValueChange={handleAccordionChange}>
                   {Object.keys(materiasAgrupadas[anio])
                     .map(Number)
                     .sort((a, b) => a - b)

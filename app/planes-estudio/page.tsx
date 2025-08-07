@@ -69,11 +69,16 @@ export default function PlanesEstudioPage() {
   // Util para navegar a una materia resaltada al clickear en una correlativa
   const navegarACorrelativa = (codigoMateria: string) => {
     setMateriaResaltada(codigoMateria)
-    const element = document.getElementById(`materia-${codigoMateria}`)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setTimeout(() => setMateriaResaltada(null), 3000)
-    }
+    
+    // Esperar a que el accordion se abra antes de hacer scroll
+    setTimeout(() => {
+      const element = document.getElementById(`materia-${codigoMateria}`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 300) // Delay para que el accordion se abra
+    
+    setTimeout(() => setMateriaResaltada(null), 3000)
   }
 
   /* ------------------------------- VISTA PAGE ------------------------------- */
