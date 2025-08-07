@@ -17,8 +17,8 @@ import type {
 } from '@/models/api/materias-cursada.model'
 
 import {
-  adaptEstadisticasMateriasEnCursoDBToLocal,
-  agruparMateriasEnCursoPorCarrera,
+  adaptEstadisticasMateriasEnCursoDBToAPIResponse,
+  adaptMateriasPorCarreraCursadaDBToAPIResponse,
 } from '@/adapters/materias-cursada.adapter'
 
 /**
@@ -88,10 +88,10 @@ export async function GET(request: NextRequest) {
 
     // Transformar consulta a formato API
     const materiasCursadaPorCarreraResponse: MateriasPorCarreraCursadaAPIResponse[] =
-      agruparMateriasEnCursoPorCarrera(materiasPorCarreraDB)
+      adaptMateriasPorCarreraCursadaDBToAPIResponse(materiasPorCarreraDB)
 
     const estadisticasResponse: EstadisticasCursadaAPIResponse =
-      adaptEstadisticasMateriasEnCursoDBToLocal(estadisticasDB)
+      adaptEstadisticasMateriasEnCursoDBToAPIResponse(estadisticasDB)
 
     const materiasEnCursoResponse: MateriasEnCursoAPIResponse = {
       materias_por_carrera: materiasCursadaPorCarreraResponse,

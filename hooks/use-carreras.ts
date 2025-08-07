@@ -9,8 +9,8 @@ import type {
 import type { CarreraResumen, Carrera } from '@/models/mis-carreras.model'
 /* -------------------------------- ADAPTERS -------------------------------- */
 import {
-  adaptCarrerasDisponiblesUsuarioAPIResponse,
-  adaptCarrerasUsuariosConEstadisticasAPIResponse,
+  adaptCarrerasDisponiblesUsuarioAPIResponseToLocal,
+  adaptCarrerasUsuariosConEstadisticasAPIResponseToLocal,
 } from '@/adapters/carreras.adapter'
 
 interface UseCarerrasOptions {
@@ -52,7 +52,7 @@ export function useCarrerasUsuario(options: UseCarerrasOptions = {}) {
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      const formattedCarreras: CarreraResumen[] = adaptCarrerasUsuariosConEstadisticasAPIResponse(result.data)
+      const formattedCarreras: CarreraResumen[] = adaptCarrerasUsuariosConEstadisticasAPIResponseToLocal(result.data)
 
       setCarreras(formattedCarreras)
     } catch (err) {
@@ -117,7 +117,7 @@ export const useCarrerasDisponiblesUsuario = (options: UseCarrerasDisponiblesUsu
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      const formattedCarreras: Carrera[] = adaptCarrerasDisponiblesUsuarioAPIResponse(result.data)
+      const formattedCarreras: Carrera[] = adaptCarrerasDisponiblesUsuarioAPIResponseToLocal(result.data)
 
       setCarreras(formattedCarreras)
     } catch (err) {

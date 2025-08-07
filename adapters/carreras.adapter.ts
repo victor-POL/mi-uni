@@ -1,18 +1,19 @@
-import type { CarreraDB, CarreraEstadisticasDB } from '@/models/database/carreras.model'
+import type { CarreraDB, CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
 
 import type {
-  CarreraUsuarioAPIResponse,
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
 } from '@/models/api/carreras.model'
+
 import type { Carrera, CarreraResumen } from '@/models/mis-carreras.model'
 
+/* ------------------- PAGE MIS CARRERAS - INICIO CARRERAS ------------------ */
 /**
- * Adapta la respuesta de la API /api/user/carreras/resumen?userId=${options.userID} al modelo local CarreraResumen
+ * Adapta la respuesta de la API /api/user/carreras?userId=${options.userID} al modelo local CarreraResumen
  * @param carreras - CarreraUsuarioConEstadisticasAPIResponse[] - Lista de carreras del usuario con estadísticas desde la API
  * @returns CarreraResumen[] - Lista de carreras adaptada al modelo local
  */
-export const adaptCarrerasUsuariosConEstadisticasAPIResponse = (
+export const adaptCarrerasUsuariosConEstadisticasAPIResponseToLocal = (
   carreras: CarreraUsuarioConEstadisticasAPIResponse[]
 ): CarreraResumen[] => {
   return carreras.map((carrera) => ({
@@ -27,29 +28,6 @@ export const adaptCarrerasUsuariosConEstadisticasAPIResponse = (
   }))
 }
 
-export const adaptCarrerasDisponiblesDBToAPIResponse = (
-  carreras: CarreraDB[]
-): CarreraUsuarioDisponibleAPIResponse[] => {
-  return carreras.map((carrera) => ({
-    carrera_id: carrera.carrera_id,
-    nombre_carrera: carrera.carrera_nombre,
-  }))
-}
-
-/**
- * Adapta la respuesta de la API /api/user/carreras/disponibles?userId=${options.userID} al modelo local Carrera
- * @param carreras - CarreraUsuarioDisponibleAPIResponse[] - Lista de carreras disponibles del usuario desde la API
- * @returns Carrera[] - Lista de carreras adaptada al modelo local
- */
-export const adaptCarrerasDisponiblesUsuarioAPIResponse = (
-  carreras: CarreraUsuarioDisponibleAPIResponse[]
-): Carrera[] => {
-  return carreras.map((carrera) => ({
-    idCarrera: carrera.carrera_id,
-    nombreCarrera: carrera.nombre_carrera,
-  }))
-}
-
 /**
  * Une la carrera del usuario con sus estadísticas en un objeto CarreraUsuarioConEstadisticasAPIResponse
  * @param carrera - CarreraUsuarioAPIResponse - Carrera del usuario
@@ -57,7 +35,7 @@ export const adaptCarrerasDisponiblesUsuarioAPIResponse = (
  * @returns CarreraUsuarioConEstadisticasAPIResponse - Objeto que combina carrera y estadísticas
  */
 export const joinEstadisticaToCarreraAPIResponse = (
-  carrera: CarreraUsuarioAPIResponse,
+  carrera: CarreraUsuarioDB,
   estadisticas: CarreraEstadisticasDB
 ): CarreraUsuarioConEstadisticasAPIResponse => {
   const materiasAprobadasCasted: number = parseInt(estadisticas.materias_aprobadas, 10)
@@ -79,4 +57,33 @@ export const joinEstadisticaToCarreraAPIResponse = (
     materias_total: totalMateriasPlanCasted,
     promedio_general: promedioFixed,
   }
+}
+
+/* --------------- PAGE MIS CARRERAS - AGREGAR CARRERA USUARIO -------------- */
+/**
+ * Adapta la respuesta de la base de datos CarreraDB a CarreraUsuarioAPIResponse
+ * @param carreras - CarreraDB[] - Lista de carreras desde la base de datos
+ * @returns
+ */
+export const adaptCarrerasDisponiblesUsuarioDBToAPIResponse = (
+  carreras: CarreraDB[]
+): CarreraUsuarioDisponibleAPIResponse[] => {
+  return carreras.map((carrera) => ({
+    carrera_id: carrera.carrera_id,
+    nombre_carrera: carrera.carrera_nombre,
+  }))
+}
+
+/**
+ * Adapta la respuesta de la API /api/user/carreras/disponibles?userId=${options.userID} al modelo local Carrera
+ * @param carreras - CarreraUsuarioDisponibleAPIResponse[] - Lista de carreras disponibles del usuario desde la API
+ * @returns Carrera[] - Lista de carreras adaptada al modelo local
+ */
+export const adaptCarrerasDisponiblesUsuarioAPIResponseToLocal = (
+  carreras: CarreraUsuarioDisponibleAPIResponse[]
+): Carrera[] => {
+  return carreras.map((carrera) => ({
+    idCarrera: carrera.carrera_id,
+    nombreCarrera: carrera.nombre_carrera,
+  }))
 }

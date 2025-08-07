@@ -45,10 +45,8 @@ export async function GET(request: NextRequest) {
 
     // Obtener estadísticas para cada carrera
     const carrerasUsuarioConEstadisticasResponse: CarreraUsuarioConEstadisticasAPIResponse[] = await Promise.all(
-      carrerasUsuarioDB.map(async (carrera): Promise<CarreraUsuarioConEstadisticasAPIResponse> => {
+      carrerasUsuarioDB.map(async (carrera: CarreraUsuarioDB): Promise<CarreraUsuarioConEstadisticasAPIResponse> => {
         const estadisticas: CarreraEstadisticasDB = await getEstadisticasProgreso(userIdParsed, carrera.plan_estudio_id)
-
-        console.log({estadisticas})
 
         // Transformar consulta a formato API
         const carreraConEstadisticas: CarreraUsuarioConEstadisticasAPIResponse = joinEstadisticaToCarreraAPIResponse(

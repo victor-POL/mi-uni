@@ -7,7 +7,7 @@ import type { PlanDeEstudioDetalle, PlanEstudio } from '@/models/plan-estudio.mo
 /* -------------------------------- ADAPTERS -------------------------------- */
 import {
   adaptPlanesEstudioAPIResponseToLocal,
-  transformPlanAPIResponseToLocal,
+  adaptDetallePlanAPIResponseToLocal,
 } from '@/adapters/planes-estudio.adapter'
 
 interface UsePlanesEstudioOptions {
@@ -55,7 +55,7 @@ export function useDetallePlanEstudio(options: UsePlanesEstudioOptions = { planI
         throw new Error(result.error || 'Failed to fetch data')
       }
 
-      const detalleFormatted: PlanDeEstudioDetalle = transformPlanAPIResponseToLocal(result.data)
+      const detalleFormatted: PlanDeEstudioDetalle = adaptDetallePlanAPIResponseToLocal(result.data)
 
       setDetallePlan(detalleFormatted)
     } catch (err) {

@@ -7,7 +7,7 @@ import type { PlanEstudioDetalleDB } from '@/models/database/planes-estudio.mode
 
 import type { PlanEstudioDetalleAPIResponse } from '@/models/api/planes-estudio.model'
 
-import { adaptPlanEstudioDetalleDBToAPIResponse } from '@/adapters/planes-estudio.adapter'
+import { adaptDetallePlanDBToAPIResponse } from '@/adapters/planes-estudio.adapter'
 
 /**
  * GET /api/planes-estudio/[id]
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Transformar consulta a formato API
-    const planDetalleResponse: PlanEstudioDetalleAPIResponse = adaptPlanEstudioDetalleDBToAPIResponse(planDetalleDB)
+    const planDetalleResponse: PlanEstudioDetalleAPIResponse = adaptDetallePlanDBToAPIResponse(planDetalleDB)
 
     // Retornar respuesta
     return NextResponse.json({

@@ -1,4 +1,12 @@
 import type {
+  AnioAcademicoUsuarioDB,
+  AnioAcademicoVigenteDB,
+  EstadisticasMateriasEnCursoDB,
+  MateriaCursadaDisponibleDB,
+  MateriaEnCursoUsuarioDB,
+} from '@/models/database/materias-cursada.model'
+
+import type {
   AnioAcademicoUsuarioAPIResponse,
   AnioAcademicoVigenteAPIResponse,
   EstadisticasCursadaAPIResponse,
@@ -6,22 +14,17 @@ import type {
   MateriaCursadaDisponibleAPIResponse,
   MateriasPorCarreraCursadaAPIResponse,
 } from '@/models/api/materias-cursada.model'
-import type {
-  AnioAcademicoUsuarioDB,
-  AnioAcademicoVigenteDB,
-  EstadisticasMateriasEnCursoDB,
-  MateriaCursadaDisponibleDB,
-  MateriaEnCursoUsuarioDB,
-} from '@/models/database/materias-cursada.model'
+
 import type {
   AnioAcademicoVigente,
   EstadisticasMateriasEnCurso,
   MateriaCursadaPorCarrera,
   UsuarioAnioAcademico,
 } from '@/models/materias-cursada.model'
+
 import type { Materia } from '@/models/materias.model'
 
-/* ------------------------- Anio Academico Usuario ------------------------- */
+/* ---------- PAGE MATERIAS EN CURSO - INICIO AÑO ACADEMICO USUARIO --------- */
 export const adaptAnioAcademicoUsuarioDBToAPIResponse = (
   anioAcademicoUsuarioDB: AnioAcademicoUsuarioDB | null
 ): AnioAcademicoUsuarioAPIResponse => {
@@ -50,7 +53,7 @@ export const adaptAnioAcademicoUsuarioAPIResponseToLocal = (
   }
 }
 
-/* ------------------------- Anio Academico Vigente ------------------------- */
+/* -------- PAGE MATERIAS EN CURSO - ESTABLECER AÑO ACADEMICO USUARIO ------- */
 export const adaptAnioAcademicoVigenteDBToAPIResponse = (
   anioAcademicoVigenteDB: AnioAcademicoVigenteDB
 ): AnioAcademicoVigenteAPIResponse => {
@@ -71,8 +74,35 @@ export const adaptAnioAcademicoVigenteAPIResponseToLocal = (
   }
 }
 
-/* ---------------------------- Materias En Curso --------------------------- */
-export const agruparMateriasEnCursoPorCarrera = (
+/* ------------- PAGE MATERIAS EN CURSO - ESTADISTICAS MATERIAS ------------- */
+export const adaptEstadisticasMateriasEnCursoDBToAPIResponse = (
+  estadisticasDB: EstadisticasMateriasEnCursoDB
+): EstadisticasCursadaAPIResponse => {
+  return {
+    total_materias: estadisticasDB.total_materias,
+    materias_anual: estadisticasDB.materias_anual,
+    materias_primero: estadisticasDB.materias_primero,
+    materias_segundo: estadisticasDB.materias_segundo,
+    promedio_notas_parciales: estadisticasDB.promedio_parciales,
+    materias_con_parciales: estadisticasDB.materias_con_parciales,
+  }
+}
+
+export const adaptEstadisticasMateriasEnCursoAPIResponseToLocal = (
+  estadisticasAPIResponse: EstadisticasCursadaAPIResponse
+): EstadisticasMateriasEnCurso => {
+  return {
+    totalMaterias: estadisticasAPIResponse.total_materias,
+    materiasAnual: estadisticasAPIResponse.materias_anual,
+    materiasPrimero: estadisticasAPIResponse.materias_primero,
+    materiasSegundo: estadisticasAPIResponse.materias_segundo,
+    promedioNotasParciales: estadisticasAPIResponse.promedio_notas_parciales,
+    materiasConParciales: estadisticasAPIResponse.materias_con_parciales,
+  }
+}
+
+/* -------------- PAGE MATERIAS EN CURSO - MATERIAS POR CARRERA ------------- */
+export const adaptMateriasPorCarreraCursadaDBToAPIResponse = (
   materiasEnCurso: MateriaEnCursoUsuarioDB[]
 ): MateriasPorCarreraCursadaAPIResponse[] => {
   // Agrupar por carrera
@@ -123,19 +153,6 @@ export const agruparMateriasEnCursoPorCarrera = (
   return Array.from(materiasPorCarrera.values())
 }
 
-export const adaptEstadisticasMateriasEnCursoDBToLocal = (
-  estadisticasDB: EstadisticasMateriasEnCursoDB
-): EstadisticasCursadaAPIResponse => {
-  return {
-    total_materias: estadisticasDB.total_materias,
-    materias_anual: estadisticasDB.materias_anual,
-    materias_primero: estadisticasDB.materias_primero,
-    materias_segundo: estadisticasDB.materias_segundo,
-    promedio_notas_parciales: estadisticasDB.promedio_parciales,
-    materias_con_parciales: estadisticasDB.materias_con_parciales,
-  }
-}
-
 export const adaptMateriasPorCarreraCursadaAPIResponseToLocal = (
   materiasPorCarreraCursadaAPIResponse: MateriasPorCarreraCursadaAPIResponse[]
 ): MateriaCursadaPorCarrera[] => {
@@ -165,19 +182,7 @@ export const adaptMateriasPorCarreraCursadaAPIResponseToLocal = (
   }))
 }
 
-export const adaptEstadisticasMateriasEnCursoAPIResponseToLocal = (
-  estadisticasAPIResponse: EstadisticasCursadaAPIResponse
-): EstadisticasMateriasEnCurso => {
-  return {
-    totalMaterias: estadisticasAPIResponse.total_materias,
-    materiasAnual: estadisticasAPIResponse.materias_anual,
-    materiasPrimero: estadisticasAPIResponse.materias_primero,
-    materiasSegundo: estadisticasAPIResponse.materias_segundo,
-    promedioNotasParciales: estadisticasAPIResponse.promedio_notas_parciales,
-    materiasConParciales: estadisticasAPIResponse.materias_con_parciales,
-  }
-}
-
+/* ------------ PAGE MATERIAS EN CURSO - AGREGAR MATERIA EN CURSO ----------- */
 export const adaptMateriaCursadaDisponibleDBToAPIResponse = (
   materiaCursadaDisponibleDB: MateriaCursadaDisponibleDB[]
 ): MateriaCursadaDisponibleAPIResponse[] => {

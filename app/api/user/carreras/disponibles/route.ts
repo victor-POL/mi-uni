@@ -6,7 +6,7 @@ import type { CarreraDB } from '@/models/database/carreras.model'
 
 import type { CarreraUsuarioDisponibleAPIResponse } from '@/models/api/carreras.model'
 
-import { adaptCarrerasDisponiblesDBToAPIResponse } from '@/adapters/carreras.adapter'
+import { adaptCarrerasDisponiblesUsuarioDBToAPIResponse } from '@/adapters/carreras.adapter'
 
 /**
  * GET /api/user/carreras/disponibles?userId={id}
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const carrerasDB: CarreraDB[] = await getCarrerasDisponibles(userIdParsed)
 
     // Transformar consulta a formato API
-    const carrerasResponse: CarreraUsuarioDisponibleAPIResponse[] = adaptCarrerasDisponiblesDBToAPIResponse(carrerasDB)
+    const carrerasResponse: CarreraUsuarioDisponibleAPIResponse[] = adaptCarrerasDisponiblesUsuarioDBToAPIResponse(carrerasDB)
 
     // Retornar respuesta
     return NextResponse.json({
