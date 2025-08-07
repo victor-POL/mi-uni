@@ -12,8 +12,6 @@ export interface CarreraResumen {
   materiasAprobadas: number
   materiasTotal: number
   promedioGeneral: number
-  añoIngreso: number
-  añoEstimadoEgreso: number
   planEstudioId: number
   planEstudioAnio: number
 }

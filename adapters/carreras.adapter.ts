@@ -1,10 +1,10 @@
+import type { CarreraDB, CarreraEstadisticasDB } from '@/models/database/carreras.model'
+
 import type {
-  CarreraEstadisticasAPIResponse,
   CarreraUsuarioAPIResponse,
   CarreraUsuarioConEstadisticasAPIResponse,
   CarreraUsuarioDisponibleAPIResponse,
 } from '@/models/api/carreras.model'
-import type { CarreraDB, CarreraEstadisticasDB } from '@/models/database/carreras.model'
 import type { Carrera, CarreraResumen } from '@/models/mis-carreras.model'
 
 /**
@@ -22,8 +22,6 @@ export const adaptCarrerasUsuariosConEstadisticasAPIResponse = (
     materiasAprobadas: carrera.materias_aprobadas,
     materiasTotal: carrera.materias_total,
     promedioGeneral: carrera.promedio_general,
-    añoIngreso: carrera.anio_ingreso,
-    añoEstimadoEgreso: carrera.anio_estimado_ingreso,
     planEstudioId: carrera.plan_estudio_id,
     planEstudioAnio: carrera.plan_estudio_anio,
   }))
@@ -53,52 +51,32 @@ export const adaptCarrerasDisponiblesUsuarioAPIResponse = (
 }
 
 /**
- * Adapta la respuesta de la DB CarreraEstadisticasDB al modelo API CarreraEstadisticasAPIResponse
- * @param planEstudioID - ID del plan de estudio
- * @param estadisticasCarrera - Estadísticas de carrera desde la base de datos
- * @param materiasEnCurso - Número de materias en curso
- * @returns CarreraEstadisticasAPIResponse - Estadísticas adaptadas al modelo API
- */
-export const adaptEstadisticaCarreraDBToAPIResponse = (
-  planEstudioID: number,
-  estadisticasCarrera: CarreraEstadisticasDB,
-  materiasEnCurso: number
-): CarreraEstadisticasAPIResponse => {
-  const totalMaterias = estadisticasCarrera.total_materias_plan
-  const materiasAprobadas = estadisticasCarrera.materias_aprobadas
-
-  return {
-    plan_estudio_id: planEstudioID,
-    total_materias: estadisticasCarrera.total_materias_plan,
-    materias_aprobadas: estadisticasCarrera.materias_aprobadas,
-    materias_en_curso: materiasEnCurso,
-    materias_en_final: estadisticasCarrera.materias_en_final,
-    materias_pendientes: estadisticasCarrera.materias_pendientes,
-    promedio_general: estadisticasCarrera.promedio_general ? estadisticasCarrera.promedio_general : null,
-    porcentaje_progreso: totalMaterias > 0 ? Math.round((materiasAprobadas / totalMaterias) * 100) : 0,
-  }
-}
-
-/**
  * Une la carrera del usuario con sus estadísticas en un objeto CarreraUsuarioConEstadisticasAPIResponse
  * @param carrera - CarreraUsuarioAPIResponse - Carrera del usuario
- * @param estadisticas - CarreraEstadisticasAPIResponse - Estadísticas de la carrera
+ * @param estadisticas - CarreraEstadisticasDB - Estadísticas de la carrera
  * @returns CarreraUsuarioConEstadisticasAPIResponse - Objeto que combina carrera y estadísticas
  */
 export const joinEstadisticaToCarreraAPIResponse = (
   carrera: CarreraUsuarioAPIResponse,
-  estadisticas: CarreraEstadisticasAPIResponse
+  estadisticas: CarreraEstadisticasDB
 ): CarreraUsuarioConEstadisticasAPIResponse => {
+  const materiasAprobadasCasted: number = parseInt(estadisticas.materias_aprobadas, 10)
+  const totalMateriasPlanCasted: number = parseInt(estadisticas.total_materias_plan, 10)
+
+  const porcentajeProgreso: number = (materiasAprobadasCasted * 100) / totalMateriasPlanCasted
+  const porcentajeProgresoFixed: number = parseFloat(porcentajeProgreso.toFixed(2))
+
+  const promedio: number = parseFloat(estadisticas.promedio_general)
+  const promedioFixed: number = parseFloat(promedio.toFixed(2))
+
   return {
     plan_estudio_id: carrera.plan_estudio_id,
     plan_estudio_anio: carrera.anio,
     nombre_carrera: carrera.carrera_nombre,
-    estado: estadisticas.porcentaje_progreso === 100 ? 'Completada' : 'En Curso',
-    progreso: estadisticas.porcentaje_progreso,
-    materias_aprobadas: estadisticas.materias_aprobadas,
-    materias_total: estadisticas.total_materias,
-    promedio_general: estadisticas.promedio_general || 0,
-    anio_ingreso: carrera.anio, // TODO: Agregar fecha real de ingreso del usuario
-    anio_estimado_ingreso: carrera.anio + 5, // TODO: Calcular basado en progreso real
+    estado: porcentajeProgreso === 100 ? 'Completada' : 'En Curso',
+    progreso: porcentajeProgresoFixed,
+    materias_aprobadas: materiasAprobadasCasted,
+    materias_total: totalMateriasPlanCasted,
+    promedio_general: promedioFixed,
   }
 }

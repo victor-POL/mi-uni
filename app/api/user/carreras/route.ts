@@ -2,11 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { insertCarrera, eliminarCarrera, getCarreras, getEstadisticasProgreso } from '@/lib/database/carreras.service'
 
-import type {
-  CarreraEstadisticasAPIResponse,
-  CarreraUsuarioConEstadisticasAPIResponse,
-} from '@/models/api/carreras.model'
-import type { CarreraUsuarioDB } from '@/models/database/carreras.model'
+import type { CarreraUsuarioConEstadisticasAPIResponse } from '@/models/api/carreras.model'
+import type { CarreraEstadisticasDB, CarreraUsuarioDB } from '@/models/database/carreras.model'
 
 import { joinEstadisticaToCarreraAPIResponse } from '@/adapters/carreras.adapter'
 
@@ -49,10 +46,9 @@ export async function GET(request: NextRequest) {
     // Obtener estadísticas para cada carrera
     const carrerasUsuarioConEstadisticasResponse: CarreraUsuarioConEstadisticasAPIResponse[] = await Promise.all(
       carrerasUsuarioDB.map(async (carrera): Promise<CarreraUsuarioConEstadisticasAPIResponse> => {
-        const estadisticas: CarreraEstadisticasAPIResponse = await getEstadisticasProgreso(
-          userIdParsed,
-          carrera.plan_estudio_id
-        )
+        const estadisticas: CarreraEstadisticasDB = await getEstadisticasProgreso(userIdParsed, carrera.plan_estudio_id)
+
+        console.log({estadisticas})
 
         // Transformar consulta a formato API
         const carreraConEstadisticas: CarreraUsuarioConEstadisticasAPIResponse = joinEstadisticaToCarreraAPIResponse(

@@ -1,10 +1,7 @@
 import { query } from '@/lib/database/connection'
 
-import type { CarreraEstadisticasAPIResponse } from '@/models/api/carreras.model'
-
 import type {
   CarreraDB,
-  CarreraEstadisticaCursandoDB,
   CarreraEstadisticasDB,
   CarreraUsuarioDB,
   MateriaDelPlanDB,
@@ -15,23 +12,6 @@ import type {
   EstadisticasMateriasEnCurso,
   EstadisticasHistoriaAcademica,
 } from '@/models/carrera-detalle.model'
-
-import { adaptEstadisticaCarreraDBToAPIResponse } from '@/adapters/carreras.adapter'
-
-export interface EstadoMateriaUsuario {
-  materia_id: number
-  codigo_materia: string
-  nombre_materia: string
-  tipo: string
-  horas_semanales: number
-  anio_cursada_plan: number
-  cuatrimestre_plan: number
-  estado: string
-  nota: number | null
-  anio_cursada_real: number | null
-  cuatrimestre_real: number | null
-  fecha_actualizacion: Date
-}
 
 /**
  * Obtiene un listado de todas las carreras del usuario que el usuario agregó a su perfil
@@ -199,44 +179,45 @@ export async function eliminarCarrera(usuarioId: number, planEstudioId: number):
 export async function getEstadisticasProgreso(
   usuarioId: number,
   planEstudioId: number
-): Promise<CarreraEstadisticasAPIResponse> {
+): Promise<CarreraEstadisticasDB> {
   try {
     const estadisticasResQuery = await query(
-      `SELECT 
+      `SELECT
+          usuario_materia_estado.plan_estudio_id,
          (SELECT COUNT(*) FROM prod.plan_materia WHERE plan_estudio_id = $2)      as total_materias_plan,
          COUNT(CASE WHEN usuario_materia_estado.estado = 'Aprobada' THEN 1 END)   as materias_aprobadas,
          COUNT(CASE WHEN usuario_materia_estado.estado = 'En Final' THEN 1 END)   as materias_en_final,
          COUNT(CASE WHEN usuario_materia_estado.estado = 'Pendiente' THEN 1 END)  as materias_pendientes,
-         AVG(CASE WHEN usuario_materia_estado.nota IS NOT NULL THEN usuario_materia_estado.nota END) as promedio_general
+         AVG(CASE WHEN usuario_materia_estado.nota IS NOT NULL AND usuario_materia_estado.estado = 'Aprobada' THEN usuario_materia_estado.nota END) as promedio_general
        FROM prod.usuario_materia_estado
-       WHERE usuario_materia_estado.usuario_id = $1 AND usuario_materia_estado.plan_estudio_id = $2`,
+       WHERE usuario_materia_estado.usuario_id = $1 AND usuario_materia_estado.plan_estudio_id = $2
+       GROUP BY usuario_materia_estado.plan_estudio_id`,
       [usuarioId, planEstudioId]
     )
 
     const estadisticaCarrera: CarreraEstadisticasDB = estadisticasResQuery.rows[0] as unknown as CarreraEstadisticasDB
 
-    // Para "En Curso" consultamos la tabla usuario_materia_estado
-    const cursandoResult = await query(
-      `SELECT 
-          COUNT(DISTINCT materia_id) as materias_en_curso
-       FROM prod.usuario_materia_estado
-       WHERE 
-          usuario_materia_estado.usuario_id = $1 
-          AND usuario_materia_estado.plan_estudio_id = $2 
-          AND usuario_materia_estado.estado = 'Cursando'`,
-      [usuarioId, planEstudioId]
-    )
+    // print type of of every field
+    console.log('Tipo de estadisticaCarrera:', {
+      planEstudioId: typeof estadisticaCarrera.plan_estudio_id,
+      totalMateriasPlan: typeof estadisticaCarrera.total_materias_plan,
+      materiasAprobadas: typeof estadisticaCarrera.materias_aprobadas,
+      materiasEnFinal: typeof estadisticaCarrera.materias_en_final,
+      materiasPendientes: typeof estadisticaCarrera.materias_pendientes,
+      promedioGeneral: typeof estadisticaCarrera.promedio_general,
+    })
 
-    const estadisticaEnCurso: CarreraEstadisticaCursandoDB = cursandoResult
-      .rows[0] as unknown as CarreraEstadisticaCursandoDB
+    // preint valores
+    console.log('Valores de estadisticaCarrera:', {
+      planEstudioId: estadisticaCarrera.plan_estudio_id,
+      totalMateriasPlan: estadisticaCarrera.total_materias_plan,
+      materiasAprobadas: estadisticaCarrera.materias_aprobadas,
+      materiasEnFinal: estadisticaCarrera.materias_en_final,
+      materiasPendientes: estadisticaCarrera.materias_pendientes,
+      promedioGeneral: estadisticaCarrera.promedio_general,
+    })
 
-    const estadisticasCompletaCarrera: CarreraEstadisticasAPIResponse = adaptEstadisticaCarreraDBToAPIResponse(
-      planEstudioId,
-      estadisticaCarrera,
-      estadisticaEnCurso.materias_en_curso
-    )
-
-    return estadisticasCompletaCarrera
+    return estadisticaCarrera
   } catch (error) {
     console.error('Error obteniendo estadísticas de progreso:', error)
     throw new Error('No se pudieron obtener las estadísticas de progreso')

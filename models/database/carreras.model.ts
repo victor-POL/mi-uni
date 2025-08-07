@@ -14,15 +14,11 @@ export interface CarreraUsuarioDB {
 
 export interface CarreraEstadisticasDB {
   plan_estudio_id: number
-  total_materias_plan: number
-  materias_aprobadas: number
-  materias_en_final: number
-  materias_pendientes: number
-  promedio_general: number
-}
-
-export interface CarreraEstadisticaCursandoDB {
-  materias_en_curso: number
+  total_materias_plan: string
+  materias_aprobadas: string
+  materias_en_final: string
+  materias_pendientes: string
+  promedio_general: string
 }
 
 /* ----------------------------- AGREGAR CARRERA ---------------------------- */
