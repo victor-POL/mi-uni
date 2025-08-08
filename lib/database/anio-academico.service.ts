@@ -1,6 +1,12 @@
+/* ------------------------------ LIB DATABASE ------------------------------ */
 import { query } from '@/lib/database/connection'
+import { existeUsuario } from '@/lib/database/usuarios.service'
 
+/* --------------------------------- MODELS --------------------------------- */
 import type { AnioAcademicoUsuarioDB, AnioAcademicoVigenteDB } from '@/models/database/materias-en-curso.model'
+
+/* ---------------------------------- UTILS --------------------------------- */
+import { esParametroValido, getErrorMessageNoExisteUsuario } from '@/utils/error.util'
 
 /**
  * Obtiene el año académico vigente desde la base de datos
@@ -35,6 +41,11 @@ export async function getAnioAcademicoVigente(): Promise<AnioAcademicoVigenteDB 
  */
 export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademicoUsuarioDB | null> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (esParametroValido(usuarioId, 'number') === false) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* -------------------------------- query DB -------------------------------- */
     const resQuery = await query(
       `SELECT 
           anio_academico, 
@@ -46,7 +57,10 @@ export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademico
       [usuarioId]
     )
 
-    return resQuery.rows.length > 0 ? (resQuery.rows[0] as unknown as AnioAcademicoUsuarioDB) : null
+    const anioAcademicoUsuario: AnioAcademicoUsuarioDB | null =
+      resQuery.rows.length > 0 ? (resQuery.rows[0] as unknown as AnioAcademicoUsuarioDB) : null
+
+    return anioAcademicoUsuario
   } catch (error) {
     console.error('Error obteniendo año académico:', error)
     throw new Error('Error al obtener el año académico')
@@ -59,12 +73,26 @@ export async function getAnioAcademico(usuarioId: number): Promise<AnioAcademico
  */
 export async function insertAnioAcademico(usuarioId: number): Promise<void> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (esParametroValido(usuarioId, 'number') === false) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* -------------------------------- query DB -------------------------------- */
+    // Validar si el usuario ya tiene un año académico
+    const usuarioTieneAnioEstablecido = await getAnioAcademico(usuarioId)
+
+    if (usuarioTieneAnioEstablecido) {
+      throw new Error('El usuario ya tiene un año académico establecido')
+    }
+
+    // Obtener el año académico vigente
     const anioAcademicoVigenteDB: AnioAcademicoVigenteDB | null = await getAnioAcademicoVigente()
 
     if (!anioAcademicoVigenteDB) {
-      throw new Error('No se encontró un año académico vigente')
+      throw new Error('No se encontró un año académico vigente para establecer')
     }
 
+    // Insertar el año académico del usuario
     await query(
       `INSERT INTO prod.usuario_anio_academico (usuario_id, anio_academico, fecha_actualizacion)
        VALUES ($1, $2, NOW())
@@ -83,6 +111,19 @@ export async function insertAnioAcademico(usuarioId: number): Promise<void> {
  */
 export async function deleteAnioAcademico(usuarioId: number): Promise<void> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (esParametroValido(usuarioId, 'number') === false) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* -------------------------------- query DB -------------------------------- */
+    // Verificar si el usuario tiene un año académico establecido
+    const usuarioTieneAnioEstablecido = await getAnioAcademico(usuarioId)
+
+    if (!usuarioTieneAnioEstablecido) {
+      throw new Error('El usuario no tiene un año académico establecido para eliminar')
+    }
+
+    // Eliminar el año académico del usuario
     await query(`DELETE FROM prod.usuario_anio_academico WHERE usuario_id = $1`, [usuarioId])
   } catch (error) {
     console.error('Error desestableciendo año académico del usuario:', error)

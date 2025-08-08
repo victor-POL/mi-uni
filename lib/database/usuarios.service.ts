@@ -1,6 +1,7 @@
+/* ------------------------------ LIB DATABASE ------------------------------ */
 import { query } from '@/lib/database/connection'
 
-// Tipos para el usuario
+/* --------------------------------- MODELS --------------------------------- */
 export interface Usuario {
   id: number
   nombre: string
@@ -38,6 +39,28 @@ export interface AuthUserData {
   name?: string
   provider: 'github' | 'email'
   providerData?: any
+}
+
+export async function existeUsuario(usuarioId: number): Promise<boolean> {
+  if (!usuarioId) {
+    throw new Error('El ID del usuario es requerido para validar existencia')
+  }
+  const usuarioResQuery = await query(`SELECT id FROM prod.usuario WHERE id = $1`, [usuarioId])
+  return usuarioResQuery.rows.length > 0
+}
+
+export async function usuarioInscriptoEnPlan(usuarioId: number, planEstudioId: number): Promise<boolean> {
+  if (!usuarioId || !planEstudioId) {
+    throw new Error('El ID del usuario y del plan de estudio son requeridos para validar')
+  }
+
+  const usuarioPlanResQuery = await query(
+    `SELECT 1 FROM prod.usuario_plan_estudio 
+     WHERE usuario_id = $1 AND plan_estudio_id = $2`,
+    [usuarioId, planEstudioId]
+  )
+
+  return usuarioPlanResQuery.rows.length > 0
 }
 
 /**

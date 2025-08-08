@@ -1,10 +1,45 @@
+/* ------------------------------ LIB DATABASE ------------------------------ */
 import { query } from '@/lib/database/connection'
+import { existeUsuario } from '@/lib/database/usuarios.service'
+
+/* --------------------------------- MODELS --------------------------------- */
 import type {
   PlanEstudioDB,
   MateriaPlanEstudioDetalleDB,
   EstadisticasPlanDB,
   PlanEstudioDetalleDB,
 } from '@/models/database/planes-estudio.model'
+
+/* ---------------------------------- UTILS --------------------------------- */
+import {
+  esParametroValido,
+  getErrorMessageNoExisteCarrera,
+  getErrorMessageNoExistePlanEstudio,
+  getErrorMessageNoExisteUsuario,
+  getErrorMessageParametroInvalido,
+} from '@/utils/error.util'
+
+
+export async function existeCarrera(carreraId: number): Promise<boolean> {
+  if (typeof carreraId !== 'number' || carreraId <= 0) {
+    throw new Error('El ID de la carrera debe ser un número positivo')
+  }
+
+  const resQuery = await query(`SELECT id FROM prod.carrera WHERE id = $1`, [carreraId])
+
+  return resQuery.rows.length > 0
+}
+
+
+export async function existePlanEstudio(planEstudioId: number): Promise<boolean> {
+  if (typeof planEstudioId !== 'number' || planEstudioId <= 0) {
+    throw new Error('El ID del plan de estudio debe ser un número positivo')
+  }
+
+  const resQuery = await query(`SELECT id FROM prod.plan_estudio WHERE id = $1`, [planEstudioId])
+
+  return resQuery.rows.length > 0
+}
 
 /**
  * Obtiene un listado de todos los planes de estudio desde la base de datos (solo información básica: idPlan, nombreCarrera, anio)
@@ -15,6 +50,14 @@ export async function getPlanesEstudio(carreraId?: number): Promise<PlanEstudioD
   try {
     await query(`SET search_path = prod, public`)
 
+    /* ------------------------------ validaciones ------------------------------ */
+    if (carreraId) {
+      if (!esParametroValido(carreraId, 'number')) throw new Error(getErrorMessageParametroInvalido('carreraId'))
+      if (!(await existeCarrera(carreraId))) getErrorMessageNoExisteCarrera()
+    }
+
+    /* -------------------------------- query DB -------------------------------- */
+    // Obtener los planes de estudio filtrados por carrera si se proporciona, o todos los planes
     const planesResQuery = await query(
       `
       SELECT 
@@ -49,6 +92,15 @@ export async function getDetallePlanEstudio(
   usuarioId?: number
 ): Promise<PlanEstudioDetalleDB | null> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(planEstudioId, 'number')) throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+    if (usuarioId && !esParametroValido(usuarioId, 'number'))
+      throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (usuarioId && !(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* --------------------------------- quey DB -------------------------------- */
     await query(`SET search_path = prod, public`)
 
     // 1. Obtener la información básica del plan
@@ -65,7 +117,9 @@ export async function getDetallePlanEstudio(
       [planEstudioId]
     )
 
-    if (datosPlanResQuery.rows.length === 0) {
+    const noSeEncuentaDatosPlan = datosPlanResQuery.rows.length === 0
+
+    if (noSeEncuentaDatosPlan) {
       return null
     }
 
@@ -163,6 +217,12 @@ export async function getDetallePlanEstudio(
     `,
       [planEstudioId, usuarioId]
     )
+
+    const noSeEncuentraMateriasPlan = detallePlanResQuery.rows.length === 0
+
+    if (noSeEncuentraMateriasPlan) {
+      throw new Error('No se encontraron materias para el plan de estudio especificado')
+    }
 
     const materiasPlanDB: MateriaPlanEstudioDetalleDB[] =
       detallePlanResQuery.rows as unknown as MateriaPlanEstudioDetalleDB[]

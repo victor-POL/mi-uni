@@ -79,3 +79,38 @@ export const getErrorType = (error: unknown): ErrorType => {
 
   return ErrorType.UNKNOWN
 }
+
+export function esParametroValido(parametro: any, tipo: string): boolean {
+  if (parametro === undefined || parametro === null) return false
+
+  if (tipo === 'number' && typeof parametro !== 'number') return false
+  if (tipo === 'string' && typeof parametro !== 'string') return false
+  if (tipo === 'boolean' && typeof parametro !== 'boolean') return false
+  if (tipo === 'object' && typeof parametro !== 'object') return false
+
+  return true
+}
+
+export function getErrorMessageNoExisteCarrera(): string {
+  return `La carrera especificada no existe o no está registrada en el sistema`
+}
+
+export function getErrorMessageNoExistePlanEstudio(): string {
+  return `El plan de estudio especificado no existe o no está registrado en el sistema`
+}
+
+export function getErrorMessageNoExisteUsuario(): string {
+  return `El usuario no existe o no está registrado en el sistema`
+}
+
+export function getErrorMessageUsuarioNoInscriptoEnPlan(): string {
+  return `El usuario no está inscripto en el plan de estudio especificado`
+}
+
+export function getErrorMessageUsuarioInsscriptoEnPlan(): string {
+  return `El usuario ya está inscripto en el plan de estudio especificado`
+}
+
+export function getErrorMessageParametroInvalido(parametro: string): string {
+  return `El parámetro '${parametro}' es inválido o no está definido`
+}

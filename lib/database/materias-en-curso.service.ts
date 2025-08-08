@@ -1,12 +1,25 @@
+/* ------------------------------ LIB DATABASE ------------------------------ */
 import { query } from '@/lib/database/connection'
+import { existePlanEstudio } from '@/lib/database/planes-estudio.service'
+import { existeUsuario, usuarioInscriptoEnPlan } from '@/lib/database/usuarios.service'
+import { getAnioAcademico } from '@/lib/database/anio-academico.service'
 
+/* --------------------------------- MODELS --------------------------------- */
 import type {
   EstadisticasMateriasEnCursoDB,
   MateriaCursadaDisponibleDB,
   MateriaEnCursoUsuarioDB,
 } from '@/models/database/materias-en-curso.model'
-
 import type { ActualizarNotasMateriaEnCurso } from '@/models/materias-en-curso.model'
+
+/* ---------------------------------- UTILS --------------------------------- */
+import {
+  esParametroValido,
+  getErrorMessageParametroInvalido,
+  getErrorMessageNoExisteUsuario,
+  getErrorMessageNoExistePlanEstudio,
+  getErrorMessageUsuarioNoInscriptoEnPlan,
+} from '@/utils/error.util'
 
 /**
  * Obtiene un listado de materias en curso del usuario desde la base de datos
@@ -19,6 +32,18 @@ export async function getMateriasEnCurso(
   planEstudioId?: number
 ): Promise<MateriaEnCursoUsuarioDB[]> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (planEstudioId && !esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (planEstudioId && !(await existePlanEstudio(planEstudioId)))
+      throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (planEstudioId && !(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     const resQuery = await query(
       `SELECT 
          umc.usuario_id,
@@ -70,6 +95,17 @@ export async function getMateriasEnCursoDisponibles(
   planEstudioId: number
 ): Promise<MateriaCursadaDisponibleDB[]> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     const resQuery = await query(
       `SELECT 
          m.id,
@@ -110,14 +146,22 @@ export async function getMateriasEnCursoDisponibles(
  */
 export async function insertMateriaEnCurso(usuarioId: number, planEstudioId: number, materiaId: number): Promise<void> {
   try {
-    // Verificar que el usuario esté inscrito en el plan
-    const usuarioEnPlan = await query(
-      'SELECT 1 FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
-      [usuarioId, planEstudioId]
-    )
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
 
-    if (usuarioEnPlan.rows.length === 0) {
-      throw new Error('Usuario no inscrito en este plan de estudio')
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
+    // Verificar que el usuario tenga un año académico establecido
+    const anioAcademicoUsuario = await getAnioAcademico(usuarioId)
+
+    if (!anioAcademicoUsuario) {
+      throw new Error('El usuario no tiene un año académico establecido')
     }
 
     // Verificar que la materia pertenezca al plan
@@ -128,15 +172,6 @@ export async function insertMateriaEnCurso(usuarioId: number, planEstudioId: num
 
     if (materiaEnPlan.rows.length === 0) {
       throw new Error('Materia no pertenece al plan de estudio')
-    }
-
-    // Verificar que el usuario tenga un año académico establecido
-    const tieneAnioAcademico = await query(`SELECT 1 FROM prod.usuario_anio_academico WHERE usuario_id = $1`, [
-      usuarioId,
-    ])
-
-    if (tieneAnioAcademico.rows.length === 0) {
-      throw new Error('Debe establecer un año académico antes de agregar materias')
     }
 
     // Verificar que no esté ya cursando la materia
@@ -205,6 +240,17 @@ export async function updateNotasMateriaEnCurso(datos: ActualizarNotasMateriaEnC
  */
 export async function deleteMateriaEnCurso(usuarioId: number, planEstudioId: number, materiaId: number): Promise<void> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     const resQuery = await query(
       `DELETE FROM prod.usuario_materia_cursada 
        WHERE usuario_id = $1 
@@ -235,6 +281,19 @@ export async function getEstadisticasMateriasEnCurso(
   planEstudioId?: number
 ): Promise<EstadisticasMateriasEnCursoDB> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (planEstudioId && !esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (planEstudioId && !(await existePlanEstudio(planEstudioId)))
+      throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (planEstudioId && !(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
+
     const resQuery = await query(
       `SELECT 
          COUNT(*) as total_materias,

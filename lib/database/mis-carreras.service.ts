@@ -1,5 +1,9 @@
+/* ------------------------------ LIB DATABASE ------------------------------ */
 import { query } from '@/lib/database/connection'
+import { existeUsuario, usuarioInscriptoEnPlan } from '@/lib/database/usuarios.service'
+import { existePlanEstudio } from '@/lib/database/planes-estudio.service'
 
+/* --------------------------------- MODELS --------------------------------- */
 import type {
   CarreraDB,
   CarreraEstadisticasDB,
@@ -13,6 +17,17 @@ import type {
   EstadisticasHistoriaAcademica,
 } from '@/models/carrera-detalle.model'
 
+/* ---------------------------------- UTILS --------------------------------- */
+import {
+  esParametroValido,
+  getErrorMessageNoExistePlanEstudio,
+  getErrorMessageNoExisteUsuario,
+  getErrorMessageParametroInvalido,
+  getErrorMessageUsuarioInsscriptoEnPlan,
+  getErrorMessageUsuarioNoInscriptoEnPlan,
+} from '@/utils/error.util'
+
+
 /**
  * Obtiene un listado de todas las carreras del usuario que el usuario agregó a su perfil
  * @param usuarioId - ID del usuario
@@ -20,7 +35,12 @@ import type {
  */
 export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]> {
   try {
-    const estadisticasResQuery = await query(
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* -------------------------------- query DB -------------------------------- */
+    const carrerasResQuery = await query(
       `SELECT 
               usuario_plan_estudio.usuario_id, 
               usuario_plan_estudio.plan_estudio_id, 
@@ -37,7 +57,7 @@ export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]
       [usuarioId]
     )
 
-    const carrerrasDB: CarreraUsuarioDB[] = estadisticasResQuery.rows as unknown as CarreraUsuarioDB[]
+    const carrerrasDB: CarreraUsuarioDB[] = carrerasResQuery.rows as unknown as CarreraUsuarioDB[]
 
     return carrerrasDB
   } catch (error) {
@@ -53,7 +73,12 @@ export async function getCarreras(usuarioId: number): Promise<CarreraUsuarioDB[]
  */
 export async function getCarrerasDisponibles(usuarioId: number): Promise<CarreraDB[]> {
   try {
-    const estadisticasResQuery = await query(
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+
+    /* -------------------------------- query DB -------------------------------- */
+    const carrerasDisponiblesResQuery = await query(
       `SELECT DISTINCT
               carrera.id      as carrera_id, 
               carrera.nombre  as carrera_nombre
@@ -68,7 +93,7 @@ export async function getCarrerasDisponibles(usuarioId: number): Promise<Carrera
       [usuarioId]
     )
 
-    const carrerasDB: CarreraDB[] = estadisticasResQuery.rows as unknown as CarreraDB[]
+    const carrerasDB: CarreraDB[] = carrerasDisponiblesResQuery.rows as unknown as CarreraDB[]
 
     return carrerasDB
   } catch (error) {
@@ -84,15 +109,17 @@ export async function getCarrerasDisponibles(usuarioId: number): Promise<Carrera
  */
 export async function insertCarrera(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
-    const planAsociadoAUsuario = await query(
-      'SELECT 1 FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
-      [usuarioId, planEstudioId]
-    )
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
 
-    if (planAsociadoAUsuario.rows.length > 0) {
-      throw new Error('Ya estás anotado en esta carera y plan de estudio')
-    }
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (await usuarioInscriptoEnPlan(usuarioId, planEstudioId))
+      throw new Error(getErrorMessageUsuarioInsscriptoEnPlan())
 
+    /* -------------------------------- query DB -------------------------------- */
     // Iniciar transacción para asegurar consistencia
     await query('BEGIN', [])
 
@@ -153,12 +180,22 @@ export async function insertCarrera(usuarioId: number, planEstudioId: number): P
  */
 export async function eliminarCarrera(usuarioId: number, planEstudioId: number): Promise<void> {
   try {
-    const estadisticasResQuery = await query(
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
+    const deleteCarreraResQuery = await query(
       'DELETE FROM prod.usuario_plan_estudio WHERE usuario_id = $1 AND plan_estudio_id = $2',
       [usuarioId, planEstudioId]
     )
 
-    if (estadisticasResQuery.rowCount === 0) {
+    if (deleteCarreraResQuery.rowCount === 0) {
       throw new Error('No se encontró la carrera para eliminar')
     }
   } catch (error) {
@@ -181,6 +218,17 @@ export async function getEstadisticasProgreso(
   planEstudioId: number
 ): Promise<CarreraEstadisticasDB> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query db -------------------------------- */
     const estadisticasResQuery = await query(
       `SELECT
           usuario_materia_estado.plan_estudio_id,
@@ -196,26 +244,6 @@ export async function getEstadisticasProgreso(
     )
 
     const estadisticaCarrera: CarreraEstadisticasDB = estadisticasResQuery.rows[0] as unknown as CarreraEstadisticasDB
-
-    // print type of of every field
-    console.log('Tipo de estadisticaCarrera:', {
-      planEstudioId: typeof estadisticaCarrera.plan_estudio_id,
-      totalMateriasPlan: typeof estadisticaCarrera.total_materias_plan,
-      materiasAprobadas: typeof estadisticaCarrera.materias_aprobadas,
-      materiasEnFinal: typeof estadisticaCarrera.materias_en_final,
-      materiasPendientes: typeof estadisticaCarrera.materias_pendientes,
-      promedioGeneral: typeof estadisticaCarrera.promedio_general,
-    })
-
-    // preint valores
-    console.log('Valores de estadisticaCarrera:', {
-      planEstudioId: estadisticaCarrera.plan_estudio_id,
-      totalMateriasPlan: estadisticaCarrera.total_materias_plan,
-      materiasAprobadas: estadisticaCarrera.materias_aprobadas,
-      materiasEnFinal: estadisticaCarrera.materias_en_final,
-      materiasPendientes: estadisticaCarrera.materias_pendientes,
-      promedioGeneral: estadisticaCarrera.promedio_general,
-    })
 
     return estadisticaCarrera
   } catch (error) {
@@ -235,6 +263,17 @@ export async function getHistoriaAcademica(
   planEstudioId: number
 ): Promise<MateriaHistoriaAcademica[]> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     // Consultar todas las materias del usuario (incluyendo las en curso)
     const estadisticasResQuery = await query(
       `SELECT 
@@ -298,6 +337,17 @@ export async function getEstadisticasMateriasEnCurso(
   planEstudioId: number
 ): Promise<EstadisticasMateriasEnCurso> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     const estadisticasResQuery = await query(
       `SELECT 
          COUNT(*) as total_materias,
@@ -351,6 +401,17 @@ export async function getEstadisticasHistoriaAcademica(
   planEstudioId: number
 ): Promise<EstadisticasHistoriaAcademica> {
   try {
+    /* ------------------------------ validaciones ------------------------------ */
+    if (!esParametroValido(usuarioId, 'usuarioId')) throw new Error(getErrorMessageParametroInvalido('usuarioId'))
+    if (!esParametroValido(planEstudioId, 'planEstudioId'))
+      throw new Error(getErrorMessageParametroInvalido('planEstudioId'))
+
+    if (!(await existeUsuario(usuarioId))) throw new Error(getErrorMessageNoExisteUsuario())
+    if (!(await existePlanEstudio(planEstudioId))) throw new Error(getErrorMessageNoExistePlanEstudio())
+    if (!(await usuarioInscriptoEnPlan(usuarioId, planEstudioId)))
+      throw new Error(getErrorMessageUsuarioNoInscriptoEnPlan())
+
+    /* -------------------------------- query DB -------------------------------- */
     // Obtener estadísticas completas incluyendo materias en curso
     const estadisticasResQuery = await query(
       `SELECT 
